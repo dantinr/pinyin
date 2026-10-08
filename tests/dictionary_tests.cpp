@@ -1,10 +1,16 @@
 #include "pinyin/lexicon.hpp"
+#include "pinyin/input_session.hpp"
+
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
 
 #include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <set>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -99,6 +105,36 @@ const Sample samples[] = {
     {"jiaoshu", "教书", "jiao shu"},
     {"zhaoji", "着急", "zhao ji"},
     {"zhuoshou", "着手", "zhuo shou"},
+    {"zhi", "滞", "zhi"},
+    {"tingzhi", "停滞", "ting zhi"},
+    {"tingzhibuqian", "停滞不前", "ting zhi bu qian"},
+    {"zhihou", "滞后", "zhi hou"},
+    {"zhiliu", "滞留", "zhi liu"},
+    {"zhenzhuo", "斟酌", "zhen zhuo"},
+    {"ganga", "尴尬", "gan ga"},
+    {"cankui", "惭愧", "can kui"},
+    {"qieyi", "惬意", "qie yi"},
+    {"qiaocui", "憔悴", "qiao cui"},
+    {"juejiang", "倔强", "jue jiang"},
+    {"zhiniu", "执拗", "zhi niu"},
+    {"yunhan", "蕴含", "yun han"},
+    {"yunniang", "酝酿", "yun niang"},
+    {"qianyi", "迁移", "qian yi"},
+    {"qianyimohua", "潜移默化", "qian yi mo hua"},
+    {"cencibuqi", "参差不齐", "cen ci bu qi"},
+    {"xian", "癣", "xian"},
+    {"wanlaijuji", "万籁俱寂", "wan lai ju ji"},
+    {"ruhe", "如何", "ru he"},
+    {"zhantie", "粘贴", "zhan tie"},
+    {"huomian", "和面", "huo mian"},
+    {"caifeng", "裁缝", "cai feng"},
+    {"fengxi", "缝隙", "feng xi"},
+    {"junlie", "龟裂", "jun lie"},
+    {"qieerbushe", "锲而不舍", "qie er bu she"},
+    {"zenghen", "憎恨", "zeng hen"},
+    {"conglong", "葱茏", "cong long"},
+    {"baoxiang", "爆香", "bao xiang"},
+    {"ruyuanyichang", "如愿以偿", "ru yuan yi chang"},
 };
 const Sample priorities[] = {
     {"nihao", "你好", "ni hao"},
@@ -124,6 +160,7 @@ int wmain(int argc, wchar_t* argv[]) {
         std::ifstream input(std::filesystem::path(argv[1]), std::ios::binary);
         if (!input) throw std::runtime_error("cannot read dictionary for audit");
         std::set<std::pair<std::string, std::string>> readings;
+        std::map<std::string, std::set<std::string>> single_readings;
         std::size_t rows = 0, line_number = 0;
         for (std::string line; std::getline(input, line);) {
             ++line_number;
@@ -142,10 +179,50 @@ int wmain(int argc, wchar_t* argv[]) {
                 throw std::runtime_error("character/syllable count mismatch" + context);
             if (!readings.emplace(text, pronunciation).second)
                 throw std::runtime_error("duplicate word/reading" + context);
+            if (character_count(text) == 1) single_readings[text].insert(pronunciation);
             ++rows;
         }
         check(!input.bad(), "dictionary audit could not finish reading");
         check(rows == lexicon.size(), "source rows were merged unexpectedly");
+        // GB2312 level 1 occupies B0A1-D7F9, with full 94-cell rows except
+        // the final row. Windows code page 936 preserves this GB2312 range.
+        // Decode the coverage baseline locally, without importing a word list.
+        std::size_t level1_count = 0;
+        for (int high = 0xb0; high <= 0xd7; ++high) {
+            const int final_low = high == 0xd7 ? 0xf9 : 0xfe;
+            for (int low = 0xa1; low <= final_low; ++low) {
+                const char encoded[] = {static_cast<char>(high), static_cast<char>(low)};
+                wchar_t character = 0; char utf8[4]{};
+                if (MultiByteToWideChar(936, MB_ERR_INVALID_CHARS, encoded, 2, &character, 1) != 1)
+                    throw std::runtime_error("cannot decode level-1 coverage baseline");
+                const int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, &character, 1, utf8, 4, nullptr, nullptr);
+                if (!size) throw std::runtime_error("cannot encode level-1 coverage baseline");
+                const std::string text(utf8, size);
+                if (!single_readings.count(text)) throw std::runtime_error("missing level-1 character: " + text);
+                ++level1_count;
+            }
+        }
+        check(level1_count == 3755, "level-1 coverage range has changed");
+        for (const auto& reading : readings) {
+            // Every word must have independently usable characters for its
+            // annotated pronunciation, so segmented selection cannot stall.
+            std::istringstream syllables(reading.second);
+            for (std::size_t start = 0; start < reading.first.size();) {
+                auto end = start + 1;
+                while (end < reading.first.size() && (static_cast<unsigned char>(reading.first[end]) & 0xc0) == 0x80) ++end;
+                const auto text = reading.first.substr(start, end - start);
+                std::string syllable; syllables >> syllable;
+                const auto found = single_readings.find(text);
+                if (found == single_readings.end() || !found->second.count(syllable))
+                    throw std::runtime_error("word lacks a usable character reading: " + reading.first + " -> " + text + "/" + syllable);
+                start = end;
+            }
+            const auto candidates = lexicon.lookup_composition(reading.second);
+            if (std::none_of(candidates.begin(), candidates.end(), [&](const auto& candidate) {
+                return candidate.text == reading.first && candidate.pronunciation == reading.second;
+            })) throw std::runtime_error("reading is unreachable in the IME candidate list: " + reading.first + "/" + reading.second);
+        }
+        check(true, "character readings and candidate reachability audit completed");
         for (const auto& sample : samples)
             check(contains(lexicon, sample.query, sample.text, sample.pronunciation),
                   std::string("missing expected reading: ") + sample.query + " -> " + sample.text);
@@ -160,8 +237,24 @@ int wmain(int argc, wchar_t* argv[]) {
         check(!contains(lexicon, "ren can", "人参", "ren can"), "incorrect 人参 reading");
         check(!contains(lexicon, "yin xing", "银行", "yin xing"), "incorrect 银行 reading");
         check(!contains(lexicon, "jiao se", "角色", "jiao se"), "incorrect 角色 reading");
+        check(!contains(lexicon, "xuan", "癣", "xuan"), "incorrect 癣 reading");
+        check(!contains(lexicon, "gui lie", "龟裂", "gui lie"), "incorrect 龟裂 reading");
+        check(!contains(lexicon, "ju qiang", "倔强", "ju qiang"), "incorrect 倔强 reading");
+        check(!contains(lexicon, "can cha", "参差", "can cha"), "incorrect 参差 reading");
+        check(!contains(lexicon, "qia er bu she", "锲而不舍", "qia er bu she"), "incorrect 锲而不舍 reading");
+        pinyin::InputSession composition;
+        for (const char letter : std::string("tingzhi")) composition.handle(pinyin::InputKey::letter, letter, lexicon);
+        const auto stop = std::find_if(composition.candidates().begin(), composition.candidates().end(), [](const auto& word) { return word.text == "停"; });
+        if (stop == composition.candidates().end()) throw std::runtime_error("missing 停 prefix for segmented regression");
+        auto result = composition.select(static_cast<std::size_t>(stop - composition.candidates().begin()), lexicon);
+        check(result.action == pinyin::InputAction::update && composition.preedit() == "停zhi", "selecting 停 lost the remaining zhi");
+        const auto stagnate = std::find_if(composition.candidates().begin(), composition.candidates().end(), [](const auto& word) { return word.text == "滞"; });
+        if (stagnate == composition.candidates().end()) throw std::runtime_error("missing 滞 for independent selection");
+        result = composition.select(static_cast<std::size_t>(stagnate - composition.candidates().begin()), lexicon);
+        check(result.action == pinyin::InputAction::commit && result.text == "停滞" && result.pronunciation == "ting zhi",
+            "independent 滞 selection did not complete 停滞");
         std::cout << "PASS: audited " << rows << " rows, " << checks
-                  << " checks; load " << load_ms << " ms\n";
+                  << " checks; " << level1_count << " level-1 characters; load " << load_ms << " ms\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL after " << checks << " checks: " << error.what() << '\n';

@@ -40,13 +40,14 @@ int wmain(int argc, wchar_t* argv[]) {
         check(argc == 2 && SUCCEEDED(initialized), "test setup failed");
         TestWorkspace workspace;
         const auto user_path = pinyin::default_user_path();
+        // Artificial user word 如荷 stays absent from the base dictionary as it expands.
         check(pinyin::ime_learning_enabled(user_path) && !std::filesystem::exists(user_path.parent_path()),
             "fresh TSF learning settings were not enabled by default");
         {
             Harness ime(argv[1]); ime.type("ruhe"); choose(ime, L"如");
             check(!std::filesystem::exists(user_path), "default learning saved an incomplete phrase");
-            choose(ime, L"何");
-            check(ime.store->text == L"如何" && personal_words(user_path).at({"ru he", "如何"}) == 1,
+            choose(ime, L"荷");
+            check(ime.store->text == L"如荷" && personal_words(user_path).at({"ru he", "如荷"}) == 1,
                 "fresh TSF did not automatically learn without an on command");
             ime.close(); check(ime.unload_result == S_OK, "default learning service leaked DLL references");
         }
@@ -140,6 +141,16 @@ int wmain(int argc, wchar_t* argv[]) {
                 check(ime.store->text == previous + sample.second && ime.compositions() == 0,
                     "expanded deployed dictionary failed to commit");
             }
+            const auto before_stagnate = ime.store->text;
+            ime.type("tingzhi"); choose(ime, L"停滞");
+            check(ime.store->text == before_stagnate + L"停滞" && ime.compositions() == 0,
+                "reported missing word 停滞 did not commit as a whole");
+            ime.type("tingzhi"); choose(ime, L"停");
+            check(ime.store->text == before_stagnate + L"停滞停zhi" && ime.compositions() == 1,
+                "selecting 停 lost its unconverted zhi suffix");
+            choose(ime, L"滞");
+            check(ime.store->text == before_stagnate + L"停滞停滞" && ime.compositions() == 0,
+                "reported missing character 滞 was not independently selectable");
             ime.close();
             check(ime.unload_result == S_OK, "activated service leaked DLL references");
         }
@@ -150,27 +161,29 @@ int wmain(int argc, wchar_t* argv[]) {
             ime.type("ruhe"); choose(ime, L"如");
             check(ime.store->text == L"如he" && ime.compositions() == 1, "partial selection did not retain the second syllable");
             check(personal_words(user_path).empty(), "partial TSF selection was learned before completion");
-            choose(ime, L"何");
-            check(ime.store->text == L"如何" && ime.compositions() == 0, "independent second-character commit failed");
-            check(personal_words(user_path).at({"ru he", "如何"}) == 1, "confirmed TSF phrase was not automatically learned");
+            choose(ime, L"荷");
+            check(ime.store->text == L"如荷" && ime.compositions() == 0, "independent second-character commit failed");
+            check(personal_words(user_path).at({"ru he", "如荷"}) == 1, "confirmed TSF phrase was not automatically learned");
             ime.close(); check(ime.unload_result == S_OK, "learning service leaked DLL references");
         }
         {
-            Harness ime(argv[1]); ime.type("ruhe"); ime.key(VK_SPACE);
-            check(ime.store->text == L"如何" && ime.compositions() == 0, "restarted TSF did not offer the learned whole word");
-            check(personal_words(user_path).at({"ru he", "如何"}) == 2, "restarted TSF learning lost the selection count");
+            // A learned custom word remains selectable alongside the newly
+            // curated common homophone 如何, whose base priority stays higher.
+            Harness ime(argv[1]); ime.type("ruhe"); choose(ime, L"如荷");
+            check(ime.store->text == L"如荷" && ime.compositions() == 0, "restarted TSF did not offer the learned whole word");
+            check(personal_words(user_path).at({"ru he", "如荷"}) == 2, "restarted TSF learning lost the selection count");
             const auto previous = personal_words(user_path);
             ime.type("ru'he"); choose(ime, L"如"); ime.key(VK_ESCAPE);
-            check(ime.store->text == L"如何" && personal_words(user_path) == previous, "cancelled segmented TSF input was learned");
+            check(ime.store->text == L"如荷" && personal_words(user_path) == previous, "cancelled segmented TSF input was learned");
             ime.type("ru'he"); choose(ime, L"如"); ime.key(VK_RETURN);
-            check(ime.store->text == L"如何如he" && personal_words(user_path) == previous, "raw Enter submission was learned");
+            check(ime.store->text == L"如荷如he" && personal_words(user_path) == previous, "raw Enter submission was learned");
             ime.type("ru'he"); choose(ime, L"如"); ime.keys->OnSetFocus(FALSE); Harness::pump();
             check(ime.compositions() == 0 && personal_words(user_path) == previous, "focus loss learned unfinished input");
             pinyin::set_ime_learning(user_path, false);
             ime.type("ruhe"); choose(ime, L"如");
             check(ime.store->text.size() >= 4 && ime.store->text.substr(ime.store->text.size() - 3) == L"如he",
                 "turning learning off retained the whole personal word");
-            choose(ime, L"何"); check(personal_words(user_path) == previous, "disabled TSF learning still saved words");
+            choose(ime, L"荷"); check(personal_words(user_path) == previous, "disabled TSF learning still saved words");
             ime.close(); check(ime.unload_result == S_OK, "restarted learning service leaked DLL references");
         }
         pinyin::set_ime_learning(user_path, true);
