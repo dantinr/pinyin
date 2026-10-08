@@ -51,6 +51,35 @@ std::uint64_t parse_weight(const std::string& value) {
         throw std::runtime_error("weight must be in [1, 1000000000]");
     return result;
 }
+
+bool spellable_suffix(const std::string& query, std::size_t offset) {
+    std::vector<bool> reachable(query.size() + 1, false);
+    reachable[offset] = true;
+    for (auto position = offset; position < query.size(); ++position) {
+        if (!reachable[position]) continue;
+        for (const auto& syllable : syllables()) {
+            const auto remaining = query.size() - position;
+            // The last syllable may still be in progress, e.g. niha -> ni + ha.
+            if (remaining < syllable.size() && syllable.compare(0, remaining, query, position, remaining) == 0)
+                return true;
+            if (query.compare(position, syllable.size(), syllable) != 0) continue;
+            auto next = position + syllable.size();
+            if (next < query.size() && query[next] == '\'') ++next;
+            reachable[next] = true;
+        }
+    }
+    return reachable.back();
+}
+
+Candidate ranked(const Entry& entry, const UserDictionary& users) {
+    Candidate candidate;
+    static_cast<Entry&>(candidate) = entry;
+    const auto found = users.find({entry.pronunciation, entry.text});
+    if (found != users.end()) candidate.selections = found->second;
+    candidate.score = std::log1p(static_cast<double>(candidate.weight)) +
+        2.0 * std::log1p(static_cast<double>(std::min<std::uint64_t>(candidate.selections, 100)));
+    return candidate;
+}
 } // namespace
 
 std::string normalize_query(const std::string& input) {
@@ -207,13 +236,8 @@ std::vector<Candidate> Lexicon::lookup(const std::string& input, const UserDicti
     // One displayed candidate per text, preserving the best matching pronunciation.
     std::map<std::string, Candidate> unique;
     for (const auto id : matches) {
-        Candidate candidate;
-        static_cast<Entry&>(candidate) = entries_[id];
-        const auto found = users.find({candidate.pronunciation, candidate.text});
-        if (found != users.end()) candidate.selections = found->second;
         // Prototype ranking: a capped personal boost avoids unbounded dominance.
-        candidate.score = std::log1p(static_cast<double>(candidate.weight)) +
-            2.0 * std::log1p(static_cast<double>(std::min<std::uint64_t>(candidate.selections, 100)));
+        auto candidate = ranked(entries_[id], users);
         const auto previous = unique.find(candidate.text);
         if (previous == unique.end() || candidate.score > previous->second.score ||
             (candidate.score == previous->second.score && candidate.pronunciation < previous->second.pronunciation))
@@ -222,6 +246,49 @@ std::vector<Candidate> Lexicon::lookup(const std::string& input, const UserDicti
     std::vector<Candidate> result;
     for (auto& item : unique) result.push_back(std::move(item.second));
     std::sort(result.begin(), result.end(), [](const Candidate& a, const Candidate& b) {
+        if (a.score != b.score) return a.score > b.score;
+        return a.text < b.text;
+    });
+    if (result.size() > limit) result.resize(limit);
+    return result;
+}
+
+void Lexicon::match_prefixes(std::size_t node, std::size_t offset, const std::string& query,
+                            std::vector<std::pair<std::size_t, std::size_t>>& result) const {
+    for (const auto id : nodes_[node].entries) result.emplace_back(id, offset);
+    if (offset == query.size()) return;
+    for (const auto& edge : nodes_[node].next) {
+        if (query.compare(offset, edge.first.size(), edge.first) != 0) continue;
+        auto next = offset + edge.first.size();
+        if (next < query.size() && query[next] == '\'') ++next;
+        match_prefixes(edge.second, next, query, result);
+    }
+}
+
+std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
+                                                const UserDictionary& users, std::size_t limit) const {
+    const auto query = normalize_query(input);
+    std::vector<std::pair<std::size_t, std::size_t>> matches;
+    match_prefixes(0, 0, query, matches);
+    std::map<std::size_t, bool> suffixes;
+    std::map<std::pair<std::string, std::size_t>, Candidate> unique;
+    for (const auto& match : matches) {
+        const auto end = match.second;
+        auto suffix = suffixes.find(end);
+        if (suffix == suffixes.end()) suffix = suffixes.emplace(end, spellable_suffix(query, end)).first;
+        if (!suffix->second) continue;
+        auto candidate = ranked(entries_[match.first], users);
+        candidate.input_end = end;
+        const auto key = std::make_pair(candidate.text, end);
+        const auto previous = unique.find(key);
+        if (previous == unique.end() || candidate.score > previous->second.score ||
+            (candidate.score == previous->second.score && candidate.pronunciation < previous->second.pronunciation))
+            unique[key] = std::move(candidate);
+    }
+    std::vector<Candidate> result;
+    for (auto& item : unique) result.push_back(std::move(item.second));
+    std::sort(result.begin(), result.end(), [](const Candidate& a, const Candidate& b) {
+        if (a.input_end != b.input_end) return a.input_end > b.input_end;
         if (a.score != b.score) return a.score > b.score;
         return a.text < b.text;
     });

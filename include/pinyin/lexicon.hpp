@@ -17,6 +17,8 @@ struct Entry {
 struct Candidate : Entry {
     std::uint64_t selections = 0;
     double score = 0;
+    // End offset in the normalized query; only set by lookup_composition.
+    std::size_t input_end = 0;
 };
 
 // A user record is a word and its pronunciation, never a keystroke history.
@@ -36,6 +38,10 @@ public:
     std::vector<Candidate> lookup(const std::string& input,
                                   const UserDictionary& users = {},
                                   std::size_t limit = 10) const;
+    // Full matches first, then convertible prefixes with a spellable remainder.
+    std::vector<Candidate> lookup_composition(const std::string& input,
+                                             const UserDictionary& users = {},
+                                             std::size_t limit = 90) const;
     std::size_t size() const noexcept { return entries_.size(); }
 
 private:
@@ -48,6 +54,8 @@ private:
     std::map<UserKey, std::size_t> entry_index_;
     void match(std::size_t node, std::size_t offset, const std::string& query,
                std::vector<std::size_t>& result) const;
+    void match_prefixes(std::size_t node, std::size_t offset, const std::string& query,
+                        std::vector<std::pair<std::size_t, std::size_t>>& result) const;
 };
 
 void learn(UserDictionary& users, const Candidate& candidate);

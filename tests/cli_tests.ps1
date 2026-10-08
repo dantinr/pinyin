@@ -87,6 +87,33 @@ try {
     Assert-Check ($run.Code -ne 0) 'invalid batch query did not return failure'
     $run = Invoke-CLI -CliArguments @('--learn', '--no-learn')
     Assert-Check ($run.Code -ne 0) 'contradictory privacy flags were accepted'
+
+    $imeUser = Join-Path $root 'ime-settings\words.user.tsv'
+    $flag = $imeUser + '.ime-learning.disabled'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'status', '--user', $imeUser)
+    Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('已开启')) 'IME learning was not enabled by default'
+    Assert-Check (-not (Test-Path -LiteralPath ([IO.Path]::GetDirectoryName($imeUser)))) 'reading default settings created personal storage'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'on', '--user', $imeUser)
+    Assert-Check ($run.Code -eq 0 -and -not (Test-Path -LiteralPath $flag)) 'IME learning did not enable'
+    Assert-Check (-not (Test-Path -LiteralPath $imeUser)) 'enabling IME learning invented a personal word record'
+    $run = Invoke-CLI -CliArguments @('--learn', '--user', $imeUser) -InputText "/add ru'he 如何`n/quit`n"
+    Assert-Check ($run.Code -eq 0 -and ([IO.File]::ReadAllText($imeUser, $encoding)).Contains('如何')) 'shared CLI/IME user file failed'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'off', '--user', $imeUser)
+    Assert-Check ($run.Code -eq 0 -and (Test-Path -LiteralPath $flag)) 'IME learning did not disable'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'status', '--user', $imeUser)
+    Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('已关闭')) 'IME learning opt-out did not persist across processes'
+    Assert-Check (([IO.File]::ReadAllText($imeUser, $encoding)).Contains('如何')) 'disabling IME learning deleted personal words'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'clear', '--user', $imeUser)
+    Assert-Check ($run.Code -eq 0 -and -not ([IO.File]::ReadAllText($imeUser, $encoding)).Contains('如何')) 'IME user-data clear failed'
+    Assert-Check (Test-Path -LiteralPath $flag) 'clearing words discarded the explicit learning opt-out'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'on', '--query', 'nihao', '--user', $imeUser)
+    Assert-Check ($run.Code -ne 0 -and (Test-Path -LiteralPath $flag)) 'query unexpectedly enabled persistent IME learning'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'invalid', '--user', $imeUser)
+    Assert-Check ($run.Code -ne 0) 'invalid IME learning setting was accepted'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'on', '--user', $imeUser)
+    Assert-Check ($run.Code -eq 0 -and -not (Test-Path -LiteralPath $flag)) 'IME learning opt-out was not removed when re-enabled'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'status', '--user', $imeUser)
+    Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('已开启')) 'IME learning did not stay enabled after removing the opt-out'
     Write-Output "PASS: $script:checks CLI checks"
 } finally {
     # Resolve and verify the exact uniquely-created directory before recursive cleanup.

@@ -8,7 +8,7 @@ namespace pinyin {
 // Construct only when the user explicitly enables learning.
 class UserStore {
 public:
-    explicit UserStore(std::filesystem::path path);
+    explicit UserStore(std::filesystem::path path, unsigned lock_timeout_ms = 0);
     ~UserStore();
     UserStore(const UserStore&) = delete;
     UserStore& operator=(const UserStore&) = delete;

@@ -1,5 +1,6 @@
 #include "pinyin/lexicon.hpp"
 #include "pinyin/user_store.hpp"
+#include "pinyin/learning_dictionary.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -17,16 +18,6 @@ std::filesystem::path executable_directory() {
     if (size == 0 || size >= buffer.size()) throw std::runtime_error("cannot locate executable");
     buffer.resize(size);
     return std::filesystem::path(buffer).parent_path();
-}
-
-std::filesystem::path default_user_path() {
-    const auto size = GetEnvironmentVariableW(L"LOCALAPPDATA", nullptr, 0);
-    if (size == 0) throw std::runtime_error("LOCALAPPDATA is unavailable; specify --user");
-    std::wstring value(size, L'\0');
-    const auto copied = GetEnvironmentVariableW(L"LOCALAPPDATA", value.data(), size);
-    if (copied == 0 || copied >= size) throw std::runtime_error("cannot read LOCALAPPDATA");
-    value.resize(copied);
-    return std::filesystem::path(value) / L"PrivatePinyin" / L"words.user.tsv";
 }
 
 std::string utf8(const std::wstring& value) {
@@ -63,9 +54,10 @@ bool read_line(std::string& line) {
 }
 
 void usage() {
-    std::cout << "Windows 中文拼音词库原型（尚未接入系统输入法）\n"
+    std::cout << "Windows 中文拼音输入法：词库工具\n"
         "用法：private_pinyin [--dict 文件] [--learn | --no-learn] [--user 文件] [--query 拼音]\n"
-        "默认不读取或写入用户词库；--learn 显式开启本地学习。\n"
+        "命令行交互默认不读取或写入用户词库；--learn 显式开启本地学习。\n"
+        "系统输入法默认开启本地学习；设置：--ime-learning on|off|status|clear。\n"
         "交互：输入拼音查词；输入候选编号确认；/add 拼音 词语；/clear；/help；/quit。\n"
         "多音节自造词请用分隔符，例如：/add yin'si 隐私\n"
         "--query 只查询，不学习；候选仅匹配完整词条，暂不支持简拼、补全或整句解码。\n";
@@ -97,6 +89,7 @@ int wmain(int argc, wchar_t* argv[]) {
         bool query_mode = false;
         bool learning = false;
         bool learning_specified = false;
+        std::string ime_learning;
         for (int i = 1; i < argc; ++i) {
             const std::wstring option(argv[i]);
             if (option == L"--help" || option == L"-h") { usage(); return 0; }
@@ -104,12 +97,29 @@ int wmain(int argc, wchar_t* argv[]) {
                 if (learning_specified) throw std::runtime_error("specify only one learning mode");
                 learning_specified = true;
                 learning = option == L"--learn";
+            } else if (option == L"--ime-learning") {
+                if (!ime_learning.empty() || ++i >= argc) throw std::runtime_error("expected one IME learning command");
+                ime_learning = utf8(argv[i]);
+                if (ime_learning.empty()) throw std::runtime_error("expected an IME learning command");
             } else if (option == L"--dict" || option == L"--user" || option == L"--query") {
                 if (++i >= argc) throw std::runtime_error("missing option value");
                 if (option == L"--dict") dictionary = argv[i];
                 else if (option == L"--user") user_path = argv[i];
                 else { query = utf8(argv[i]); query_mode = true; }
             } else throw std::runtime_error("unknown option; use --help");
+        }
+        if (!ime_learning.empty()) {
+            if (query_mode || learning_specified) throw std::runtime_error("IME settings cannot be combined with query/CLI learning");
+            if (user_path.empty()) user_path = pinyin::default_user_path();
+            if (ime_learning == "on" || ime_learning == "off") {
+                pinyin::set_ime_learning(user_path, ime_learning == "on");
+            } else if (ime_learning == "clear") {
+                if (std::filesystem::exists(user_path)) { pinyin::UserStore store(user_path, 100); store.save({}); }
+                std::cout << "系统输入法个人词条和选择次数已清空。\n"; return 0;
+            } else if (ime_learning != "status") throw std::runtime_error("use --ime-learning on|off|status|clear");
+            std::cout << "系统输入法本地学习" << (pinyin::ime_learning_enabled(user_path) ? "已开启" : "已关闭（无痕）") << "。\n";
+            std::cout << "设置在下一轮拼音输入时生效；关闭后不读取或写入个人词库。\n";
+            return 0;
         }
         pinyin::Lexicon base;
         base.load(dictionary);
@@ -121,7 +131,7 @@ int wmain(int argc, wchar_t* argv[]) {
         std::unique_ptr<pinyin::UserStore> store;
         pinyin::UserDictionary users;
         if (learning) {
-            if (user_path.empty()) user_path = default_user_path();
+            if (user_path.empty()) user_path = pinyin::default_user_path();
             store = std::make_unique<pinyin::UserStore>(user_path);
             users = store->load();
         }

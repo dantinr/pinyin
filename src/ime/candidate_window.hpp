@@ -9,7 +9,7 @@ class CandidateWindow {
 public:
     ~CandidateWindow();
     void show(const InputSession& input, const RECT& caret, HWND owner,
-              std::function<void(std::size_t)> select);
+              std::function<void(std::size_t)> select, const std::wstring& mode);
     void hide() noexcept;
     bool visible() const noexcept { return window_ && IsWindowVisible(window_); }
 private:
@@ -20,6 +20,7 @@ private:
     std::size_t page_start_ = 0;
     std::size_t selected_ = 0;
     std::wstring raw_;
+    std::wstring hint_;
     std::vector<std::wstring> rows_;
     std::function<void(std::size_t)> select_;
     static LRESULT CALLBACK procedure(HWND, UINT, WPARAM, LPARAM) noexcept;

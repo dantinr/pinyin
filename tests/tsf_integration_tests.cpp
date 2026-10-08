@@ -1,5 +1,35 @@
 #include "tsf_text_store.hpp"
+#include "test_workspace.hpp"
+#include "pinyin/learning_dictionary.hpp"
 #include <iostream>
+
+namespace {
+void choose(pinyin::testing::Harness& ime, const wchar_t* text) {
+    using namespace pinyin::testing;
+    ComPtr<ITfUIElementMgr> ui; Harness::require(ime.manager.As(&ui), "get UI manager");
+    ComPtr<IEnumTfUIElements> enumeration; Harness::require(ui->EnumUIElements(&enumeration), "enumerate UI");
+    for (;;) {
+        ComPtr<ITfUIElement> element; ULONG fetched = 0;
+        if (enumeration->Next(1, &element, &fetched) != S_OK || !fetched) break;
+        GUID id{}; element->GetGUID(&id);
+        if (id != candidate_id) continue;
+        ComPtr<ITfCandidateListUIElement> candidates; Harness::require(element.As(&candidates), "get candidates");
+        UINT count = 0; candidates->GetCount(&count);
+        for (UINT i = 0; i < count; ++i) {
+            BSTR value = nullptr; Harness::require(candidates->GetString(i, &value), "read candidate");
+            const bool matches = std::wstring(value, SysStringLen(value)) == text; SysFreeString(value);
+            if (!matches) continue;
+            for (UINT step = 0; step < i; ++step) ime.key(VK_DOWN);
+            if (!ime.key(VK_SPACE)) throw std::runtime_error("candidate was not selected");
+            return;
+        }
+    }
+    throw std::runtime_error("expected candidate not found");
+}
+pinyin::UserDictionary personal_words(const std::filesystem::path& path) {
+    pinyin::UserStore store(path); return store.load();
+}
+}
 
 int wmain(int argc, wchar_t* argv[]) {
     using namespace pinyin::testing;
@@ -8,10 +38,32 @@ int wmain(int argc, wchar_t* argv[]) {
     auto check = [&](bool condition, const char* message) { ++checks; if (!condition) throw std::runtime_error(message); };
     try {
         check(argc == 2 && SUCCEEDED(initialized), "test setup failed");
+        TestWorkspace workspace;
+        const auto user_path = pinyin::default_user_path();
+        check(pinyin::ime_learning_enabled(user_path) && !std::filesystem::exists(user_path.parent_path()),
+            "fresh TSF learning settings were not enabled by default");
+        {
+            Harness ime(argv[1]); ime.type("ruhe"); choose(ime, L"如");
+            check(!std::filesystem::exists(user_path), "default learning saved an incomplete phrase");
+            choose(ime, L"何");
+            check(ime.store->text == L"如何" && personal_words(user_path).at({"ru he", "如何"}) == 1,
+                "fresh TSF did not automatically learn without an on command");
+            ime.close(); check(ime.unload_result == S_OK, "default learning service leaked DLL references");
+        }
+        { pinyin::UserStore store(user_path); store.save({}); }
+        pinyin::set_ime_learning(user_path, false);
         {
             Harness ime(argv[1]);
             check(!ime.key(VK_SPACE), "idle space was swallowed");
+            BYTE actual_keyboard[256]{}, modified_keyboard[256]{};
+            check(!!GetKeyboardState(actual_keyboard), "cannot capture test thread keyboard state");
+            std::copy(std::begin(actual_keyboard), std::end(actual_keyboard), std::begin(modified_keyboard));
+            modified_keyboard[VK_CONTROL] = 0x80; modified_keyboard[VK_CAPITAL] = 1;
+            check(!!SetKeyboardState(modified_keyboard), "cannot set test thread modifier fixture");
             ime.type("nihao");
+            const bool modifiers_restored = (GetKeyState(VK_CONTROL) & 0x8000) && (GetKeyState(VK_CAPITAL) & 1);
+            SetKeyboardState(actual_keyboard);
+            check(modifiers_restored, "synthetic keyboard input did not restore the test thread's state");
             check(ime.store->text == L"nihao" && ime.compositions() == 1, "real TSF preedit failed");
             ComPtr<ITfCandidateListUIElement> candidates;
             {
@@ -27,12 +79,13 @@ int wmain(int argc, wchar_t* argv[]) {
             check(!!candidates, "TSF candidate UI was not registered");
             UINT count = 0, selected = 99, page = 99;
             candidates->GetCount(&count); candidates->GetSelection(&selected); candidates->GetCurrentPage(&page);
-            check(count == 2 && selected == 0 && page == 0, "candidate UI metadata mismatch");
+            check(count >= 2 && selected == 0 && page == 0, "candidate UI metadata mismatch");
             BSTR word = nullptr; Harness::require(candidates->GetString(0, &word), "read candidate");
             const std::wstring first(word, SysStringLen(word)); SysFreeString(word);
             check(first == L"你好", "candidate UI text mismatch");
-            UINT page_start = 99, pages = 0;
-            check(candidates->GetPageIndex(&page_start, 1, &pages) == S_OK && pages == 1 && page_start == 0,
+            UINT page_starts[10]{}, pages = 0;
+            check(candidates->GetPageIndex(page_starts, 10, &pages) == S_OK &&
+                pages == (count + pinyin::InputSession::page_size - 1) / pinyin::InputSession::page_size && page_starts[0] == 0,
                 "candidate UI page boundaries mismatch");
             BOOL shown = TRUE;
             Harness::require(candidates->Show(FALSE), "hide candidate UI"); candidates->IsShown(&shown);
@@ -90,11 +143,44 @@ int wmain(int argc, wchar_t* argv[]) {
             ime.close();
             check(ime.unload_result == S_OK, "activated service leaked DLL references");
         }
+        check(personal_words(user_path).empty(), "explicitly disabled TSF mode saved personal words");
+        pinyin::set_ime_learning(user_path, true);
+        {
+            Harness ime(argv[1]);
+            ime.type("ruhe"); choose(ime, L"如");
+            check(ime.store->text == L"如he" && ime.compositions() == 1, "partial selection did not retain the second syllable");
+            check(personal_words(user_path).empty(), "partial TSF selection was learned before completion");
+            choose(ime, L"何");
+            check(ime.store->text == L"如何" && ime.compositions() == 0, "independent second-character commit failed");
+            check(personal_words(user_path).at({"ru he", "如何"}) == 1, "confirmed TSF phrase was not automatically learned");
+            ime.close(); check(ime.unload_result == S_OK, "learning service leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); ime.type("ruhe"); ime.key(VK_SPACE);
+            check(ime.store->text == L"如何" && ime.compositions() == 0, "restarted TSF did not offer the learned whole word");
+            check(personal_words(user_path).at({"ru he", "如何"}) == 2, "restarted TSF learning lost the selection count");
+            const auto previous = personal_words(user_path);
+            ime.type("ru'he"); choose(ime, L"如"); ime.key(VK_ESCAPE);
+            check(ime.store->text == L"如何" && personal_words(user_path) == previous, "cancelled segmented TSF input was learned");
+            ime.type("ru'he"); choose(ime, L"如"); ime.key(VK_RETURN);
+            check(ime.store->text == L"如何如he" && personal_words(user_path) == previous, "raw Enter submission was learned");
+            ime.type("ru'he"); choose(ime, L"如"); ime.keys->OnSetFocus(FALSE); Harness::pump();
+            check(ime.compositions() == 0 && personal_words(user_path) == previous, "focus loss learned unfinished input");
+            pinyin::set_ime_learning(user_path, false);
+            ime.type("ruhe"); choose(ime, L"如");
+            check(ime.store->text.size() >= 4 && ime.store->text.substr(ime.store->text.size() - 3) == L"如he",
+                "turning learning off retained the whole personal word");
+            choose(ime, L"何"); check(personal_words(user_path) == previous, "disabled TSF learning still saved words");
+            ime.close(); check(ime.unload_result == S_OK, "restarted learning service leaked DLL references");
+        }
+        pinyin::set_ime_learning(user_path, true);
+        const auto before_private = personal_words(user_path);
         for (const auto scope : {IS_PRIVATE, IS_PASSWORD, IS_NUMERIC_PASSWORD, IS_NUMERIC_PIN,
                                  IS_ALPHANUMERIC_PIN, IS_ALPHANUMERIC_PIN_SET}) {
             Harness ime(argv[1], scope);
             check(!ime.key('N'), "sensitive InputScope swallowed a letter");
             check(ime.store->text.empty() && ime.compositions() == 0, "sensitive InputScope started a composition");
+            check(personal_words(user_path) == before_private, "sensitive InputScope changed personal words");
             ime.close();
             check(ime.unload_result == S_OK, "sensitive context leaked service references");
         }

@@ -28,7 +28,7 @@ void CandidateWindow::hide() noexcept {
     select_ = {};
 }
 void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND owner,
-                           std::function<void(std::size_t)> select) {
+                           std::function<void(std::size_t)> select, const std::wstring& mode) {
     DpiScope dpi_scope;
     if (!window_) {
         std::lock_guard<std::mutex> lock(class_mutex);
@@ -53,8 +53,9 @@ void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND ow
     if (font_) DeleteObject(font_);
     font_ = CreateFontW(-MulDiv(16, dpi ? dpi : 96, 96), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
         DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Microsoft YaHei UI");
-    raw_ = wide(input.raw());
-    raw_.insert(input.cursor(), L"|");
+    const auto confirmed = wide(input.confirmed_text());
+    raw_ = confirmed + wide(input.raw());
+    raw_.insert(confirmed.size() + input.cursor(), L"|");
     page_start_ = input.page() * InputSession::page_size;
     selected_ = input.selected(); rows_.clear();
     for (auto i = page_start_; i < input.candidates().size() && i < page_start_ + InputSession::page_size; ++i)
@@ -66,8 +67,8 @@ void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND ow
     SIZE measured{};
     GetTextExtentPoint32W(dc, raw_.data(), static_cast<int>(raw_.size()), &measured);
     width = std::max(width, static_cast<int>(measured.cx) + 2 * padding_);
-    const auto hint = hint_text(rows_.empty());
-    GetTextExtentPoint32W(dc, hint, static_cast<int>(wcslen(hint)), &measured);
+    hint_ = mode + L" · " + hint_text(rows_.empty());
+    GetTextExtentPoint32W(dc, hint_.data(), static_cast<int>(hint_.size()), &measured);
     width = std::max(width, static_cast<int>(measured.cx) + 2 * padding_ + 2);
     for (const auto& row : rows_) {
         GetTextExtentPoint32W(dc, row.data(), static_cast<int>(row.size()), &measured);
@@ -102,8 +103,7 @@ void CandidateWindow::paint() noexcept {
     }
     OffsetRect(&row, 0, row_height_);
     SetTextColor(dc, GetSysColor(COLOR_GRAYTEXT));
-    const wchar_t* hint = hint_text(rows_.empty());
-    DrawTextW(dc, hint, -1, &row, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
+    DrawTextW(dc, hint_.data(), static_cast<int>(hint_.size()), &row, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
     SelectObject(dc, previous_font); EndPaint(window_, &paint);
 }
 LRESULT CALLBACK CandidateWindow::procedure(HWND window, UINT message, WPARAM w, LPARAM l) noexcept {

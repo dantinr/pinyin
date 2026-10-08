@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "candidate_window.hpp"
 #include "pinyin/input_session.hpp"
+#include "pinyin/learning_dictionary.hpp"
 #include <functional>
 #include <memory>
 #include <optional>
@@ -109,7 +110,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     ComPtr<CandidateElement> element_;
     DWORD element_id_ = TF_INVALID_UIELEMENTID;
     TfGuidAtom attribute_atom_ = TF_INVALID_GUIDATOM;
-    Lexicon lexicon_;
+    std::unique_ptr<LearningDictionary> dictionary_;
     InputSession input_;
     CandidateWindow window_;
     bool chinese_ = true;
@@ -231,15 +232,26 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         window_.show(input_, caret, owner, [this](std::size_t index) {
             protect([&] {
                 if (!composing_) return S_FALSE;
+                if (index >= input_.candidates().size()) return S_FALSE;
+                const auto spelling = input_.preedit();
+                const auto word = input_.candidates()[index];
                 auto context = composing_; const auto generation = generation_;
                 return request(context.Get(), TF_ES_ASYNC | TF_ES_READWRITE,
-                    [this, context, generation, index](TfEditCookie write) {
+                    [this, context, generation, index, spelling, word](TfEditCookie write) {
                         if (generation != generation_ || !same_object(context.Get(), composing_.Get())) return S_OK;
-                        auto result = input_.select(index);
-                        return result.action == InputAction::commit ? finish(write, wide(result.text)) : S_FALSE;
+                        if (input_.preedit() != spelling || index >= input_.candidates().size() ||
+                            input_.candidates()[index].text != word.text ||
+                            input_.candidates()[index].pronunciation != word.pronunciation ||
+                            input_.candidates()[index].input_end != word.input_end) return S_FALSE;
+                        if (input_disabled(context.Get()) || private_input(context.Get(), write)) return S_FALSE;
+                        auto previous = input_;
+                        const auto result = input_.select(index, dictionary_->lexicon(), dictionary_->users());
+                        const auto hr = apply_result(context.Get(), write, result);
+                        if (FAILED(hr)) input_ = std::move(previous);
+                        return hr;
                     });
             });
-        });
+        }, !dictionary_->enabled() ? L"无痕" : dictionary_->available() ? L"本地学习" : L"学习暂不可用");
         if (element_) element_->set_visible(window_.visible());
         return S_OK;
     }
@@ -261,7 +273,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             auto hr = composition_->GetRange(&range);
             if (FAILED(hr)) return hr;
         }
-        const auto text = wide(input_.raw());
+        const auto text = wide(input_.preedit());
         auto hr = range->SetText(cookie, 0, text.data(), static_cast<LONG>(text.size()));
         if (FAILED(hr)) return hr;
         ComPtr<ITfProperty> attribute;
@@ -273,13 +285,28 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         hr = range->Clone(&caret); if (FAILED(hr)) return hr;
         caret->Collapse(cookie, TF_ANCHOR_START);
         LONG shifted = 0;
-        hr = caret->ShiftEnd(cookie, static_cast<LONG>(input_.cursor()), &shifted, nullptr);
+        const auto position = wide(input_.confirmed_text()).size() + input_.cursor();
+        hr = caret->ShiftEnd(cookie, static_cast<LONG>(position), &shifted, nullptr);
         if (FAILED(hr)) return hr;
         caret->Collapse(cookie, TF_ANCHOR_END);
         TF_SELECTION selection{caret.Get(), {TF_AE_NONE, FALSE}};
         hr = context->SetSelection(cookie, 1, &selection);
         if (FAILED(hr)) return hr;
         return update_ui(cookie);
+    }
+    HRESULT apply_result(ITfContext* context, TfEditCookie cookie, const InputResult& result) {
+        if (result.action == InputAction::pass) return S_FALSE;
+        own_edit_ = true;
+        struct EditingScope {
+            bool& flag;
+            explicit EditingScope(bool& value) : flag(value) { flag = true; }
+            ~EditingScope() { flag = false; }
+        } editing(editing_);
+        const auto hr = result.action == InputAction::update ? update_composition(context, cookie) :
+            finish(cookie, result.action == InputAction::commit ? wide(result.text) : std::wstring{});
+        if (hr == S_OK && result.action == InputAction::commit && !result.pronunciation.empty())
+            dictionary_->remember(result);
+        return hr;
     }
     bool wants_key(ITfContext* context, WPARAM key) {
         if (!manager_) return false;
@@ -290,7 +317,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         if (!chinese_ || (GetKeyState(VK_CAPITAL) & 1)) return false;
         const auto translated = translate(key);
         if (!translated) return false;
-        if (translated->type == InputKey::letter) return input_.raw().size() < 128;
+        if (translated->type == InputKey::letter) return input_.spelling_size() < 128;
         if (input_.empty()) return false;
         if (translated->type == InputKey::digit) {
             if (GetKeyState(VK_SHIFT) & 0x8000) return false;
@@ -322,7 +349,10 @@ public:
             if (!manager || client == TF_CLIENTID_NULL) return E_INVALIDARG;
             if (manager_) return E_UNEXPECTED;
             if (flags & (TF_TMF_SECUREMODE | TF_TMF_COMLESS | TF_TMF_IMMERSIVEMODE)) return E_NOTIMPL;
-            lexicon_.load(module_path().parent_path() / L"data" / L"base.tsv");
+            std::filesystem::path user_path;
+            try { user_path = default_user_path(); } catch (const std::exception&) {}
+            dictionary_ = std::make_unique<LearningDictionary>(
+                module_path().parent_path() / L"data" / L"base.tsv", std::move(user_path));
             manager_ = manager; client_ = client; chinese_ = true;
             ComPtr<ITfKeystrokeMgr> keys; auto hr = manager_.As(&keys);
             if (SUCCEEDED(hr)) hr = keys->AdviseKeyEventSink(client_, this, TRUE);
@@ -374,13 +404,10 @@ public:
                 if (input_disabled(target.Get()) || private_input(target.Get(), cookie)) return S_FALSE;
                 if (composition_ && !same_object(composing_.Get(), target.Get())) return S_FALSE;
                 auto previous = input_;
-                const auto result = input_.handle(translated->type, translated->value, lexicon_);
+                if (input_.empty() && translated->type == InputKey::letter) dictionary_->refresh();
+                const auto result = input_.handle(translated->type, translated->value, dictionary_->lexicon(), dictionary_->users());
                 if (result.action == InputAction::pass) return S_FALSE;
-                own_edit_ = true;
-                struct EditingScope { bool& flag; explicit EditingScope(bool& value) : flag(value) { flag = true; }
-                    ~EditingScope() { flag = false; } } editing(editing_);
-                const auto hr = result.action == InputAction::update ? update_composition(target.Get(), cookie) :
-                    finish(cookie, result.action == InputAction::commit ? wide(result.text) : std::wstring{});
+                const auto hr = apply_result(target.Get(), cookie, result);
                 if (FAILED(hr)) input_ = std::move(previous);
                 return hr;
             });

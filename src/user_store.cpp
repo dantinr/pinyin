@@ -24,12 +24,22 @@ std::uint64_t parse_count(const std::string& value) {
 }
 }
 
-UserStore::UserStore(std::filesystem::path path) : path_(std::filesystem::absolute(std::move(path))) {
+UserStore::UserStore(std::filesystem::path path, unsigned lock_timeout_ms) : path_(std::filesystem::absolute(std::move(path))) {
     std::filesystem::create_directories(path_.parent_path());
     auto lock_path = path_;
     lock_path += L".lock";
-    HANDLE handle = CreateFileW(lock_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
-                                OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    const auto deadline = GetTickCount64() + std::min(lock_timeout_ms, 1000u);
+    HANDLE handle = INVALID_HANDLE_VALUE;
+    do {
+        handle = CreateFileW(lock_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
+                            OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (handle != INVALID_HANDLE_VALUE) break;
+        const auto error = GetLastError();
+        if ((error != ERROR_SHARING_VIOLATION && error != ERROR_LOCK_VIOLATION) || GetTickCount64() >= deadline) {
+            SetLastError(error); break;
+        }
+        Sleep(5);
+    } while (true);
     if (handle == INVALID_HANDLE_VALUE) throw windows_error("cannot lock user dictionary; another session may be using it");
     lock_ = handle;
 }

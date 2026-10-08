@@ -293,9 +293,26 @@ public:
         require(service.As(&keys), "get active key interface");
     }
     bool key(WPARAM value, bool drain_messages = true) {
+        struct KeyboardState {
+            BYTE original[256]{};
+            bool isolated = false;
+            explicit KeyboardState(bool synthetic) {
+                if (!synthetic) return;
+                BYTE neutral[256]{};
+                isolated = !!GetKeyboardState(original);
+                if (!isolated || !SetKeyboardState(neutral)) throw std::runtime_error("cannot isolate synthetic keyboard state");
+            }
+            ~KeyboardState() { if (isolated) SetKeyboardState(original); }
+        };
         BOOL eaten = FALSE;
-        require(keys->OnTestKeyDown(context.Get(), value, 0, &eaten), "test key");
-        if (eaten) require(keys->OnKeyDown(context.Get(), value, 0, &eaten), "handle key");
+        {
+            // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setkeyboardstate
+            // SetKeyboardState changes only the calling thread. The interactive
+            // demo passes false and continues to use its actual modifier state.
+            KeyboardState keyboard(drain_messages);
+            require(keys->OnTestKeyDown(context.Get(), value, 0, &eaten), "test key");
+            if (eaten) require(keys->OnKeyDown(context.Get(), value, 0, &eaten), "handle key");
+        }
         if (drain_messages) pump(); return !!eaten;
     }
     bool key_up(WPARAM value, bool drain_messages = true) {
@@ -311,7 +328,9 @@ public:
         const std::string query(value);
         while (*value) {
             const auto letter = *value++;
-            if (!key(static_cast<unsigned char>(letter) - 'a' + 'A'))
+            const auto virtual_key = letter == '\'' ? static_cast<WPARAM>(VK_OEM_7) :
+                static_cast<WPARAM>(static_cast<unsigned char>(letter) - 'a' + 'A');
+            if (!key(virtual_key))
                 throw std::runtime_error("letter was not handled: " + query + ", key=" + letter +
                     ", CapsLock=" + std::to_string(GetKeyState(VK_CAPITAL) & 1));
         }
