@@ -1,0 +1,36 @@
+# CMake / Visual Studio build directories
+/build*/
+/cmake-build*/
+/out/
+/Debug/
+/Release/
+/x64/
+/x86/
+
+# Local IDE state
+/.vs/
+/.vscode/
+/.idea/
+*.user
+*.suo
+
+# Compiled artifacts and compiler caches
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.idb
+*.ipch
+
+# Personal dictionaries, lock files, temporary writes and backups
+*.user.tsv*
+
+# Editor and Windows temporary files
+*.swp
+*.swo
+*~
+Thumbs.db
+Desktop.ini

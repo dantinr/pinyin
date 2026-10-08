@@ -1,0 +1,101 @@
+# Hand-authored demonstration dictionary, not a production corpus.
+# text<TAB>space-separated pinyin<TAB>weight. Weights are illustrative.
+你	ni	10000
+我	wo	10000
+他	ta	9000
+她	ta	8500
+它	ta	8000
+好	hao	9500
+是	shi	12000
+的	de	15000
+在	zai	11000
+不	bu	11000
+有	you	10000
+和	he	10000
+中	zhong	9000
+国	guo	8000
+人	ren	10000
+民	min	7000
+先	xian	7000
+县	xian	5000
+现	xian	6500
+西	xi	6000
+安	an	6000
+女	nv	6000
+绿	lv	5000
+重	zhong	6500
+重	chong	4000
+行	xing	7000
+行	hang	4500
+长	chang	6000
+长	zhang	4500
+你好	ni hao	10000
+拟好	ni hao	100
+你们	ni men	8000
+我们	wo men	9500
+他们	ta men	9000
+谢谢	xie xie	8500
+再见	zai jian	7500
+您好	nin hao	6500
+中国	zhong guo	10000
+中文	zhong wen	8000
+中国人	zhong guo ren	7500
+人民	ren min	8000
+北京	bei jing	9000
+背景	bei jing	4000
+南京	nan jing	7500
+上海	shang hai	8500
+广州	guang zhou	7500
+深圳	shen zhen	7500
+重庆	chong qing	7500
+西安	xi an	6500
+喜欢	xi huan	8500
+学习	xue xi	8500
+工作	gong zuo	9000
+生活	sheng huo	8500
+时间	shi jian	9500
+世界	shi jie	8500
+现在	xian zai	9500
+今天	jin tian	9000
+明天	ming tian	8000
+昨天	zuo tian	7500
+电脑	dian nao	8000
+软件	ruan jian	7500
+程序	cheng xu	7000
+开发	kai fa	7500
+输入	shu ru	7500
+输入法	shu ru fa	7000
+拼音	pin yin	6500
+词库	ci ku	6000
+候选	hou xuan	5500
+隐私	yin si	7000
+保护	bao hu	7500
+本地	ben di	7000
+离线	li xian	6500
+用户	yong hu	8000
+数据	shu ju	8500
+安全	an quan	8500
+密码	mi ma	6500
+网络	wang luo	8000
+开源	kai yuan	6500
+设置	she zhi	7500
+测试	ce shi	7500
+完成	wan cheng	8500
+成功	cheng gong	8500
+失败	shi bai	7500
+重量	zhong liang	6500
+重新	chong xin	8500
+银行	yin hang	7000
+行为	xing wei	7000
+长大	zhang da	6000
+长度	chang du	6000
+女孩	nv hai	7000
+绿色	lv se	6500
+女儿	nv er	6500
+旅游	lv you	7000
+努力	nu li	7500
+支持	zhi chi	7500
+问题	wen ti	9000
+解决	jie jue	8500
+选择	xuan ze	8000
+欢迎	huan ying	7500
