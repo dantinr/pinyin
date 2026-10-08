@@ -55,12 +55,13 @@ bool read_line(std::string& line) {
 
 void usage() {
     std::cout << "Windows 中文拼音输入法：词库工具\n"
-        "用法：private_pinyin [--dict 文件] [--learn | --no-learn] [--user 文件] [--query 拼音]\n"
+        "用法：private_pinyin [--dict 文件] [--learn | --no-learn] [--user 文件] [--query 拼音 | --sentence 拼音]\n"
         "命令行交互默认不读取或写入用户词库；--learn 显式开启本地学习。\n"
         "系统输入法默认开启本地学习；设置：--ime-learning on|off|status|clear。\n"
         "交互：输入拼音查词；输入候选编号确认；/add 拼音 词语；/clear；/help；/quit。\n"
         "多音节自造词请用分隔符，例如：/add yin'si 隐私\n"
-        "--query 只查询，不学习；候选仅匹配完整词条，暂不支持简拼、补全或整句解码。\n";
+        "--query 查询完整词条；--sentence 生成离线整句候选；两者均不读取或保存个人词库。\n"
+        "暂不支持简拼、补全、模糊音或纠错。\n";
 }
 
 pinyin::Lexicon with_users(const pinyin::Lexicon& base, const pinyin::UserDictionary& users) {
@@ -87,6 +88,7 @@ int wmain(int argc, wchar_t* argv[]) {
         std::filesystem::path user_path;
         std::string query;
         bool query_mode = false;
+        bool sentence_mode = false;
         bool learning = false;
         bool learning_specified = false;
         std::string ime_learning;
@@ -101,11 +103,14 @@ int wmain(int argc, wchar_t* argv[]) {
                 if (!ime_learning.empty() || ++i >= argc) throw std::runtime_error("expected one IME learning command");
                 ime_learning = utf8(argv[i]);
                 if (ime_learning.empty()) throw std::runtime_error("expected an IME learning command");
-            } else if (option == L"--dict" || option == L"--user" || option == L"--query") {
+            } else if (option == L"--dict" || option == L"--user" || option == L"--query" || option == L"--sentence") {
                 if (++i >= argc) throw std::runtime_error("missing option value");
                 if (option == L"--dict") dictionary = argv[i];
                 else if (option == L"--user") user_path = argv[i];
-                else { query = utf8(argv[i]); query_mode = true; }
+                else {
+                    if (query_mode) throw std::runtime_error("specify one query or sentence input");
+                    query = utf8(argv[i]); query_mode = true; sentence_mode = option == L"--sentence";
+                }
             } else throw std::runtime_error("unknown option; use --help");
         }
         if (!ime_learning.empty()) {
@@ -125,7 +130,7 @@ int wmain(int argc, wchar_t* argv[]) {
         base.load(dictionary);
         if (query_mode) {
             // Batch lookup is always stateless, even if --learn was also passed.
-            display(base.lookup(query));
+            display(sentence_mode ? base.decode(query) : base.lookup(query));
             return 0;
         }
         std::unique_ptr<pinyin::UserStore> store;

@@ -209,6 +209,8 @@ void Lexicon::add(Entry entry) {
         } else node = found->second;
     }
     const auto id = entries_.size();
+    if (entry.pronunciation.find(' ') != std::string::npos)
+        word_readings_[entry.text].insert(entry.pronunciation);
     entries_.push_back(std::move(entry));
     nodes_[node].entries.push_back(id);
     entry_index_.emplace(key, id);
@@ -285,10 +287,18 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
             (candidate.score == previous->second.score && candidate.pronunciation < previous->second.pronunciation))
             unique[key] = std::move(candidate);
     }
+    if (limit) {
+        for (auto& candidate : decode_normalized(query, users, 5)) {
+            if (!candidate.synthesized) continue; // Exact matches are already in the prefix index.
+            const auto key = std::make_pair(candidate.text, candidate.input_end);
+            if (!unique.count(key)) unique.emplace(key, std::move(candidate));
+        }
+    }
     std::vector<Candidate> result;
     for (auto& item : unique) result.push_back(std::move(item.second));
     std::sort(result.begin(), result.end(), [](const Candidate& a, const Candidate& b) {
         if (a.input_end != b.input_end) return a.input_end > b.input_end;
+        if (a.synthesized != b.synthesized) return !a.synthesized;
         if (a.score != b.score) return a.score > b.score;
         return a.text < b.text;
     });

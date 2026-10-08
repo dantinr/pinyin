@@ -58,6 +58,16 @@ try {
     Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('西安') -and -not $run.Output.Contains('先')) 'batch boundary query failed'
     Assert-Check (-not (Test-Path -LiteralPath ([IO.Path]::GetDirectoryName($batchUser)))) 'batch query wrote personal data'
 
+    $run = Invoke-CLI -CliArguments @('--sentence', 'wozaibeijing', '--learn', '--user', $batchUser)
+    Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('1. 我在北京') -and $run.Output.Contains('[wo zai bei jing]')) 'offline sentence query failed'
+    Assert-Check (-not (Test-Path -LiteralPath ([IO.Path]::GetDirectoryName($batchUser)))) 'sentence query accessed personal storage'
+    $run = Invoke-CLI -CliArguments @('--query', 'wozaibeijing')
+    Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('没有完整匹配')) 'exact query unexpectedly generated sentences'
+    $run = Invoke-CLI -CliArguments @('--sentence', 'wozaibeijing', '--query', 'nihao')
+    Assert-Check ($run.Code -ne 0) 'contradictory query modes were accepted'
+    $run = Invoke-CLI -CliArguments @('--sentence', 'wo1')
+    Assert-Check ($run.Code -ne 0) 'invalid sentence query was accepted'
+
     $run = Invoke-CLI -CliArguments @('--learn', '--user', $user) -InputText "/add yin'si'shu'ru'fa 隐私输入法`nyinsishurufa`n1`n/quit`n"
     Assert-Check ($run.Code -eq 0 -and $run.Error -eq '') ('learning session failed: ' + $run.Error)
     Assert-Check ($run.Output.Contains('确认：隐私输入法')) 'custom word selection failed'
@@ -108,6 +118,8 @@ try {
     Assert-Check (Test-Path -LiteralPath $flag) 'clearing words discarded the explicit learning opt-out'
     $run = Invoke-CLI -CliArguments @('--ime-learning', 'on', '--query', 'nihao', '--user', $imeUser)
     Assert-Check ($run.Code -ne 0 -and (Test-Path -LiteralPath $flag)) 'query unexpectedly enabled persistent IME learning'
+    $run = Invoke-CLI -CliArguments @('--ime-learning', 'on', '--sentence', 'wozaibeijing', '--user', $imeUser)
+    Assert-Check ($run.Code -ne 0 -and (Test-Path -LiteralPath $flag)) 'sentence query unexpectedly enabled persistent IME learning'
     $run = Invoke-CLI -CliArguments @('--ime-learning', 'invalid', '--user', $imeUser)
     Assert-Check ($run.Code -ne 0) 'invalid IME learning setting was accepted'
     $run = Invoke-CLI -CliArguments @('--ime-learning', 'on', '--user', $imeUser)

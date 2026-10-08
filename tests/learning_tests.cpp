@@ -1,5 +1,6 @@
 #include "pinyin/learning_dictionary.hpp"
 #include "test_workspace.hpp"
+#include <algorithm>
 #include <atomic>
 #include <fstream>
 #include <iostream>
@@ -37,7 +38,11 @@ int main() {
             "default local learning failed or invented word records");
         const InputResult confirmed{InputAction::commit, "如何", "ru he"};
         InputSession input; type(input, dictionary, "ruhe");
-        auto result = input.handle(InputKey::space, 0, dictionary.lexicon(), dictionary.users());
+        const auto prefix = std::find_if(input.candidates().begin(), input.candidates().end(),
+            [](const auto& word) { return word.text == "如"; });
+        if (prefix == input.candidates().end()) throw std::runtime_error("missing partial selection fixture");
+        auto result = input.select(static_cast<std::size_t>(prefix - input.candidates().begin()),
+            dictionary.lexicon(), dictionary.users());
         check(result.action == InputAction::update && input.preedit() == "如he", "partial selection regression");
         check(!dictionary.remember(result) && !std::filesystem::exists(path), "partial word was persisted");
         result = input.handle(InputKey::space, 0, dictionary.lexicon(), dictionary.users());

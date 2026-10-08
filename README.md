@@ -6,6 +6,7 @@
 
 - 按音节建立 Trie，查询连续全拼，例如 `nihao`、`chongqing`。
 - 输入法优先显示整词候选，同时提供拼音前缀候选；选中一段后保留剩余拼音，继续选字或选词。
+- 离线整句组词：未收录完整词条时，按词库读音自动切分拼音并组合候选，例如 `wozaibeijingshangban → 我在北京上班`；可逐段改选。
 - 保留歧义切分：`xian` 可以匹配“先”和“西安”；`xi'an` 仅匹配后者。
 - 处理大小写、空格和 `ü → v`；输入和词库不使用声调。
 - 词级多音字读音；同词不同读音保留，同词同读音取较大权重。
@@ -42,6 +43,7 @@ ctest --test-dir build -C Release --output-on-failure
 ```powershell
 .\build\Release\private_pinyin.exe --query nihao
 .\build\Release\private_pinyin.exe --query "xi'an"
+.\build\Release\private_pinyin.exe --sentence wozaibeijingshangban
 .\build\Release\private_pinyin.exe
 .\build\Release\private_pinyin.exe --learn
 ```
@@ -55,6 +57,8 @@ ctest --test-dir build -C Release --output-on-failure
 点击测试窗口白色文档区域，输入 `nihao`，前两个候选应为“你好”“拟好”，按空格选“你好”、按数字 `2` 选“拟好”。后面还会提供“你”等前缀候选。也可以输入 `chongqing` 或 `xi'an`。例如 `ruhe` 可直接选择“如何”，`tingzhi` 可选择“停止”“停滞”“停职”。也可分段选择：先选“停”，组合文本变成“停zhi”，再选“滞”，最终上屏“停滞”；未收录的组合可以同样逐段确认。
 
 分段选择时，Backspace 在剩余拼音开头撤回上一段，Home 恢复全部原拼音以便重新编辑。Esc 取消整个未上屏组合；Enter 提交“已选汉字 + 剩余拼音”，不会学习这个混合结果。
+
+输入 `wozaibeijingshangban`，空格可整句上屏“我在北京上班”。需要改词时，先选前缀“我”，再选“在”“背景”，最后空格确认剩余“上班”。整句选中后同样遵守本地学习开关和 16 字上限。
 
 独立窗口采用专用的 TSF 测试文档，只激活本进程的输入法，便于验证 DLL，不代表记事本、浏览器或 Office 已经通过兼容性测试。测试窗口没有文件保存功能。
 
@@ -97,7 +101,7 @@ TSF DLL 默认开启本地学习，输入法在全部选字成功上屏后保存
 
 命令行程序显式传入 `--learn` 后，在 `%LOCALAPPDATA%\PrivatePinyin\words.user.tsv` 保存“词语、拼音、选择次数”。可用 `--user 路径` 指定位置。数据为本地明文，不提供静态加密，也不能防止其他有权限访问文件的本机程序读取它。锁文件仅用于并发控制，不含输入记录。
 
-交互时输入拼音展示最多 10 个候选，输入数字确认；查询本身不学习，只有确认选词才增加计数。`--query` 始终使用基础词库，不读取或写入个人数据，即使同时传入 `--learn`。
+交互时输入拼音展示最多 10 个完整词条候选，输入数字确认；查询本身不学习，只有确认选词才增加计数。`--query` 只查询完整词条，`--sentence` 查询自动组合的整句候选；两个批量模式始终只使用基础词库，不读取或写入个人数据，即使同时传入 `--learn`。
 
 ```text
 > nihao
@@ -135,12 +139,14 @@ TSF DLL 默认开启本地学习，输入法在全部选字成功上屏后保存
 
 ## 模块与后续工作
 
-`include/pinyin/lexicon.hpp` 是词库接口，`src/lexicon.cpp` 实现解析、索引和排序；`src/input_session.cpp` 是与平台无关的组合状态机；`src/user_store.cpp` 负责命令行的本地存储；`src/main.cpp` 是命令行入口。
+`include/pinyin/lexicon.hpp` 是词库接口，`src/lexicon.cpp` 实现解析、索引和排序，`src/sentence_decoder.cpp` 实现有界整句解码；`src/input_session.cpp` 是与平台无关的组合状态机；`src/user_store.cpp` 负责命令行的本地存储；`src/main.cpp` 是命令行入口。
 
 `src/ime/text_service.cpp` 接入 TSF，`candidate_window.cpp` 提供候选窗口及 UI 元素，`display_attribute.cpp` 提供组合下划线，`module.cpp` 提供 DLL 导出、COM 工厂和系统注册。`src/ime_demo.cpp` 与 `tests/tsf_text_store.hpp` 是开发测试宿主，实际 TSF DLL 不依赖测试宿主。
 
-输入法支持整词匹配和前缀分段选词，不支持未完成音节补全、简拼、模糊音、纠错、双拼或自动整句解码。用户输入 `niha` 可先选“你”，但不会补全为“你好”；未收录的“我在北京”可逐段确认，开启学习后再作为完整词条输入。命令行查询仍只匹配完整词条。排名算法是原型，并非训练过的语言模型；用户加分有上限，暂未实现时间衰减。新词读音来自用户实际选择的候选，不枚举单字多音字读音组合。
+输入法支持整词匹配、自动整句组合和前缀分段选词，不支持未完成音节补全、简拼、模糊音、纠错或双拼。用户输入 `niha` 可先选“你”，但不会补全为“你好”。整句解码在每个拼音位置保留最多 16 条路径，同一结束位置保留最多 16 个词候选，生成最多 5 个整句候选；上限为 32 个音节、128 字节拼音和 512 字节输出，超过上限时仍可逐段选择。完整词条优先于组合候选，词级读音和显式分隔符参与切分；不会通过两个单字为已知双字词另造读音。
 
-建议后续依次完成：应用兼容性验证、正式词库和质量评测、拼音切分图与整句解码、语言栏与标点策略、签名安装和升级。
+整句排名使用人工词权重、分词数量惩罚和有上限的本地选择次数，并非训练过的语言模型，不能保证任意句子的语法、同音词或多音字都正确。已选短句可学习成完整词条；未确认的自动候选不保存。`--query` 保留原有完整词条查询，`--sentence` 可独立验证整句结果。整句测试覆盖首选、手动改选、多音词读音约束、用户词复用、32 音节边界、歧义长输入性能和重启学习；真实 TSF 测试覆盖整句上屏及取消不学习。
+
+建议后续依次完成：应用兼容性验证、正式词库和句子质量评测、上下文排序、语言栏与标点策略、签名安装和升级。
 
 TSF 接口设计参考微软 [Text Service Registration](https://learn.microsoft.com/en-us/windows/win32/tsf/text-service-registration)、[Compositions](https://learn.microsoft.com/en-us/windows/win32/tsf/compositions)、[RequestEditSession](https://learn.microsoft.com/en-us/windows/win32/api/msctf/nf-msctf-itfcontext-requesteditsession)。未引入小狼毫、Rime 或微软 SampleIME 源码。

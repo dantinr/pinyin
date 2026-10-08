@@ -71,7 +71,7 @@ int wmain(int argc, wchar_t* argv[]) {
         segmented.add({"你", "ni", 20}); segmented.add({"好", "hao", 20});
         segmented.add({"重庆", "chong qing", 20}); segmented.add({"何", "he", 20});
         input.clear(); type(input, segmented, "ruhe");
-        check(input.candidates().front().text == "如" && input.candidates().front().input_end == 2,
+        check(input.candidates()[index_of(input, "如")].input_end == 2,
             "unknown phrase did not expose its first syllable");
         result = input.select(index_of(input, "如"), segmented);
         check(result.action == InputAction::update && result.pronunciation.empty() && input.preedit() == "如he" &&

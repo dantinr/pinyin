@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -17,8 +18,9 @@ struct Entry {
 struct Candidate : Entry {
     std::uint64_t selections = 0;
     double score = 0;
-    // End offset in the normalized query; only set by lookup_composition.
+    // End offset in the normalized query; set by composition lookup and decode.
     std::size_t input_end = 0;
+    bool synthesized = false; // A complete candidate assembled from multiple words.
 };
 
 // A user record is a word and its pronunciation, never a keystroke history.
@@ -38,6 +40,11 @@ public:
     std::vector<Candidate> lookup(const std::string& input,
                                   const UserDictionary& users = {},
                                   std::size_t limit = 10) const;
+    // Offline, bounded sentence decoding. Existing whole words precede
+    // synthesized sentences; every result consumes the complete input.
+    std::vector<Candidate> decode(const std::string& input,
+                                 const UserDictionary& users = {},
+                                 std::size_t limit = 5) const;
     // Full matches first, then convertible prefixes with a spellable remainder.
     std::vector<Candidate> lookup_composition(const std::string& input,
                                              const UserDictionary& users = {},
@@ -52,6 +59,9 @@ private:
     std::vector<Node> nodes_{1};
     std::vector<Entry> entries_;
     std::map<UserKey, std::size_t> entry_index_;
+    std::map<std::string, std::set<std::string>> word_readings_;
+    std::vector<Candidate> decode_normalized(const std::string& query,
+                                            const UserDictionary& users, std::size_t limit) const;
     void match(std::size_t node, std::size_t offset, const std::string& query,
                std::vector<std::size_t>& result) const;
     void match_prefixes(std::size_t node, std::size_t offset, const std::string& query,

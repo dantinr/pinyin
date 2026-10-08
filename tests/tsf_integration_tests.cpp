@@ -151,11 +151,47 @@ int wmain(int argc, wchar_t* argv[]) {
             choose(ime, L"滞");
             check(ime.store->text == before_stagnate + L"停滞停滞" && ime.compositions() == 0,
                 "reported missing character 滞 was not independently selectable");
+            const auto before_sentence = ime.store->text;
+            ime.type("wozaibeijingshangban");
+            check(ime.store->text == before_sentence + L"wozaibeijingshangban" && ime.compositions() == 1,
+                "whole-sentence preedit failed");
+            ime.key(VK_SPACE);
+            check(ime.store->text == before_sentence + L"我在北京上班" && ime.compositions() == 0,
+                "whole-sentence first candidate did not commit through real TSF");
+            ime.type("wozaibeijingshangban"); choose(ime, L"我");
+            check(ime.store->text == before_sentence + L"我在北京上班我zaibeijingshangban" && ime.compositions() == 1,
+                "sentence prefix correction lost unconverted text");
+            choose(ime, L"在"); choose(ime, L"背景"); ime.key(VK_SPACE);
+            check(ime.store->text == before_sentence + L"我在北京上班我在背景上班" && ime.compositions() == 0,
+                "manual sentence correction did not commit through real TSF");
             ime.close();
             check(ime.unload_result == S_OK, "activated service leaked DLL references");
         }
         check(personal_words(user_path).empty(), "explicitly disabled TSF mode saved personal words");
         pinyin::set_ime_learning(user_path, true);
+        {
+            Harness ime(argv[1]);
+            const auto before_sentence = personal_words(user_path);
+            ime.type("wozaibeijingshangban"); ime.key(VK_ESCAPE);
+            check(ime.store->text.empty() && personal_words(user_path) == before_sentence,
+                "cancelled automatic sentence was learned");
+            ime.type("wozaibeijingshangban"); ime.key(VK_RETURN);
+            check(ime.store->text == L"wozaibeijingshangban" && personal_words(user_path) == before_sentence,
+                "raw sentence Enter submission was learned");
+            ime.type("wozaibeijingshangban"); ime.key(VK_SPACE);
+            check(ime.store->text == L"wozaibeijingshangban我在北京上班" && ime.compositions() == 0 &&
+                personal_words(user_path).at({"wo zai bei jing shang ban", "我在北京上班"}) == 1,
+                "selected TSF sentence was not learned");
+            ime.close(); check(ime.unload_result == S_OK, "sentence service leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); ime.type("wozaibeijingshangban"); ime.key(VK_SPACE);
+            check(ime.store->text == L"我在北京上班" &&
+                personal_words(user_path).at({"wo zai bei jing shang ban", "我在北京上班"}) == 2,
+                "restarted TSF did not reuse a selected sentence");
+            ime.close(); check(ime.unload_result == S_OK, "restarted sentence service leaked DLL references");
+        }
+        { pinyin::UserStore store(user_path); store.save({}); }
         {
             Harness ime(argv[1]);
             ime.type("ruhe"); choose(ime, L"如");
