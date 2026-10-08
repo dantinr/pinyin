@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
-project(private_pinyin VERSION 0.1.0 LANGUAGES CXX)
+project(private_pinyin VERSION 0.2.0 LANGUAGES CXX)
 if(NOT WIN32)
   message(FATAL_ERROR "This prototype currently targets Windows.")
 endif()
 
-add_library(pinyin_core src/lexicon.cpp src/user_store.cpp)
+add_library(pinyin_core src/lexicon.cpp src/user_store.cpp src/input_session.cpp)
 target_include_directories(pinyin_core PUBLIC include)
 target_compile_features(pinyin_core PUBLIC cxx_std_17)
 if(MSVC)
@@ -21,11 +21,48 @@ add_custom_command(TARGET private_pinyin POST_BUILD
     "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv"
     "$<TARGET_FILE_DIR:private_pinyin>/data/base.tsv")
 
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  enable_language(RC)
+  add_library(private_pinyin_ime SHARED
+    src/ime/module.cpp src/ime/text_service.cpp src/ime/candidate_window.cpp
+    src/ime/display_attribute.cpp src/ime/private_pinyin_ime.def src/ime/private_pinyin_ime.rc)
+  target_include_directories(private_pinyin_ime PRIVATE src/ime)
+  target_compile_definitions(private_pinyin_ime PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00 WINVER=0x0A00)
+  target_link_libraries(private_pinyin_ime PRIVATE pinyin_core ole32 oleaut32 uuid user32 gdi32 advapi32)
+  if(MSVC)
+    target_compile_options(private_pinyin_ime PRIVATE /W4 /permissive-)
+  endif()
+  add_custom_command(TARGET private_pinyin_ime POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:private_pinyin_ime>/data"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv"
+      "$<TARGET_FILE_DIR:private_pinyin_ime>/data/base.tsv")
+  add_executable(private_pinyin_demo WIN32 src/ime_demo.cpp)
+  target_include_directories(private_pinyin_demo PRIVATE src/ime tests)
+  target_compile_definitions(private_pinyin_demo PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
+  target_link_libraries(private_pinyin_demo PRIVATE pinyin_core ole32 oleaut32 uuid user32 gdi32)
+  add_dependencies(private_pinyin_demo private_pinyin_ime)
+endif()
+
 include(CTest)
 if(BUILD_TESTING)
   add_executable(pinyin_tests tests/core_tests.cpp)
   target_link_libraries(pinyin_tests PRIVATE pinyin_core)
   add_test(NAME pinyin_core COMMAND pinyin_tests "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv")
+  add_executable(input_session_tests tests/input_session_tests.cpp)
+  target_link_libraries(input_session_tests PRIVATE pinyin_core)
+  add_test(NAME input_session COMMAND input_session_tests "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv")
+  if(TARGET private_pinyin_ime)
+    add_executable(tsf_com_tests tests/tsf_com_tests.cpp)
+    target_include_directories(tsf_com_tests PRIVATE src/ime)
+    target_link_libraries(tsf_com_tests PRIVATE pinyin_core ole32 oleaut32 uuid)
+    add_dependencies(tsf_com_tests private_pinyin_ime)
+    add_test(NAME tsf_com COMMAND tsf_com_tests "$<TARGET_FILE:private_pinyin_ime>")
+    add_executable(tsf_integration_tests tests/tsf_integration_tests.cpp)
+    target_include_directories(tsf_integration_tests PRIVATE src/ime tests)
+    target_link_libraries(tsf_integration_tests PRIVATE pinyin_core ole32 oleaut32 uuid user32)
+    add_dependencies(tsf_integration_tests private_pinyin_ime)
+    add_test(NAME tsf_integration COMMAND tsf_integration_tests "$<TARGET_FILE:private_pinyin_ime>")
+  endif()
   find_program(PWSH_EXECUTABLE NAMES pwsh)
   if(PWSH_EXECUTABLE)
     add_test(NAME pinyin_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File

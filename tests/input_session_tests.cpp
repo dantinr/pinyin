@@ -1,0 +1,64 @@
+#include "pinyin/input_session.hpp"
+#include <iostream>
+#include <stdexcept>
+
+namespace {
+int checks = 0;
+void check(bool condition, const char* message) { ++checks; if (!condition) throw std::runtime_error(message); }
+void type(pinyin::InputSession& input, const pinyin::Lexicon& lexicon, const std::string& text) {
+    for (const auto ch : text) input.handle(ch == '\'' ? pinyin::InputKey::separator : pinyin::InputKey::letter, ch, lexicon);
+}
+}
+int wmain(int argc, wchar_t* argv[]) {
+    using namespace pinyin;
+    try {
+        if (argc != 2) throw std::runtime_error("expected dictionary");
+        Lexicon lexicon; lexicon.load(argv[1]); InputSession input;
+        check(input.handle(InputKey::space, 0, lexicon).action == InputAction::pass, "empty space must pass through");
+        type(input, lexicon, "nihao");
+        check(input.raw() == "nihao" && input.cursor() == 5, "preedit state failed");
+        check(input.candidates().front().text == "你好", "candidate lookup failed");
+        auto result = input.handle(InputKey::space, 0, lexicon);
+        check(result.action == InputAction::commit && result.text == "你好" && input.empty(), "space commit failed");
+        type(input, lexicon, "nihao"); result = input.handle(InputKey::digit, '2', lexicon);
+        check(result.text == "拟好" && input.empty(), "numeric selection failed");
+        type(input, lexicon, "nihao"); input.handle(InputKey::next, 0, lexicon);
+        check(input.selected() == 1, "down selection failed");
+        result = input.handle(InputKey::space, 0, lexicon); check(result.text == "拟好", "highlighted selection failed");
+        type(input, lexicon, "nihao"); result = input.handle(InputKey::enter, 0, lexicon);
+        check(result.text == "nihao" && input.empty(), "Enter should commit raw pinyin");
+        type(input, lexicon, "nihao"); result = input.handle(InputKey::escape, 0, lexicon);
+        check(result.action == InputAction::cancel && input.empty(), "escape cancellation failed");
+        type(input, lexicon, "nihao"); input.handle(InputKey::backspace, 0, lexicon);
+        check(input.raw() == "niha" && input.candidates().empty(), "backspace lookup was stale");
+        input.clear(); type(input, lexicon, "niho"); input.handle(InputKey::left, 0, lexicon);
+        input.handle(InputKey::letter, 'a', lexicon);
+        check(input.raw() == "nihao" && input.cursor() == 4, "middle insertion failed");
+        input.handle(InputKey::delete_forward, 0, lexicon);
+        check(input.raw() == "niha", "forward delete failed");
+        input.handle(InputKey::home, 0, lexicon); input.handle(InputKey::backspace, 0, lexicon);
+        check(input.raw() == "niha" && input.cursor() == 0, "backspace before start must be harmless");
+        input.handle(InputKey::end, 0, lexicon); input.handle(InputKey::letter, 'o', lexicon);
+        check(input.candidates().front().text == "你好", "end navigation failed");
+        input.clear(); type(input, lexicon, "xi'");
+        check(input.raw() == "xi'" && input.candidates().empty(), "unfinished separator should be editable");
+        type(input, lexicon, "an"); check(input.candidates().size() == 1, "explicit segmentation failed");
+        input.clear(); type(input, lexicon, "n"); result = input.handle(InputKey::backspace, 0, lexicon);
+        check(result.action == InputAction::cancel && input.empty(), "deleting final letter must end composition");
+        type(input, lexicon, "nihao");
+        check(input.handle(InputKey::digit, '9', lexicon).action == InputAction::pass, "invalid number must pass through");
+        input.clear(); type(input, lexicon, std::string(128, 'a'));
+        check(input.handle(InputKey::letter, 'a', lexicon).action == InputAction::pass && input.raw().size() == 128,
+            "preedit length bound failed");
+        Lexicon pages;
+        for (int i = 0; i < 22; ++i) pages.add({"词" + std::to_string(i), "ni hao", static_cast<std::uint64_t>(100 - i)});
+        input.clear(); type(input, pages, "nihao"); input.handle(InputKey::page_next, 0, pages);
+        check(input.page() == 1 && input.selected() == 9, "page down failed");
+        result = input.handle(InputKey::digit, '2', pages); check(result.text == "词10", "page-relative numeric selection failed");
+        type(input, pages, "nihao"); input.handle(InputKey::page_next, 0, pages); input.handle(InputKey::page_next, 0, pages);
+        check(input.page() == 2, "last partial page failed");
+        input.handle(InputKey::page_previous, 0, pages); check(input.page() == 1, "page up failed");
+        result = input.select(9); check(result.text == "词9", "mouse candidate selection failed");
+        std::cout << "PASS: " << checks << " composition state checks\n"; return 0;
+    } catch (const std::exception& e) { std::cerr << "FAIL: " << e.what() << '\n'; return 1; }
+}
