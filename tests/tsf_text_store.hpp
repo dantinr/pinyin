@@ -233,6 +233,8 @@ class Harness {
     DWORD class_cookie_ = 0;
     bool profile_registered_ = false;
     LANGID local_language_ = 0;
+    CLSID local_service_{};
+    GUID local_profile_{};
     ComPtr<CapturingFactory> factory_;
     ComPtr<ITfInputProcessorProfileMgr> profiles_;
 public:
@@ -252,12 +254,16 @@ public:
             ComPtr<IClassFactory> factory;
             require(get(service_id, IID_PPV_ARGS(&factory)), "get class factory");
             factory_.Attach(new CapturingFactory(factory.Get()));
-            require(CoRegisterClassObject(service_id, factory_.Get(), CLSCTX_INPROC_SERVER,
+            // A system-installed service with the production CLSID can bypass
+            // our capturing factory. Alias the same DLL factory only in this process.
+            require(CoCreateGuid(&local_service_), "create local service identity");
+            require(CoCreateGuid(&local_profile_), "create local profile identity");
+            require(CoRegisterClassObject(local_service_, factory_.Get(), CLSCTX_INPROC_SERVER,
                 REGCLS_MULTIPLEUSE, &class_cookie_), "register process-local class factory");
             require(CoCreateInstance(CLSID_TF_InputProcessorProfiles, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&profiles_)), "create profile manager");
             ComPtr<ITfInputProcessorProfiles> legacy; require(profiles_.As(&legacy), "get language manager");
             require(legacy->GetCurrentLanguage(&local_language_), "get current language");
-            require(profiles_->RegisterProfile(service_id, local_language_, profile_id, description,
+            require(profiles_->RegisterProfile(local_service_, local_language_, local_profile_, description,
                 static_cast<ULONG>(std::size(description) - 1), nullptr, 0, 0, nullptr, 0, TRUE, TF_RP_LOCALPROCESS),
                 "register process-local profile");
             profile_registered_ = true;
@@ -270,6 +276,9 @@ public:
             require(document->CreateContext(client, 0, store.Get(), &context, &cookie), "create context");
             require(document->Push(context.Get()), "push context");
             require(manager->SetFocus(document.Get()), "focus document");
+            // Drain initial focus/profile notifications before selecting the test
+            // profile; a queued system-profile activation can otherwise replace it.
+            pump();
             activate();
         } catch (...) { close(); throw; }
     }
@@ -277,8 +286,8 @@ public:
         if (FAILED(hr)) throw std::runtime_error(std::string(action) + " failed, HRESULT=" + std::to_string(static_cast<unsigned long>(hr)));
     }
     void activate() {
-        require(profiles_->ActivateProfile(TF_PROFILETYPE_INPUTPROCESSOR, local_language_, service_id,
-            profile_id, nullptr, TF_IPPMF_FORPROCESS), "activate process-local profile");
+        require(profiles_->ActivateProfile(TF_PROFILETYPE_INPUTPROCESSOR, local_language_, local_service_,
+            local_profile_, nullptr, TF_IPPMF_FORPROCESS), "activate process-local profile");
         service = factory_->last;
         if (!service) throw std::runtime_error("TSF did not instantiate the process-local service");
         require(service.As(&keys), "get active key interface");
@@ -298,7 +307,15 @@ public:
         MSG message{};
         while (PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) { TranslateMessage(&message); DispatchMessageW(&message); }
     }
-    void type(const char* value) { while (*value) { if (!key(static_cast<unsigned char>(*value++) - 'a' + 'A')) throw std::runtime_error("letter was not handled"); } }
+    void type(const char* value) {
+        const std::string query(value);
+        while (*value) {
+            const auto letter = *value++;
+            if (!key(static_cast<unsigned char>(letter) - 'a' + 'A'))
+                throw std::runtime_error("letter was not handled: " + query + ", key=" + letter +
+                    ", CapsLock=" + std::to_string(GetKeyState(VK_CAPITAL) & 1));
+        }
+    }
     std::size_t compositions() const {
         ComPtr<ITfContextComposition> composer; require(context.As(&composer), "get composer");
         ComPtr<IEnumITfCompositionView> enumeration; require(composer->EnumCompositions(&enumeration), "enumerate compositions");
@@ -308,12 +325,12 @@ public:
     }
     void close() noexcept {
         if (profiles_ && profile_registered_) profiles_->DeactivateProfile(TF_PROFILETYPE_INPUTPROCESSOR,
-            local_language_, service_id, profile_id, nullptr, TF_IPPMF_FORPROCESS);
+            local_language_, local_service_, local_profile_, nullptr, TF_IPPMF_FORPROCESS);
         if (service) service->Deactivate(); pump(); keys.Reset(); service.Reset();
         if (document) document->Pop(TF_POPF_ALL);
         context.Reset(); document.Reset(); store.Reset();
         if (manager && active_) manager->Deactivate(); active_ = false; manager.Reset();
-        if (profiles_ && profile_registered_) profiles_->UnregisterProfile(service_id, local_language_, profile_id, TF_URP_LOCALPROCESS);
+        if (profiles_ && profile_registered_) profiles_->UnregisterProfile(local_service_, local_language_, local_profile_, TF_URP_LOCALPROCESS);
         profile_registered_ = false; profiles_.Reset();
         if (class_cookie_) CoRevokeClassObject(class_cookie_); class_cookie_ = 0; factory_.Reset();
         if (dll_) {

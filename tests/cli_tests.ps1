@@ -25,6 +25,9 @@ function Invoke-CLI([string[]]$CliArguments, [string]$InputText = '') {
     $info.StandardErrorEncoding = $encoding
     # Override only the child environment: no test touches the actual personal dictionary.
     $info.Environment['LOCALAPPDATA'] = Join-Path $root 'local-appdata'
+    # Stable fixture: production dictionary growth must not change the test candidates.
+    $info.ArgumentList.Add('--dict')
+    $info.ArgumentList.Add((Join-Path $PSScriptRoot 'fixtures\base-demo.tsv'))
     foreach ($argument in $CliArguments) { $info.ArgumentList.Add($argument) }
     $process = [Diagnostics.Process]::new()
     $process.StartInfo = $info

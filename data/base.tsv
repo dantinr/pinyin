@@ -1,5 +1,8 @@
-# Hand-authored demonstration dictionary, not a production corpus.
-# text<TAB>space-separated pinyin<TAB>weight. Weights are illustrative.
+# Private Pinyin independently curated starter lexicon, 2026-10-08.
+# Generated in this conversation; no third-party word list was imported.
+# Weights are heuristic priorities, not measured corpus frequencies.
+# text<TAB>space-separated toneless pinyin<TAB>positive weight; v represents ue-diaeresis.
+# 原有基础词
 你	ni	10000
 我	wo	10000
 他	ta	9000
@@ -15,20 +18,20 @@
 中	zhong	9000
 国	guo	8000
 人	ren	10000
-民	min	7000
-先	xian	7000
-县	xian	5000
-现	xian	6500
-西	xi	6000
-安	an	6000
-女	nv	6000
-绿	lv	5000
-重	zhong	6500
-重	chong	4000
-行	xing	7000
-行	hang	4500
-长	chang	6000
-长	zhang	4500
+民	min	8000
+先	xian	8000
+县	xian	7760
+现	xian	7840
+西	xi	8000
+安	an	8000
+女	nv	8000
+绿	lv	8000
+重	zhong	7840
+重	chong	7920
+行	xing	8000
+行	hang	8000
+长	chang	7920
+长	zhang	7920
 你好	ni hao	10000
 拟好	ni hao	100
 你们	ni men	8000
@@ -99,3 +102,5479 @@
 解决	jie jue	8500
 选择	xuan ze	8000
 欢迎	huan ying	7500
+# 常用单字
+啊	a	8000
+阿	a	7920
+爱	ai	8000
+矮	ai	7920
+挨	ai	7840
+哎	ai	7760
+碍	ai	7680
+艾	ai	7600
+哀	ai	7520
+按	an	7920
+暗	an	7840
+案	an	7760
+岸	an	7680
+昂	ang	8000
+奥	ao	8000
+熬	ao	7920
+傲	ao	7840
+袄	ao	7760
+凹	ao	7680
+把	ba	8000
+吧	ba	7920
+八	ba	7840
+巴	ba	7760
+爸	ba	7680
+拔	ba	7600
+罢	ba	7520
+霸	ba	7440
+白	bai	8000
+百	bai	7920
+摆	bai	7840
+败	bai	7760
+拜	bai	7680
+半	ban	8000
+办	ban	7920
+班	ban	7840
+板	ban	7760
+搬	ban	7680
+版	ban	7600
+伴	ban	7520
+般	ban	7440
+扮	ban	7360
+拌	ban	7280
+帮	bang	8000
+棒	bang	7920
+绑	bang	7840
+榜	bang	7760
+邦	bang	7680
+包	bao	8000
+保	bao	7920
+报	bao	7840
+宝	bao	7760
+抱	bao	7680
+暴	bao	7600
+饱	bao	7520
+爆	bao	7440
+薄	bao	7360
+堡	bao	7280
+被	bei	8000
+北	bei	7920
+备	bei	7840
+杯	bei	7760
+背	bei	7680
+贝	bei	7600
+倍	bei	7520
+悲	bei	7440
+辈	bei	7360
+本	ben	8000
+笨	ben	7920
+奔	ben	7840
+崩	beng	8000
+蹦	beng	7920
+绷	beng	7840
+比	bi	8000
+必	bi	7920
+笔	bi	7840
+币	bi	7760
+闭	bi	7680
+鼻	bi	7600
+避	bi	7520
+毕	bi	7440
+碧	bi	7360
+壁	bi	7280
+逼	bi	7200
+彼	bi	7120
+变	bian	8000
+边	bian	7920
+便	bian	7840
+编	bian	7760
+遍	bian	7680
+辨	bian	7600
+扁	bian	7520
+辩	bian	7440
+表	biao	8000
+标	biao	7920
+飙	biao	7760
+别	bie	8000
+憋	bie	7920
+宾	bin	8000
+滨	bin	7920
+并	bing	8000
+病	bing	7920
+兵	bing	7840
+冰	bing	7760
+饼	bing	7680
+柄	bing	7600
+波	bo	8000
+播	bo	7920
+博	bo	7840
+伯	bo	7760
+脖	bo	7680
+拨	bo	7600
+玻	bo	7520
+搏	bo	7440
+薄	bo	7360
+部	bu	7920
+步	bu	7840
+布	bu	7760
+补	bu	7680
+捕	bu	7600
+簿	bu	7520
+擦	ca	8000
+才	cai	8000
+菜	cai	7920
+财	cai	7840
+采	cai	7760
+彩	cai	7680
+猜	cai	7600
+材	cai	7520
+裁	cai	7440
+踩	cai	7360
+参	can	8000
+餐	can	7920
+残	can	7840
+灿	can	7760
+惨	can	7680
+蚕	can	7600
+藏	cang	8000
+仓	cang	7920
+舱	cang	7840
+苍	cang	7760
+草	cao	8000
+操	cao	7920
+槽	cao	7840
+曹	cao	7760
+册	ce	8000
+测	ce	7920
+策	ce	7840
+侧	ce	7760
+层	ceng	8000
+曾	ceng	7920
+蹭	ceng	7840
+查	cha	8000
+茶	cha	7920
+差	cha	7840
+插	cha	7760
+察	cha	7680
+叉	cha	7600
+岔	cha	7520
+拆	chai	8000
+柴	chai	7920
+差	chai	7840
+产	chan	8000
+缠	chan	7920
+铲	chan	7840
+馋	chan	7760
+蝉	chan	7680
+常	chang	8000
+场	chang	7840
+唱	chang	7760
+厂	chang	7680
+尝	chang	7600
+昌	chang	7520
+畅	chang	7440
+肠	chang	7360
+超	chao	8000
+朝	chao	7920
+炒	chao	7840
+吵	chao	7760
+潮	chao	7680
+抄	chao	7600
+车	che	8000
+撤	che	7920
+扯	che	7840
+彻	che	7760
+陈	chen	8000
+沉	chen	7920
+晨	chen	7840
+趁	chen	7760
+尘	chen	7680
+辰	chen	7600
+成	cheng	8000
+城	cheng	7920
+程	cheng	7840
+乘	cheng	7760
+称	cheng	7680
+承	cheng	7600
+盛	cheng	7520
+撑	cheng	7440
+诚	cheng	7360
+橙	cheng	7280
+吃	chi	8000
+持	chi	7920
+尺	chi	7840
+迟	chi	7760
+赤	chi	7680
+池	chi	7600
+齿	chi	7520
+斥	chi	7440
+冲	chong	8000
+充	chong	7840
+虫	chong	7760
+崇	chong	7680
+宠	chong	7600
+抽	chou	8000
+丑	chou	7920
+臭	chou	7840
+愁	chou	7760
+筹	chou	7680
+仇	chou	7600
+出	chu	8000
+处	chu	7920
+初	chu	7840
+除	chu	7760
+厨	chu	7680
+楚	chu	7600
+触	chu	7520
+储	chu	7440
+畜	chu	7360
+揣	chuai	8000
+穿	chuan	8000
+船	chuan	7920
+传	chuan	7840
+串	chuan	7760
+川	chuan	7680
+喘	chuan	7600
+窗	chuang	8000
+床	chuang	7920
+创	chuang	7840
+闯	chuang	7760
+吹	chui	8000
+垂	chui	7920
+锤	chui	7840
+春	chun	8000
+纯	chun	7920
+唇	chun	7840
+蠢	chun	7760
+戳	chuo	8000
+次	ci	8000
+此	ci	7920
+词	ci	7840
+辞	ci	7760
+刺	ci	7680
+磁	ci	7600
+慈	ci	7520
+从	cong	8000
+聪	cong	7920
+丛	cong	7840
+葱	cong	7760
+凑	cou	8000
+粗	cu	8000
+醋	cu	7920
+促	cu	7840
+窜	cuan	8000
+催	cui	8000
+脆	cui	7920
+翠	cui	7840
+崔	cui	7760
+村	cun	8000
+存	cun	7920
+寸	cun	7840
+错	cuo	8000
+措	cuo	7920
+搓	cuo	7840
+挫	cuo	7760
+大	da	8000
+打	da	7920
+达	da	7840
+答	da	7760
+搭	da	7680
+带	dai	8000
+代	dai	7920
+待	dai	7840
+戴	dai	7760
+袋	dai	7680
+呆	dai	7600
+贷	dai	7520
+但	dan	8000
+单	dan	7920
+蛋	dan	7840
+担	dan	7760
+淡	dan	7680
+丹	dan	7600
+胆	dan	7520
+旦	dan	7440
+当	dang	8000
+党	dang	7920
+挡	dang	7840
+档	dang	7760
+荡	dang	7680
+到	dao	8000
+道	dao	7920
+倒	dao	7840
+刀	dao	7760
+导	dao	7680
+岛	dao	7600
+盗	dao	7520
+稻	dao	7440
+得	de	7920
+地	de	7840
+得	dei	8000
+等	deng	8000
+灯	deng	7920
+登	deng	7840
+邓	deng	7760
+凳	deng	7680
+地	di	8000
+第	di	7920
+底	di	7840
+低	di	7760
+敌	di	7680
+弟	di	7600
+帝	di	7520
+递	di	7440
+滴	di	7360
+抵	di	7280
+的	di	7200
+点	dian	8000
+电	dian	7920
+店	dian	7840
+典	dian	7760
+垫	dian	7680
+颠	dian	7600
+殿	dian	7520
+掉	diao	8000
+调	diao	7920
+雕	diao	7840
+钓	diao	7760
+吊	diao	7680
+跌	die	8000
+爹	die	7920
+蝶	die	7840
+叠	die	7760
+定	ding	8000
+顶	ding	7920
+订	ding	7840
+丁	ding	7760
+盯	ding	7680
+钉	ding	7600
+丢	diu	8000
+动	dong	8000
+东	dong	7920
+懂	dong	7840
+冬	dong	7760
+洞	dong	7680
+冻	dong	7600
+董	dong	7520
+都	dou	8000
+豆	dou	7920
+斗	dou	7840
+逗	dou	7760
+抖	dou	7680
+度	du	8000
+读	du	7920
+独	du	7840
+毒	du	7760
+堵	du	7680
+赌	du	7600
+督	du	7520
+肚	du	7440
+渡	du	7360
+段	duan	8000
+短	duan	7920
+断	duan	7840
+端	duan	7760
+锻	duan	7680
+对	dui	8000
+队	dui	7920
+堆	dui	7840
+兑	dui	7760
+顿	dun	8000
+蹲	dun	7920
+盾	dun	7840
+吨	dun	7760
+敦	dun	7680
+多	duo	8000
+朵	duo	7920
+躲	duo	7840
+夺	duo	7760
+饿	e	8000
+额	e	7920
+恶	e	7840
+俄	e	7760
+鹅	e	7680
+恩	en	8000
+而	er	8000
+二	er	7920
+儿	er	7840
+耳	er	7760
+发	fa	8000
+法	fa	7920
+罚	fa	7840
+乏	fa	7760
+饭	fan	8000
+反	fan	7920
+翻	fan	7840
+范	fan	7760
+犯	fan	7680
+烦	fan	7600
+凡	fan	7520
+番	fan	7440
+返	fan	7360
+放	fang	8000
+方	fang	7920
+房	fang	7840
+防	fang	7760
+访	fang	7680
+仿	fang	7600
+芳	fang	7520
+非	fei	8000
+飞	fei	7920
+费	fei	7840
+肥	fei	7760
+废	fei	7680
+肺	fei	7600
+分	fen	8000
+份	fen	7920
+粉	fen	7840
+奋	fen	7760
+纷	fen	7680
+氛	fen	7600
+愤	fen	7520
+风	feng	8000
+封	feng	7920
+丰	feng	7840
+峰	feng	7760
+疯	feng	7680
+凤	feng	7600
+锋	feng	7520
+逢	feng	7440
+缝	feng	7360
+佛	fo	8000
+否	fou	8000
+服	fu	8000
+付	fu	7920
+复	fu	7840
+父	fu	7760
+福	fu	7680
+富	fu	7600
+夫	fu	7520
+附	fu	7440
+负	fu	7360
+府	fu	7280
+副	fu	7200
+扶	fu	7120
+幅	fu	7040
+腐	fu	6960
+伏	fu	6880
+浮	fu	6800
+符	fu	6720
+嘎	ga	8000
+该	gai	8000
+改	gai	7920
+盖	gai	7840
+概	gai	7760
+钙	gai	7680
+感	gan	8000
+干	gan	7920
+敢	gan	7840
+赶	gan	7760
+甘	gan	7680
+杆	gan	7600
+肝	gan	7520
+刚	gang	8000
+港	gang	7920
+钢	gang	7840
+岗	gang	7760
+缸	gang	7680
+高	gao	8000
+告	gao	7920
+搞	gao	7840
+稿	gao	7760
+糕	gao	7680
+个	ge	8000
+各	ge	7920
+歌	ge	7840
+哥	ge	7760
+格	ge	7680
+隔	ge	7600
+割	ge	7520
+革	ge	7440
+阁	ge	7360
+给	gei	8000
+跟	gen	8000
+根	gen	7920
+更	geng	8000
+耕	geng	7920
+梗	geng	7840
+工	gong	8000
+公	gong	7920
+共	gong	7840
+功	gong	7760
+供	gong	7680
+宫	gong	7600
+攻	gong	7520
+弓	gong	7440
+贡	gong	7360
+够	gou	8000
+狗	gou	7920
+购	gou	7840
+构	gou	7760
+沟	gou	7680
+勾	gou	7600
+古	gu	8000
+故	gu	7920
+股	gu	7840
+顾	gu	7760
+骨	gu	7680
+鼓	gu	7600
+姑	gu	7520
+谷	gu	7440
+孤	gu	7360
+固	gu	7280
+估	gu	7200
+挂	gua	8000
+瓜	gua	7920
+刮	gua	7840
+寡	gua	7760
+卦	gua	7680
+怪	guai	8000
+乖	guai	7920
+拐	guai	7840
+关	guan	8000
+管	guan	7920
+观	guan	7840
+官	guan	7760
+馆	guan	7680
+惯	guan	7600
+冠	guan	7520
+灌	guan	7440
+光	guang	8000
+广	guang	7920
+逛	guang	7840
+贵	gui	8000
+归	gui	7920
+规	gui	7840
+柜	gui	7760
+鬼	gui	7680
+轨	gui	7600
+桂	gui	7520
+滚	gun	8000
+棍	gun	7920
+过	guo	7920
+果	guo	7840
+锅	guo	7760
+郭	guo	7680
+裹	guo	7600
+哈	ha	8000
+还	hai	8000
+海	hai	7920
+孩	hai	7840
+害	hai	7760
+汉	han	8000
+寒	han	7920
+含	han	7840
+喊	han	7760
+汗	han	7680
+韩	han	7600
+涵	han	7520
+旱	han	7440
+航	hang	7920
+杭	hang	7840
+号	hao	7920
+浩	hao	7840
+豪	hao	7760
+毫	hao	7680
+耗	hao	7600
+合	he	7920
+喝	he	7840
+何	he	7760
+河	he	7680
+盒	he	7600
+核	he	7520
+贺	he	7440
+荷	he	7360
+鹤	he	7280
+黑	hei	8000
+很	hen	8000
+恨	hen	7920
+狠	hen	7840
+痕	hen	7760
+横	heng	8000
+恒	heng	7920
+衡	heng	7840
+红	hong	8000
+洪	hong	7920
+虹	hong	7840
+哄	hong	7760
+宏	hong	7680
+烘	hong	7600
+后	hou	8000
+候	hou	7920
+厚	hou	7840
+猴	hou	7760
+喉	hou	7680
+侯	hou	7600
+户	hu	8000
+湖	hu	7920
+互	hu	7840
+护	hu	7760
+呼	hu	7680
+胡	hu	7600
+虎	hu	7520
+糊	hu	7440
+壶	hu	7360
+忽	hu	7280
+弧	hu	7200
+话	hua	8000
+花	hua	7920
+化	hua	7840
+画	hua	7760
+华	hua	7680
+划	hua	7600
+滑	hua	7520
+哗	hua	7440
+坏	huai	8000
+怀	huai	7920
+淮	huai	7840
+换	huan	8000
+还	huan	7920
+欢	huan	7840
+环	huan	7760
+缓	huan	7680
+患	huan	7600
+幻	huan	7520
+唤	huan	7440
+黄	huang	8000
+慌	huang	7920
+皇	huang	7840
+荒	huang	7760
+晃	huang	7680
+煌	huang	7600
+谎	huang	7520
+会	hui	8000
+回	hui	7920
+灰	hui	7840
+汇	hui	7760
+挥	hui	7680
+恢	hui	7600
+慧	hui	7520
+惠	hui	7440
+绘	hui	7360
+毁	hui	7280
+辉	hui	7200
+混	hun	8000
+婚	hun	7920
+昏	hun	7840
+魂	hun	7760
+或	huo	8000
+活	huo	7920
+火	huo	7840
+获	huo	7760
+货	huo	7680
+伙	huo	7600
+惑	huo	7520
+豁	huo	7440
+及	ji	8000
+几	ji	7920
+机	ji	7840
+记	ji	7760
+级	ji	7680
+鸡	ji	7600
+即	ji	7520
+急	ji	7440
+己	ji	7360
+集	ji	7280
+计	ji	7200
+技	ji	7120
+季	ji	7040
+基	ji	6960
+纪	ji	6880
+际	ji	6800
+继	ji	6720
+极	ji	6640
+寄	ji	6560
+积	ji	6480
+济	ji	6400
+挤	ji	6320
+吉	ji	6240
+击	ji	6160
+剂	ji	6080
+疾	ji	6000
+激	ji	5920
+给	ji	5840
+家	jia	8000
+加	jia	7920
+价	jia	7840
+假	jia	7760
+夹	jia	7680
+甲	jia	7600
+架	jia	7520
+佳	jia	7440
+嘉	jia	7360
+嫁	jia	7280
+见	jian	8000
+件	jian	7920
+间	jian	7840
+建	jian	7760
+简	jian	7680
+坚	jian	7600
+检	jian	7520
+健	jian	7440
+减	jian	7360
+剪	jian	7280
+肩	jian	7200
+键	jian	7120
+尖	jian	7040
+兼	jian	6960
+剑	jian	6880
+渐	jian	6800
+将	jiang	8000
+讲	jiang	7920
+江	jiang	7840
+奖	jiang	7760
+降	jiang	7680
+姜	jiang	7600
+酱	jiang	7520
+疆	jiang	7440
+教	jiao	8000
+交	jiao	7920
+叫	jiao	7840
+角	jiao	7760
+较	jiao	7680
+脚	jiao	7600
+矫	jiao	7520
+胶	jiao	7440
+浇	jiao	7360
+焦	jiao	7280
+骄	jiao	7200
+郊	jiao	7120
+接	jie	8000
+节	jie	7920
+解	jie	7840
+结	jie	7760
+借	jie	7680
+界	jie	7600
+街	jie	7520
+姐	jie	7440
+戒	jie	7360
+阶	jie	7280
+介	jie	7200
+届	jie	7120
+洁	jie	7040
+杰	jie	6960
+截	jie	6880
+进	jin	8000
+今	jin	7920
+近	jin	7840
+金	jin	7760
+紧	jin	7680
+尽	jin	7600
+仅	jin	7520
+斤	jin	7440
+禁	jin	7360
+筋	jin	7280
+晋	jin	7200
+津	jin	7120
+经	jing	8000
+京	jing	7920
+静	jing	7840
+景	jing	7760
+精	jing	7680
+警	jing	7600
+净	jing	7520
+境	jing	7440
+敬	jing	7360
+井	jing	7280
+竞	jing	7200
+惊	jing	7120
+镜	jing	7040
+晶	jing	6960
+径	jing	6880
+囧	jiong	8000
+就	jiu	8000
+九	jiu	7920
+久	jiu	7840
+酒	jiu	7760
+旧	jiu	7680
+救	jiu	7600
+舅	jiu	7520
+究	jiu	7440
+纠	jiu	7360
+句	ju	8000
+局	ju	7920
+据	ju	7840
+举	ju	7760
+居	ju	7680
+具	ju	7600
+巨	ju	7520
+剧	ju	7440
+聚	ju	7360
+距	ju	7280
+拒	ju	7200
+橘	ju	7120
+卷	juan	8000
+捐	juan	7920
+圈	juan	7840
+娟	juan	7760
+觉	jue	8000
+决	jue	7920
+绝	jue	7840
+角	jue	7760
+掘	jue	7680
+军	jun	8000
+均	jun	7920
+君	jun	7840
+俊	jun	7760
+菌	jun	7680
+郡	jun	7600
+卡	ka	8000
+咖	ka	7920
+开	kai	8000
+凯	kai	7920
+楷	kai	7840
+看	kan	8000
+砍	kan	7920
+刊	kan	7840
+堪	kan	7760
+抗	kang	8000
+康	kang	7920
+扛	kang	7840
+考	kao	8000
+靠	kao	7920
+烤	kao	7840
+可	ke	8000
+课	ke	7920
+客	ke	7840
+科	ke	7760
+刻	ke	7680
+克	ke	7600
+颗	ke	7520
+壳	ke	7440
+渴	ke	7360
+棵	ke	7280
+咳	ke	7200
+肯	ken	8000
+恳	ken	7920
+坑	keng	8000
+空	kong	8000
+孔	kong	7920
+恐	kong	7840
+控	kong	7760
+口	kou	8000
+扣	kou	7920
+寇	kou	7840
+苦	ku	8000
+库	ku	7920
+酷	ku	7840
+哭	ku	7760
+裤	ku	7680
+跨	kua	8000
+夸	kua	7920
+垮	kua	7840
+快	kuai	8000
+块	kuai	7920
+筷	kuai	7840
+宽	kuan	8000
+款	kuan	7920
+狂	kuang	8000
+矿	kuang	7920
+况	kuang	7840
+框	kuang	7760
+亏	kui	8000
+葵	kui	7920
+愧	kui	7840
+困	kun	8000
+昆	kun	7920
+捆	kun	7840
+扩	kuo	8000
+括	kuo	7920
+阔	kuo	7840
+拉	la	8000
+啦	la	7920
+辣	la	7840
+腊	la	7760
+来	lai	8000
+赖	lai	7920
+蓝	lan	8000
+烂	lan	7920
+懒	lan	7840
+兰	lan	7760
+栏	lan	7680
+篮	lan	7600
+拦	lan	7520
+览	lan	7440
+浪	lang	8000
+狼	lang	7920
+郎	lang	7840
+廊	lang	7760
+朗	lang	7680
+老	lao	8000
+劳	lao	7920
+捞	lao	7840
+牢	lao	7760
+了	le	8000
+乐	le	7920
+勒	le	7840
+类	lei	8000
+累	lei	7920
+雷	lei	7840
+泪	lei	7760
+蕾	lei	7680
+垒	lei	7600
+冷	leng	8000
+愣	leng	7920
+里	li	8000
+理	li	7920
+力	li	7840
+离	li	7760
+李	li	7680
+立	li	7600
+利	li	7520
+礼	li	7440
+历	li	7360
+丽	li	7280
+例	li	7200
+梨	li	7120
+粒	li	7040
+莉	li	6960
+璃	li	6880
+厘	li	6800
+栗	li	6720
+黎	li	6640
+连	lian	8000
+脸	lian	7920
+练	lian	7840
+联	lian	7760
+恋	lian	7680
+链	lian	7600
+廉	lian	7520
+莲	lian	7440
+怜	lian	7360
+两	liang	8000
+量	liang	7920
+亮	liang	7840
+凉	liang	7760
+梁	liang	7680
+粮	liang	7600
+良	liang	7520
+晾	liang	7440
+聊	liao	8000
+了	liao	7920
+料	liao	7840
+疗	liao	7760
+辽	liao	7680
+瞭	liao	7600
+列	lie	8000
+烈	lie	7920
+裂	lie	7840
+猎	lie	7760
+林	lin	8000
+临	lin	7920
+邻	lin	7840
+淋	lin	7760
+霖	lin	7680
+琳	lin	7600
+零	ling	8000
+另	ling	7920
+领	ling	7840
+令	ling	7760
+灵	ling	7680
+铃	ling	7600
+龄	ling	7520
+岭	ling	7440
+凌	ling	7360
+玲	ling	7280
+六	liu	8000
+流	liu	7920
+留	liu	7840
+刘	liu	7760
+柳	liu	7680
+溜	liu	7600
+龙	long	8000
+隆	long	7920
+笼	long	7840
+聋	long	7760
+楼	lou	8000
+漏	lou	7920
+搂	lou	7840
+路	lu	8000
+录	lu	7920
+陆	lu	7840
+露	lu	7760
+卢	lu	7680
+鹿	lu	7600
+炉	lu	7520
+鲁	lu	7440
+卤	lu	7360
+乱	luan	8000
+卵	luan	7920
+论	lun	8000
+轮	lun	7920
+伦	lun	7840
+落	luo	8000
+罗	luo	7920
+洛	luo	7840
+螺	luo	7760
+萝	luo	7680
+骆	luo	7600
+裸	luo	7520
+络	luo	7440
+律	lv	7920
+旅	lv	7840
+铝	lv	7760
+吕	lv	7680
+滤	lv	7600
+略	lve	8000
+掠	lve	7920
+吗	ma	8000
+妈	ma	7920
+马	ma	7840
+嘛	ma	7760
+麻	ma	7680
+码	ma	7600
+骂	ma	7520
+买	mai	8000
+卖	mai	7920
+麦	mai	7840
+埋	mai	7760
+迈	mai	7680
+满	man	8000
+慢	man	7920
+蛮	man	7840
+漫	man	7760
+曼	man	7680
+忙	mang	8000
+芒	mang	7920
+盲	mang	7840
+茫	mang	7760
+毛	mao	8000
+猫	mao	7920
+帽	mao	7840
+冒	mao	7760
+貌	mao	7680
+茂	mao	7600
+矛	mao	7520
+么	me	8000
+没	mei	8000
+每	mei	7920
+美	mei	7840
+妹	mei	7760
+媒	mei	7680
+梅	mei	7600
+煤	mei	7520
+眉	mei	7440
+霉	mei	7360
+们	men	8000
+门	men	7920
+闷	men	7840
+梦	meng	8000
+蒙	meng	7920
+猛	meng	7840
+萌	meng	7760
+盟	meng	7680
+孟	meng	7600
+米	mi	8000
+密	mi	7920
+迷	mi	7840
+秘	mi	7760
+蜜	mi	7680
+谜	mi	7600
+面	mian	8000
+棉	mian	7920
+免	mian	7840
+眠	mian	7760
+绵	mian	7680
+秒	miao	8000
+苗	miao	7920
+妙	miao	7840
+庙	miao	7760
+描	miao	7680
+喵	miao	7600
+灭	mie	8000
+蔑	mie	7920
+敏	min	7920
+闽	min	7840
+名	ming	8000
+明	ming	7920
+命	ming	7840
+鸣	ming	7760
+铭	ming	7680
+末	mo	8000
+模	mo	7920
+摸	mo	7840
+魔	mo	7760
+墨	mo	7680
+磨	mo	7600
+默	mo	7520
+沫	mo	7440
+膜	mo	7360
+某	mou	8000
+谋	mou	7920
+木	mu	8000
+目	mu	7920
+母	mu	7840
+牧	mu	7760
+幕	mu	7680
+墓	mu	7600
+慕	mu	7520
+募	mu	7440
+姆	mu	7360
+那	na	8000
+拿	na	7920
+哪	na	7840
+纳	na	7760
+奶	nai	8000
+耐	nai	7920
+奈	nai	7840
+南	nan	8000
+男	nan	7920
+难	nan	7840
+囊	nang	8000
+脑	nao	8000
+闹	nao	7920
+恼	nao	7840
+呢	ne	8000
+内	nei	8000
+嫩	nen	8000
+能	neng	8000
+尼	ni	7920
+泥	ni	7840
+拟	ni	7760
+逆	ni	7680
+腻	ni	7600
+年	nian	8000
+念	nian	7920
+粘	nian	7840
+娘	niang	8000
+酿	niang	7920
+鸟	niao	8000
+尿	niao	7920
+捏	nie	8000
+聂	nie	7920
+镍	nie	7840
+您	nin	8000
+宁	ning	8000
+凝	ning	7920
+拧	ning	7840
+牛	niu	8000
+扭	niu	7920
+钮	niu	7840
+农	nong	8000
+弄	nong	7920
+浓	nong	7840
+怒	nu	8000
+努	nu	7920
+奴	nu	7840
+暖	nuan	8000
+诺	nuo	8000
+挪	nuo	7920
+懦	nuo	7840
+虐	nve	8000
+哦	o	8000
+偶	ou	8000
+欧	ou	7920
+呕	ou	7840
+藕	ou	7760
+怕	pa	8000
+爬	pa	7920
+趴	pa	7840
+帕	pa	7760
+派	pai	8000
+排	pai	7920
+拍	pai	7840
+牌	pai	7760
+盘	pan	8000
+判	pan	7920
+盼	pan	7840
+潘	pan	7760
+攀	pan	7680
+旁	pang	8000
+胖	pang	7920
+庞	pang	7840
+跑	pao	8000
+泡	pao	7920
+炮	pao	7840
+抛	pao	7760
+袍	pao	7680
+配	pei	8000
+陪	pei	7920
+培	pei	7840
+佩	pei	7760
+赔	pei	7680
+喷	pen	8000
+盆	pen	7920
+朋	peng	8000
+碰	peng	7920
+捧	peng	7840
+棚	peng	7760
+蓬	peng	7680
+彭	peng	7600
+皮	pi	8000
+批	pi	7920
+疲	pi	7840
+匹	pi	7760
+披	pi	7680
+脾	pi	7600
+劈	pi	7520
+屁	pi	7440
+片	pian	8000
+偏	pian	7920
+篇	pian	7840
+骗	pian	7760
+便	pian	7680
+票	piao	8000
+漂	piao	7920
+飘	piao	7840
+撇	pie	8000
+品	pin	8000
+拼	pin	7920
+贫	pin	7840
+频	pin	7760
+聘	pin	7680
+平	ping	8000
+评	ping	7920
+瓶	ping	7840
+屏	ping	7760
+苹	ping	7680
+凭	ping	7600
+萍	ping	7520
+破	po	8000
+坡	po	7920
+婆	po	7840
+泼	po	7760
+迫	po	7680
+普	pu	8000
+铺	pu	7920
+谱	pu	7840
+朴	pu	7760
+葡	pu	7680
+扑	pu	7600
+瀑	pu	7520
+起	qi	8000
+其	qi	7920
+七	qi	7840
+期	qi	7760
+气	qi	7680
+器	qi	7600
+汽	qi	7520
+齐	qi	7440
+奇	qi	7360
+骑	qi	7280
+企	qi	7200
+启	qi	7120
+棋	qi	7040
+旗	qi	6960
+妻	qi	6880
+漆	qi	6800
+戚	qi	6720
+恰	qia	8000
+卡	qia	7920
+洽	qia	7840
+前	qian	8000
+钱	qian	7920
+千	qian	7840
+签	qian	7760
+浅	qian	7680
+欠	qian	7600
+铅	qian	7520
+迁	qian	7440
+牵	qian	7360
+谦	qian	7280
+强	qiang	8000
+墙	qiang	7920
+枪	qiang	7840
+抢	qiang	7760
+腔	qiang	7680
+桥	qiao	8000
+巧	qiao	7920
+悄	qiao	7840
+乔	qiao	7760
+敲	qiao	7680
+翘	qiao	7600
+侨	qiao	7520
+且	qie	8000
+切	qie	7920
+窃	qie	7840
+茄	qie	7760
+亲	qin	8000
+琴	qin	7920
+勤	qin	7840
+秦	qin	7760
+寝	qin	7680
+钦	qin	7600
+请	qing	8000
+情	qing	7920
+清	qing	7840
+青	qing	7760
+轻	qing	7680
+庆	qing	7600
+晴	qing	7520
+倾	qing	7440
+穷	qiong	8000
+琼	qiong	7920
+求	qiu	8000
+球	qiu	7920
+秋	qiu	7840
+丘	qiu	7760
+邱	qiu	7680
+囚	qiu	7600
+去	qu	8000
+区	qu	7920
+取	qu	7840
+曲	qu	7760
+趣	qu	7680
+渠	qu	7600
+屈	qu	7520
+趋	qu	7440
+全	quan	8000
+权	quan	7920
+圈	quan	7840
+泉	quan	7760
+劝	quan	7680
+拳	quan	7600
+犬	quan	7520
+却	que	8000
+确	que	7920
+缺	que	7840
+雀	que	7760
+鹊	que	7680
+群	qun	8000
+裙	qun	7920
+然	ran	8000
+燃	ran	7920
+染	ran	7840
+让	rang	8000
+嚷	rang	7920
+绕	rao	8000
+扰	rao	7920
+饶	rao	7840
+热	re	8000
+惹	re	7920
+认	ren	7920
+任	ren	7840
+忍	ren	7760
+仁	ren	7680
+刃	ren	7600
+仍	reng	8000
+扔	reng	7920
+日	ri	8000
+容	rong	8000
+荣	rong	7920
+融	rong	7840
+绒	rong	7760
+榕	rong	7680
+肉	rou	8000
+柔	rou	7920
+揉	rou	7840
+如	ru	8000
+入	ru	7920
+乳	ru	7840
+儒	ru	7760
+软	ruan	8000
+瑞	rui	8000
+锐	rui	7920
+蕊	rui	7840
+润	run	8000
+若	ruo	8000
+弱	ruo	7920
+撒	sa	8000
+洒	sa	7920
+赛	sai	8000
+塞	sai	7920
+腮	sai	7840
+三	san	8000
+散	san	7920
+伞	san	7840
+桑	sang	8000
+丧	sang	7920
+嗓	sang	7840
+扫	sao	8000
+骚	sao	7920
+嫂	sao	7840
+色	se	8000
+涩	se	7920
+森	sen	8000
+僧	seng	8000
+杀	sha	8000
+沙	sha	7920
+傻	sha	7840
+啥	sha	7760
+纱	sha	7680
+刹	sha	7600
+晒	shai	8000
+筛	shai	7920
+山	shan	8000
+闪	shan	7920
+善	shan	7840
+衫	shan	7760
+扇	shan	7680
+珊	shan	7600
+删	shan	7520
+陕	shan	7440
+上	shang	8000
+商	shang	7920
+伤	shang	7840
+尚	shang	7760
+赏	shang	7680
+少	shao	8000
+烧	shao	7920
+稍	shao	7840
+勺	shao	7760
+邵	shao	7680
+设	she	8000
+社	she	7920
+舌	she	7840
+蛇	she	7760
+射	she	7680
+舍	she	7600
+摄	she	7520
+涉	she	7440
+谁	shei	8000
+身	shen	8000
+深	shen	7920
+神	shen	7840
+甚	shen	7760
+申	shen	7680
+伸	shen	7600
+审	shen	7520
+沈	shen	7440
+肾	shen	7360
+生	sheng	8000
+声	sheng	7920
+省	sheng	7840
+升	sheng	7760
+胜	sheng	7680
+绳	sheng	7600
+盛	sheng	7520
+圣	sheng	7440
+剩	sheng	7360
+时	shi	7920
+事	shi	7840
+十	shi	7760
+使	shi	7680
+市	shi	7600
+师	shi	7520
+试	shi	7440
+式	shi	7360
+世	shi	7280
+实	shi	7200
+食	shi	7120
+石	shi	7040
+史	shi	6960
+示	shi	6880
+识	shi	6800
+始	shi	6720
+视	shi	6640
+室	shi	6560
+湿	shi	6480
+诗	shi	6400
+狮	shi	6320
+施	shi	6240
+失	shi	6160
+士	shi	6080
+适	shi	6000
+拾	shi	5920
+释	shi	5840
+饰	shi	5760
+誓	shi	5680
+手	shou	8000
+收	shou	7920
+受	shou	7840
+首	shou	7760
+售	shou	7680
+寿	shou	7600
+守	shou	7520
+瘦	shou	7440
+书	shu	8000
+数	shu	7920
+树	shu	7840
+属	shu	7760
+输	shu	7680
+术	shu	7600
+熟	shu	7520
+舒	shu	7440
+叔	shu	7360
+鼠	shu	7280
+束	shu	7200
+述	shu	7120
+梳	shu	7040
+蔬	shu	6960
+蜀	shu	6880
+刷	shua	8000
+耍	shua	7920
+帅	shuai	8000
+摔	shuai	7920
+甩	shuai	7840
+衰	shuai	7760
+栓	shuan	8000
+拴	shuan	7920
+双	shuang	8000
+爽	shuang	7920
+霜	shuang	7840
+水	shui	8000
+谁	shui	7920
+税	shui	7840
+睡	shui	7760
+顺	shun	8000
+瞬	shun	7920
+说	shuo	8000
+硕	shuo	7920
+四	si	8000
+思	si	7920
+死	si	7840
+私	si	7760
+司	si	7680
+丝	si	7600
+似	si	7520
+寺	si	7440
+撕	si	7360
+送	song	8000
+松	song	7920
+宋	song	7840
+颂	song	7760
+搜	sou	8000
+艘	sou	7920
+嗽	sou	7840
+素	su	8000
+速	su	7920
+苏	su	7840
+诉	su	7760
+塑	su	7680
+宿	su	7600
+酥	su	7520
+肃	su	7440
+算	suan	8000
+酸	suan	7920
+蒜	suan	7840
+岁	sui	8000
+随	sui	7920
+碎	sui	7840
+虽	sui	7760
+穗	sui	7680
+孙	sun	8000
+损	sun	7920
+笋	sun	7840
+所	suo	8000
+锁	suo	7920
+索	suo	7840
+缩	suo	7760
+塔	ta	7760
+踏	ta	7680
+太	tai	8000
+台	tai	7920
+态	tai	7840
+抬	tai	7760
+泰	tai	7680
+胎	tai	7600
+谈	tan	8000
+弹	tan	7920
+坦	tan	7840
+探	tan	7760
+摊	tan	7680
+碳	tan	7600
+贪	tan	7520
+叹	tan	7440
+坛	tan	7360
+糖	tang	8000
+汤	tang	7920
+唐	tang	7840
+躺	tang	7760
+堂	tang	7680
+烫	tang	7600
+塘	tang	7520
+套	tao	8000
+讨	tao	7920
+桃	tao	7840
+逃	tao	7760
+淘	tao	7680
+陶	tao	7600
+特	te	8000
+疼	teng	8000
+腾	teng	7920
+藤	teng	7840
+提	ti	8000
+题	ti	7920
+体	ti	7840
+替	ti	7760
+梯	ti	7680
+踢	ti	7600
+剃	ti	7520
+蹄	ti	7440
+天	tian	8000
+田	tian	7920
+填	tian	7840
+甜	tian	7760
+添	tian	7680
+条	tiao	8000
+跳	tiao	7920
+调	tiao	7840
+挑	tiao	7760
+铁	tie	8000
+贴	tie	7920
+帖	tie	7840
+听	ting	8000
+停	ting	7920
+厅	ting	7840
+庭	ting	7760
+挺	ting	7680
+亭	ting	7600
+同	tong	8000
+通	tong	7920
+痛	tong	7840
+铜	tong	7760
+桶	tong	7680
+童	tong	7600
+统	tong	7520
+桐	tong	7440
+头	tou	8000
+投	tou	7920
+偷	tou	7840
+透	tou	7760
+图	tu	8000
+土	tu	7920
+兔	tu	7840
+徒	tu	7760
+涂	tu	7680
+突	tu	7600
+吐	tu	7520
+途	tu	7440
+团	tuan	8000
+推	tui	8000
+退	tui	7920
+腿	tui	7840
+吞	tun	8000
+屯	tun	7920
+囤	tun	7840
+脱	tuo	8000
+托	tuo	7920
+拖	tuo	7840
+妥	tuo	7760
+拓	tuo	7680
+驼	tuo	7600
+哇	wa	8000
+挖	wa	7920
+娃	wa	7840
+蛙	wa	7760
+袜	wa	7680
+瓦	wa	7600
+外	wai	8000
+歪	wai	7920
+完	wan	8000
+玩	wan	7920
+万	wan	7840
+晚	wan	7760
+湾	wan	7680
+碗	wan	7600
+弯	wan	7520
+丸	wan	7440
+王	wang	8000
+网	wang	7920
+往	wang	7840
+望	wang	7760
+忘	wang	7680
+汪	wang	7600
+亡	wang	7520
+为	wei	8000
+位	wei	7920
+未	wei	7840
+味	wei	7760
+喂	wei	7680
+围	wei	7600
+维	wei	7520
+唯	wei	7440
+微	wei	7360
+尾	wei	7280
+卫	wei	7200
+委	wei	7120
+伟	wei	7040
+威	wei	6960
+胃	wei	6880
+危	wei	6800
+违	wei	6720
+文	wen	8000
+问	wen	7920
+温	wen	7840
+闻	wen	7760
+稳	wen	7680
+纹	wen	7600
+吻	wen	7520
+蚊	wen	7440
+翁	weng	8000
+握	wo	7920
+窝	wo	7840
+卧	wo	7760
+沃	wo	7680
+五	wu	8000
+无	wu	7920
+物	wu	7840
+务	wu	7760
+午	wu	7680
+舞	wu	7600
+雾	wu	7520
+屋	wu	7440
+武	wu	7360
+吴	wu	7280
+误	wu	7200
+悟	wu	7120
+污	wu	7040
+乌	wu	6960
+吾	wu	6880
+系	xi	7920
+希	xi	7840
+洗	xi	7760
+息	xi	7680
+习	xi	7600
+喜	xi	7520
+细	xi	7440
+吸	xi	7360
+戏	xi	7280
+席	xi	7200
+稀	xi	7120
+惜	xi	7040
+锡	xi	6960
+溪	xi	6880
+夕	xi	6800
+析	xi	6720
+袭	xi	6640
+熄	xi	6560
+下	xia	8000
+夏	xia	7920
+吓	xia	7840
+虾	xia	7760
+霞	xia	7680
+狭	xia	7600
+侠	xia	7520
+峡	xia	7440
+线	xian	7920
+限	xian	7680
+显	xian	7600
+闲	xian	7520
+鲜	xian	7440
+仙	xian	7360
+险	xian	7280
+献	xian	7200
+咸	xian	7120
+弦	xian	7040
+想	xiang	8000
+向	xiang	7920
+相	xiang	7840
+像	xiang	7760
+项	xiang	7680
+香	xiang	7600
+乡	xiang	7520
+象	xiang	7440
+箱	xiang	7360
+响	xiang	7280
+享	xiang	7200
+巷	xiang	7120
+祥	xiang	7040
+详	xiang	6960
+小	xiao	8000
+笑	xiao	7920
+校	xiao	7840
+消	xiao	7760
+晓	xiao	7680
+肖	xiao	7600
+效	xiao	7520
+孝	xiao	7440
+削	xiao	7360
+写	xie	8000
+些	xie	7920
+谢	xie	7840
+鞋	xie	7760
+协	xie	7680
+血	xie	7600
+斜	xie	7520
+携	xie	7440
+泄	xie	7360
+械	xie	7280
+歇	xie	7200
+谐	xie	7120
+邪	xie	7040
+新	xin	8000
+心	xin	7920
+信	xin	7840
+辛	xin	7760
+欣	xin	7680
+薪	xin	7600
+芯	xin	7520
+性	xing	7920
+星	xing	7840
+形	xing	7760
+兴	xing	7680
+醒	xing	7600
+姓	xing	7520
+幸	xing	7440
+刑	xing	7360
+型	xing	7280
+熊	xiong	8000
+兄	xiong	7920
+雄	xiong	7840
+胸	xiong	7760
+凶	xiong	7680
+修	xiu	8000
+休	xiu	7920
+秀	xiu	7840
+袖	xiu	7760
+绣	xiu	7680
+需	xu	8000
+许	xu	7920
+须	xu	7840
+续	xu	7760
+序	xu	7680
+虚	xu	7600
+徐	xu	7520
+叙	xu	7440
+蓄	xu	7360
+旭	xu	7280
+选	xuan	8000
+宣	xuan	7920
+旋	xuan	7840
+玄	xuan	7760
+悬	xuan	7680
+轩	xuan	7600
+学	xue	8000
+雪	xue	7920
+血	xue	7840
+穴	xue	7760
+薛	xue	7680
+讯	xun	8000
+寻	xun	7920
+训	xun	7840
+询	xun	7760
+巡	xun	7680
+旬	xun	7600
+熏	xun	7520
+呀	ya	8000
+压	ya	7920
+亚	ya	7840
+牙	ya	7760
+雅	ya	7680
+鸭	ya	7600
+芽	ya	7520
+崖	ya	7440
+押	ya	7360
+眼	yan	8000
+言	yan	7920
+烟	yan	7840
+研	yan	7760
+严	yan	7680
+演	yan	7600
+颜	yan	7520
+盐	yan	7440
+延	yan	7360
+炎	yan	7280
+岩	yan	7200
+验	yan	7120
+燕	yan	7040
+沿	yan	6960
+雁	yan	6880
+掩	yan	6800
+样	yang	8000
+养	yang	7920
+阳	yang	7840
+洋	yang	7760
+羊	yang	7680
+扬	yang	7600
+杨	yang	7520
+氧	yang	7440
+仰	yang	7360
+要	yao	8000
+药	yao	7920
+咬	yao	7840
+摇	yao	7760
+遥	yao	7680
+腰	yao	7600
+邀	yao	7520
+姚	yao	7440
+谣	yao	7360
+妖	yao	7280
+也	ye	8000
+夜	ye	7920
+业	ye	7840
+页	ye	7760
+叶	ye	7680
+野	ye	7600
+爷	ye	7520
+液	ye	7440
+一	yi	8000
+以	yi	7920
+已	yi	7840
+意	yi	7760
+易	yi	7680
+议	yi	7600
+医	yi	7520
+衣	yi	7440
+义	yi	7360
+益	yi	7280
+亿	yi	7200
+艺	yi	7120
+依	yi	7040
+移	yi	6960
+椅	yi	6880
+宜	yi	6800
+异	yi	6720
+疑	yi	6640
+译	yi	6560
+遗	yi	6480
+仪	yi	6400
+乙	yi	6320
+忆	yi	6240
+亦	yi	6160
+翼	yi	6080
+因	yin	8000
+音	yin	7920
+银	yin	7840
+引	yin	7760
+印	yin	7680
+阴	yin	7600
+饮	yin	7520
+隐	yin	7440
+尹	yin	7360
+姻	yin	7280
+应	ying	8000
+影	ying	7920
+英	ying	7840
+营	ying	7760
+赢	ying	7680
+硬	ying	7600
+迎	ying	7520
+映	ying	7440
+盈	ying	7360
+鹰	ying	7280
+婴	ying	7200
+哟	yo	8000
+用	yong	8000
+永	yong	7920
+勇	yong	7840
+涌	yong	7760
+泳	yong	7680
+拥	yong	7600
+庸	yong	7520
+又	you	7920
+由	you	7840
+油	you	7760
+友	you	7680
+右	you	7600
+游	you	7520
+优	you	7440
+尤	you	7360
+邮	you	7280
+幼	you	7200
+犹	you	7120
+悠	you	7040
+与	yu	8000
+于	yu	7920
+雨	yu	7840
+鱼	yu	7760
+语	yu	7680
+玉	yu	7600
+育	yu	7520
+预	yu	7440
+遇	yu	7360
+欲	yu	7280
+余	yu	7200
+域	yu	7120
+羽	yu	7040
+予	yu	6960
+宇	yu	6880
+愈	yu	6800
+郁	yu	6720
+寓	yu	6640
+狱	yu	6560
+御	yu	6480
+渔	yu	6400
+元	yuan	8000
+原	yuan	7920
+员	yuan	7840
+圆	yuan	7760
+远	yuan	7680
+院	yuan	7600
+愿	yuan	7520
+园	yuan	7440
+源	yuan	7360
+缘	yuan	7280
+冤	yuan	7200
+袁	yuan	7120
+月	yue	8000
+越	yue	7920
+约	yue	7840
+乐	yue	7760
+阅	yue	7680
+悦	yue	7600
+岳	yue	7520
+跃	yue	7440
+云	yun	8000
+运	yun	7920
+允	yun	7840
+晕	yun	7760
+孕	yun	7680
+韵	yun	7600
+匀	yun	7520
+杂	za	8000
+砸	za	7920
+咋	za	7840
+再	zai	7920
+载	zai	7840
+灾	zai	7760
+宰	zai	7680
+咱	zan	8000
+赞	zan	7920
+暂	zan	7840
+脏	zang	8000
+藏	zang	7920
+早	zao	8000
+造	zao	7920
+糟	zao	7840
+躁	zao	7760
+枣	zao	7680
+澡	zao	7600
+灶	zao	7520
+则	ze	8000
+责	ze	7920
+泽	ze	7840
+择	ze	7760
+贼	zei	8000
+怎	zen	8000
+增	zeng	8000
+曾	zeng	7920
+赠	zeng	7840
+炸	zha	8000
+扎	zha	7920
+渣	zha	7840
+眨	zha	7760
+榨	zha	7680
+闸	zha	7600
+宅	zhai	8000
+摘	zhai	7920
+窄	zhai	7840
+债	zhai	7760
+站	zhan	8000
+战	zhan	7920
+展	zhan	7840
+占	zhan	7760
+沾	zhan	7680
+斩	zhan	7600
+张	zhang	8000
+章	zhang	7840
+掌	zhang	7760
+丈	zhang	7680
+账	zhang	7600
+涨	zhang	7520
+障	zhang	7440
+胀	zhang	7360
+找	zhao	8000
+照	zhao	7920
+招	zhao	7840
+赵	zhao	7760
+朝	zhao	7680
+着	zhao	7600
+罩	zhao	7520
+这	zhe	8000
+者	zhe	7920
+着	zhe	7840
+折	zhe	7760
+浙	zhe	7680
+遮	zhe	7600
+真	zhen	8000
+镇	zhen	7920
+针	zhen	7840
+阵	zhen	7760
+珍	zhen	7680
+震	zhen	7600
+振	zhen	7520
+诊	zhen	7440
+贞	zhen	7360
+正	zheng	8000
+整	zheng	7920
+政	zheng	7840
+证	zheng	7760
+争	zheng	7680
+征	zheng	7600
+睁	zheng	7520
+郑	zheng	7440
+蒸	zheng	7360
+挣	zheng	7280
+之	zhi	8000
+只	zhi	7920
+知	zhi	7840
+至	zhi	7760
+指	zhi	7680
+制	zhi	7600
+直	zhi	7520
+支	zhi	7440
+纸	zhi	7360
+值	zhi	7280
+职	zhi	7200
+治	zhi	7120
+质	zhi	7040
+志	zhi	6960
+致	zhi	6880
+智	zhi	6800
+止	zhi	6720
+织	zhi	6640
+执	zhi	6560
+址	zhi	6480
+枝	zhi	6400
+汁	zhi	6320
+肢	zhi	6240
+种	zhong	7920
+钟	zhong	7760
+终	zhong	7680
+众	zhong	7600
+忠	zhong	7520
+肿	zhong	7440
+周	zhou	8000
+州	zhou	7920
+洲	zhou	7840
+舟	zhou	7760
+轴	zhou	7680
+粥	zhou	7600
+肘	zhou	7520
+咒	zhou	7440
+主	zhu	8000
+住	zhu	7920
+祝	zhu	7840
+注	zhu	7760
+竹	zhu	7680
+猪	zhu	7600
+助	zhu	7520
+著	zhu	7440
+煮	zhu	7360
+柱	zhu	7280
+珠	zhu	7200
+逐	zhu	7120
+筑	zhu	7040
+驻	zhu	6960
+铸	zhu	6880
+抓	zhua	8000
+转	zhuan	8000
+专	zhuan	7920
+赚	zhuan	7840
+砖	zhuan	7760
+传	zhuan	7680
+撰	zhuan	7600
+装	zhuang	8000
+状	zhuang	7920
+庄	zhuang	7840
+撞	zhuang	7760
+壮	zhuang	7680
+妆	zhuang	7600
+桩	zhuang	7520
+追	zhui	8000
+坠	zhui	7920
+缀	zhui	7840
+准	zhun	8000
+桌	zhuo	8000
+着	zhuo	7920
+捉	zhuo	7840
+琢	zhuo	7760
+卓	zhuo	7680
+浊	zhuo	7600
+子	zi	8000
+自	zi	7920
+字	zi	7840
+资	zi	7760
+紫	zi	7680
+仔	zi	7600
+滋	zi	7520
+咨	zi	7440
+姿	zi	7360
+兹	zi	7280
+总	zong	8000
+宗	zong	7920
+纵	zong	7840
+综	zong	7760
+棕	zong	7680
+走	zou	8000
+奏	zou	7920
+揍	zou	7840
+组	zu	8000
+足	zu	7920
+祖	zu	7840
+租	zu	7760
+族	zu	7680
+阻	zu	7600
+钻	zuan	8000
+最	zui	8000
+嘴	zui	7920
+罪	zui	7840
+醉	zui	7760
+尊	zun	8000
+遵	zun	7920
+做	zuo	8000
+作	zuo	7920
+坐	zuo	7840
+左	zuo	7760
+昨	zuo	7680
+座	zuo	7600
+# 常用表达
+大家	da jia	9000
+自己	zi ji	9000
+什么	shen me	9000
+怎么	zen me	9000
+怎么样	zen me yang	9000
+为什么	wei shen me	9000
+哪里	na li	9000
+哪个	na ge	9000
+哪些	na xie	9000
+这个	zhe ge	9000
+那个	na ge	9000
+这些	zhe xie	9000
+那些	na xie	9000
+这里	zhe li	9000
+那里	na li	9000
+这么	zhe me	9000
+那么	na me	9000
+这样	zhe yang	9000
+那样	na yang	9000
+怎样	zen yang	9000
+多少	duo shao	9000
+什么时候	shen me shi hou	9000
+有没有	you mei you	9000
+是不是	shi bu shi	9000
+能不能	neng bu neng	9000
+可以	ke yi	11000
+可能	ke neng	9000
+应该	ying gai	9000
+必须	bi xu	9000
+需要	xu yao	9000
+一定	yi ding	9000
+已经	yi jing	9000
+正在	zheng zai	9000
+一直	yi zhi	9000
+一起	yi qi	9000
+一样	yi yang	9000
+一般	yi ban	9000
+一共	yi gong	9000
+一切	yi qie	9000
+一些	yi xie	9000
+一点	yi dian	9000
+一下	yi xia	9000
+一会儿	yi hui er	9000
+有点	you dian	9000
+有些	you xie	9000
+有时	you shi	9000
+但是	dan shi	9000
+不过	bu guo	9000
+其实	qi shi	9000
+因为	yin wei	9000
+所以	suo yi	9000
+如果	ru guo	9000
+虽然	sui ran	9000
+而且	er qie	9000
+或者	huo zhe	9000
+还是	hai shi	9000
+然后	ran hou	9000
+于是	yu shi	9000
+因此	yin ci	9000
+同时	tong shi	9000
+以及	yi ji	9000
+另外	ling wai	9000
+比如	bi ru	9000
+例如	li ru	9000
+特别	te bie	9000
+非常	fei chang	9000
+十分	shi fen	9000
+比较	bi jiao	9000
+更加	geng jia	9000
+最好	zui hao	9000
+只是	zhi shi	9000
+只有	zhi you	9000
+只要	zhi yao	9000
+至少	zhi shao	9000
+甚至	shen zhi	9000
+几乎	ji hu	9000
+大概	da gai	9000
+大约	da yue	9000
+也许	ye xu	9000
+当然	dang ran	9000
+确实	que shi	9000
+真的	zhen de	9000
+完全	wan quan	9000
+直接	zhi jie	9000
+基本	ji ben	9000
+主要	zhu yao	9000
+重要	zhong yao	9000
+简单	jian dan	9000
+容易	rong yi	9000
+困难	kun nan	9000
+方便	fang bian	9000
+麻烦	ma fan	9000
+正常	zheng chang	9000
+特殊	te shu	9000
+不错	bu cuo	9000
+不好	bu hao	9000
+没有	mei you	9000
+没事	mei shi	9000
+没关系	mei guan xi	9000
+没问题	mei wen ti	9000
+对不起	dui bu qi	9000
+不客气	bu ke qi	9000
+不用谢	bu yong xie	9000
+请问	qing wen	9000
+请稍等	qing shao deng	9000
+好吧	hao ba	9000
+好的	hao de	9000
+好啊	hao a	9000
+好了	hao le	9000
+行吧	xing ba	9000
+知道了	zhi dao le	9000
+明白了	ming bai le	9000
+收到了	shou dao le	9000
+辛苦了	xin ku le	9000
+太好了	tai hao le	9000
+加油	jia you	9000
+早上好	zao shang hao	9000
+晚上好	wan shang hao	9000
+晚安	wan an	9000
+回头见	hui tou jian	9000
+下次见	xia ci jian	9000
+谢谢你	xie xie ni	9000
+非常感谢	fei chang gan xie	9000
+不好意思	bu hao yi si	9000
+好久不见	hao jiu bu jian	9000
+# 基础动作与关系
+知道	zhi dao	10000
+认为	ren wei	8000
+觉得	jue de	8000
+发现	fa xian	8000
+相信	xiang xin	8000
+理解	li jie	8000
+明白	ming bai	8000
+记得	ji de	8000
+忘记	wang ji	8000
+记住	ji zhu	8000
+想起	xiang qi	8000
+考虑	kao lv	8000
+思考	si kao	8000
+决定	jue ding	8000
+希望	xi wang	8000
+愿意	yuan yi	8000
+同意	tong yi	8000
+拒绝	ju jue	8000
+接受	jie shou	8000
+答应	da ying	8000
+允许	yun xu	8000
+开始	kai shi	8000
+结束	jie shu	8000
+继续	ji xu	8000
+停止	ting zhi	8000
+暂停	zan ting	8000
+恢复	hui fu	8000
+放弃	fang qi	8000
+打开	da kai	8000
+关闭	guan bi	8000
+进入	jin ru	8000
+离开	li kai	8000
+回来	hui lai	8000
+出去	chu qu	8000
+过来	guo lai	8000
+过去	guo qu	8000
+起来	qi lai	8000
+下来	xia lai	8000
+上去	shang qu	8000
+下去	xia qu	8000
+回去	hui qu	8000
+走路	zou lu	8000
+跑步	pao bu	8000
+行走	xing zou	8000
+站起来	zhan qi lai	8000
+坐下	zuo xia	8000
+躺下	tang xia	8000
+休息	xiu xi	8000
+拿到	na dao	8000
+得到	de dao	8000
+找到	zhao dao	8000
+看见	kan jian	8000
+听见	ting jian	8000
+看看	kan kan	8000
+听听	ting ting	8000
+看到	kan dao	8000
+听到	ting dao	8000
+说话	shuo hua	8000
+告诉	gao su	8000
+回答	hui da	8000
+提问	ti wen	8000
+询问	xun wen	8000
+解释	jie shi	8000
+说明	shuo ming	8000
+介绍	jie shao	8000
+表示	biao shi	8000
+证明	zheng ming	8000
+确认	que ren	8000
+要求	yao qiu	8000
+请求	qing qiu	8000
+建议	jian yi	8000
+提醒	ti xing	8000
+通知	tong zhi	8000
+告知	gao zhi	8000
+安排	an pai	8000
+帮助	bang zhu	8000
+处理	chu li	8000
+使用	shi yong	8000
+进行	jin xing	8000
+实现	shi xian	8000
+提供	ti gong	8000
+保持	bao chi	8000
+改变	gai bian	8000
+调整	tiao zheng	8000
+修改	xiu gai	8000
+更新	geng xin	8000
+增加	zeng jia	8000
+减少	jian shao	8000
+删除	shan chu	8000
+添加	tian jia	8000
+移动	yi dong	8000
+返回	fan hui	8000
+保存	bao cun	8000
+保留	bao liu	8000
+取消	qu xiao	8000
+检查	jian cha	8000
+观察	guan cha	8000
+记录	ji lu	8000
+整理	zheng li	8000
+准备	zhun bei	8000
+等待	deng dai	8000
+联系	lian xi	8000
+沟通	gou tong	8000
+交流	jiao liu	8000
+合作	he zuo	8000
+参加	can jia	8000
+加入	jia ru	8000
+分享	fen xiang	8000
+讨论	tao lun	8000
+相同	xiang tong	8000
+不同	bu tong	8000
+相似	xiang si	8000
+区别	qu bie	8000
+关系	guan xi	8000
+关于	guan yu	8000
+对于	dui yu	8000
+根据	gen ju	8000
+按照	an zhao	8000
+通过	tong guo	8000
+之间	zhi jian	8000
+其中	qi zhong	8000
+包括	bao kuo	8000
+属于	shu yu	8000
+# 时间与数量
+上午	shang wu	7500
+中午	zhong wu	7500
+下午	xia wu	7500
+晚上	wan shang	7500
+早上	zao shang	7500
+凌晨	ling chen	7500
+清晨	qing chen	7500
+半夜	ban ye	7500
+白天	bai tian	7500
+夜晚	ye wan	7500
+前天	qian tian	7500
+后天	hou tian	7500
+今晚	jin wan	7500
+今年	jin nian	7500
+去年	qu nian	7500
+明年	ming nian	7500
+后年	hou nian	7500
+年初	nian chu	7500
+年底	nian di	7500
+月初	yue chu	7500
+月底	yue di	7500
+每天	mei tian	7500
+每周	mei zhou	7500
+每月	mei yue	7500
+每年	mei nian	7500
+以前	yi qian	7500
+以后	yi hou	7500
+之前	zhi qian	7500
+之后	zhi hou	7500
+刚才	gang cai	7500
+刚刚	gang gang	7500
+马上	ma shang	7500
+立刻	li ke	7500
+及时	ji shi	7500
+经常	jing chang	7500
+总是	zong shi	7500
+偶尔	ou er	7500
+从来	cong lai	7500
+从前	cong qian	7500
+最近	zui jin	7500
+目前	mu qian	7500
+未来	wei lai	7500
+将来	jiang lai	7500
+最后	zui hou	7500
+最初	zui chu	7500
+平时	ping shi	7500
+周末	zhou mo	7500
+星期	xing qi	7500
+星期一	xing qi yi	7500
+星期二	xing qi er	7500
+星期三	xing qi san	7500
+星期四	xing qi si	7500
+星期五	xing qi wu	7500
+星期六	xing qi liu	7500
+星期日	xing qi ri	7500
+星期天	xing qi tian	7500
+工作日	gong zuo ri	7500
+小时	xiao shi	7500
+分钟	fen zhong	7500
+秒钟	miao zhong	7500
+年份	nian fen	7500
+年龄	nian ling	7500
+日期	ri qi	7500
+时刻	shi ke	7500
+时候	shi hou	7500
+期间	qi jian	7500
+周期	zhou qi	7500
+时长	shi chang	7500
+期限	qi xian	7500
+截止	jie zhi	7500
+春节	chun jie	7500
+元旦	yuan dan	7500
+中秋	zhong qiu	7500
+国庆	guo qing	7500
+假期	jia qi	7500
+放假	fang jia	7500
+节日	jie ri	7500
+生日	sheng ri	7500
+纪念日	ji nian ri	7500
+寒假	han jia	7500
+暑假	shu jia	7500
+日历	ri li	7500
+闹钟	nao zhong	7500
+数量	shu liang	7500
+数字	shu zi	7500
+总数	zong shu	7500
+次数	ci shu	7500
+个数	ge shu	7500
+人数	ren shu	7500
+人口	ren kou	7500
+多个	duo ge	7500
+几个	ji ge	7500
+全部	quan bu	7500
+部分	bu fen	7500
+一半	yi ban	7500
+一百	yi bai	7500
+一千	yi qian	7500
+一万	yi wan	7500
+第一	di yi	7500
+第二	di er	7500
+第三	di san	7500
+一次	yi ci	7500
+两次	liang ci	7500
+很多	hen duo	7500
+不少	bu shao	7500
+足够	zu gou	7500
+不够	bu gou	7500
+额外	e wai	7500
+一双	yi shuang	7500
+一份	yi fen	7500
+一套	yi tao	7500
+# 位置与程度
+上面	shang mian	6500
+下面	xia mian	6500
+前面	qian mian	6500
+后面	hou mian	6500
+左边	zuo bian	6500
+右边	you bian	6500
+里面	li mian	6500
+外面	wai mian	6500
+中间	zhong jian	6500
+旁边	pang bian	6500
+对面	dui mian	6500
+附近	fu jin	6500
+周围	zhou wei	6500
+远处	yuan chu	6500
+近处	jin chu	6500
+远方	yuan fang	6500
+远近	yuan jin	6500
+东边	dong bian	6500
+西边	xi bian	6500
+南边	nan bian	6500
+北边	bei bian	6500
+东方	dong fang	6500
+西方	xi fang	6500
+南方	nan fang	6500
+北方	bei fang	6500
+东北	dong bei	6500
+西北	xi bei	6500
+东南	dong nan	6500
+西南	xi nan	6500
+国内	guo nei	6500
+国外	guo wai	6500
+方向	fang xiang	6500
+位置	wei zhi	6500
+地点	di dian	6500
+地方	di fang	6500
+地址	di zhi	6500
+区域	qu yu	6500
+范围	fan wei	6500
+距离	ju li	6500
+高度	gao du	6500
+宽度	kuan du	6500
+深度	shen du	6500
+厚度	hou du	6500
+温度	wen du	6500
+速度	su du	6500
+大小	da xiao	6500
+快慢	kuai man	6500
+长短	chang duan	6500
+高低	gao di	6500
+深浅	shen qian	6500
+上下	shang xia	6500
+左右	zuo you	6500
+前后	qian hou	6500
+内外	nei wai	6500
+轻重	qing zhong	6500
+最大	zui da	6500
+最小	zui xiao	6500
+最高	zui gao	6500
+最低	zui di	6500
+最快	zui kuai	6500
+最慢	zui man	6500
+更多	geng duo	6500
+更少	geng shao	6500
+更好	geng hao	6500
+更大	geng da	6500
+更小	geng xiao	6500
+更快	geng kuai	6500
+越来越	yue lai yue	6500
+差不多	cha bu duo	6500
+大多数	da duo shu	6500
+少数	shao shu	6500
+多数	duo shu	6500
+逐渐	zhu jian	6500
+逐步	zhu bu	6500
+慢慢	man man	6500
+迅速	xun su	6500
+稍微	shao wei	6500
+严重	yan zhong	6500
+明显	ming xian	6500
+清楚	qing chu	6500
+模糊	mo hu	6500
+详细	xiang xi	6500
+大致	da zhi	6500
+具体	ju ti	6500
+# 人物与家庭
+朋友	peng you	6500
+同学	tong xue	6500
+同事	tong shi	6500
+老师	lao shi	6500
+学生	xue sheng	6500
+孩子	hai zi	6500
+儿童	er tong	6500
+大人	da ren	6500
+老人	lao ren	6500
+年轻人	nian qing ren	6500
+男人	nan ren	6500
+女人	nv ren	6500
+男孩	nan hai	6500
+男生	nan sheng	6500
+女生	nv sheng	6500
+父母	fu mu	6500
+父亲	fu qin	6500
+母亲	mu qin	6500
+爸爸	ba ba	6500
+妈妈	ma ma	6500
+哥哥	ge ge	6500
+姐姐	jie jie	6500
+弟弟	di di	6500
+妹妹	mei mei	6500
+兄弟	xiong di	6500
+姐妹	jie mei	6500
+儿子	er zi	6500
+爷爷	ye ye	6500
+奶奶	nai nai	6500
+外公	wai gong	6500
+外婆	wai po	6500
+姥姥	lao lao	6500
+姥爷	lao ye	6500
+叔叔	shu shu	6500
+阿姨	a yi	6500
+姑姑	gu gu	6500
+舅舅	jiu jiu	6500
+伯伯	bo bo	6500
+表哥	biao ge	6500
+表姐	biao jie	6500
+表弟	biao di	6500
+表妹	biao mei	6500
+丈夫	zhang fu	6500
+妻子	qi zi	6500
+老公	lao gong	6500
+老婆	lao po	6500
+爱人	ai ren	6500
+夫妻	fu qi	6500
+亲人	qin ren	6500
+亲戚	qin qi	6500
+家人	jia ren	6500
+家庭	jia ting	6500
+家乡	jia xiang	6500
+家长	jia zhang	6500
+邻居	lin ju	6500
+伙伴	huo ban	6500
+客人	ke ren	6500
+主人	zhu ren	6500
+先生	xian sheng	6500
+女士	nv shi	6500
+同志	tong zhi	6500
+医生	yi sheng	6500
+护士	hu shi	6500
+警察	jing cha	6500
+司机	si ji	6500
+工人	gong ren	6500
+农民	nong min	6500
+厨师	chu shi	6500
+经理	jing li	6500
+领导	ling dao	6500
+老板	lao ban	6500
+员工	yuan gong	6500
+顾客	gu ke	6500
+客户	ke hu	6500
+读者	du zhe	6500
+作者	zuo zhe	6500
+记者	ji zhe	6500
+演员	yan yuan	6500
+歌手	ge shou	6500
+画家	hua jia	6500
+作家	zuo jia	6500
+工程师	gong cheng shi	6500
+设计师	she ji shi	6500
+程序员	cheng xu yuan	6500
+服务员	fu wu yuan	6500
+志愿者	zhi yuan zhe	6500
+陌生人	mo sheng ren	6500
+好朋友	hao peng you	6500
+男朋友	nan peng you	6500
+女朋友	nv peng you	6500
+宝宝	bao bao	6500
+婴儿	ying er	6500
+青少年	qing shao nian	6500
+青年	qing nian	6500
+成年	cheng nian	6500
+中年	zhong nian	6500
+童年	tong nian	6500
+身份	shen fen	6500
+姓名	xing ming	6500
+名字	ming zi	6500
+性别	xing bie	6500
+职业	zhi ye	6500
+婚姻	hun yin	6500
+结婚	jie hun	6500
+# 日常起居与家居
+吃饭	chi fan	7000
+喝水	he shui	7000
+睡觉	shui jiao	7000
+起床	qi chuang	7000
+洗脸	xi lian	7000
+刷牙	shua ya	7000
+洗澡	xi zao	7000
+洗头	xi tou	7000
+洗手	xi shou	7000
+洗衣	xi yi	7000
+洗衣服	xi yi fu	7000
+洗碗	xi wan	7000
+做饭	zuo fan	7000
+做菜	zuo cai	7000
+买菜	mai cai	7000
+打扫	da sao	7000
+收拾	shou shi	7000
+散步	san bu	7000
+出门	chu men	7000
+回家	hui jia	7000
+上班	shang ban	7000
+下班	xia ban	7000
+上学	shang xue	7000
+放学	fang xue	7000
+加班	jia ban	7000
+熬夜	ao ye	7000
+午睡	wu shui	7000
+早餐	zao can	7000
+早饭	zao fan	7000
+午餐	wu can	7000
+午饭	wu fan	7000
+晚餐	wan can	7000
+晚饭	wan fan	7000
+夜宵	ye xiao	7000
+房子	fang zi	7000
+房间	fang jian	7000
+客厅	ke ting	7000
+卧室	wo shi	7000
+厨房	chu fang	7000
+阳台	yang tai	7000
+卫生间	wei sheng jian	7000
+浴室	yu shi	7000
+书房	shu fang	7000
+餐厅	can ting	7000
+楼房	lou fang	7000
+楼梯	lou ti	7000
+电梯	dian ti	7000
+走廊	zou lang	7000
+门口	men kou	7000
+窗户	chuang hu	7000
+大门	da men	7000
+房门	fang men	7000
+地板	di ban	7000
+墙壁	qiang bi	7000
+天花板	tian hua ban	7000
+桌子	zhuo zi	7000
+椅子	yi zi	7000
+沙发	sha fa	7000
+床铺	chuang pu	7000
+床单	chuang dan	7000
+被子	bei zi	7000
+枕头	zhen tou	7000
+柜子	gui zi	7000
+书架	shu jia	7000
+衣柜	yi gui	7000
+鞋柜	xie gui	7000
+镜子	jing zi	7000
+台灯	tai deng	7000
+灯泡	deng pao	7000
+电视	dian shi	7000
+冰箱	bing xiang	7000
+空调	kong tiao	7000
+风扇	feng shan	7000
+洗衣机	xi yi ji	7000
+热水器	re shui qi	7000
+电饭锅	dian fan guo	7000
+微波炉	wei bo lu	7000
+吸尘器	xi chen qi	7000
+电水壶	dian shui hu	7000
+插座	cha zuo	7000
+开关	kai guan	7000
+电源	dian yuan	7000
+遥控器	yao kong qi	7000
+钥匙	yao shi	7000
+门锁	men suo	7000
+毛巾	mao jin	7000
+牙刷	ya shua	7000
+牙膏	ya gao	7000
+肥皂	fei zao	7000
+洗发水	xi fa shui	7000
+沐浴露	mu yu lu	7000
+纸巾	zhi jin	7000
+垃圾	la ji	7000
+垃圾桶	la ji tong	7000
+清洁	qing jie	7000
+干净	gan jing	7000
+整洁	zheng jie	7000
+脏乱	zang luan	7000
+用品	yong pin	7000
+日用品	ri yong pin	7000
+家具	jia ju	7000
+家电	jia dian	7000
+装修	zhuang xiu	7000
+搬家	ban jia	7000
+租房	zu fang	7000
+房租	fang zu	7000
+水费	shui fei	7000
+电费	dian fei	7000
+物业	wu ye	7000
+小区	xiao qu	7000
+住宅	zhu zhai	7000
+住址	zhu zhi	7000
+舒服	shu fu	7000
+# 饮食与购物
+米饭	mi fan	6500
+面条	mian tiao	6500
+馒头	man tou	6500
+包子	bao zi	6500
+饺子	jiao zi	6500
+面包	mian bao	6500
+蛋糕	dan gao	6500
+饼干	bing gan	6500
+食物	shi wu	6500
+食品	shi pin	6500
+饮料	yin liao	6500
+牛奶	niu nai	6500
+豆浆	dou jiang	6500
+咖啡	ka fei	6500
+茶叶	cha ye	6500
+绿茶	lv cha	6500
+红茶	hong cha	6500
+奶茶	nai cha	6500
+果汁	guo zhi	6500
+矿泉水	kuang quan shui	6500
+白开水	bai kai shui	6500
+汽水	qi shui	6500
+酸奶	suan nai	6500
+啤酒	pi jiu	6500
+白酒	bai jiu	6500
+葡萄酒	pu tao jiu	6500
+鸡蛋	ji dan	6500
+鸭蛋	ya dan	6500
+豆腐	dou fu	6500
+蔬菜	shu cai	6500
+水果	shui guo	6500
+苹果	ping guo	6500
+香蕉	xiang jiao	6500
+橘子	ju zi	6500
+橙子	cheng zi	6500
+西瓜	xi gua	6500
+葡萄	pu tao	6500
+草莓	cao mei	6500
+桃子	tao zi	6500
+梨子	li zi	6500
+柠檬	ning meng	6500
+芒果	mang guo	6500
+菠萝	bo luo	6500
+樱桃	ying tao	6500
+猕猴桃	mi hou tao	6500
+火龙果	huo long guo	6500
+白菜	bai cai	6500
+青菜	qing cai	6500
+菠菜	bo cai	6500
+生菜	sheng cai	6500
+黄瓜	huang gua	6500
+土豆	tu dou	6500
+萝卜	luo bo	6500
+胡萝卜	hu luo bo	6500
+西红柿	xi hong shi	6500
+番茄	fan qie	6500
+茄子	qie zi	6500
+辣椒	la jiao	6500
+洋葱	yang cong	6500
+大蒜	da suan	6500
+生姜	sheng jiang	6500
+南瓜	nan gua	6500
+冬瓜	dong gua	6500
+蘑菇	mo gu	6500
+玉米	yu mi	6500
+花生	hua sheng	6500
+猪肉	zhu rou	6500
+牛肉	niu rou	6500
+羊肉	yang rou	6500
+鸡肉	ji rou	6500
+鸭肉	ya rou	6500
+鱼肉	yu rou	6500
+海鲜	hai xian	6500
+螃蟹	pang xie	6500
+大虾	da xia	6500
+排骨	pai gu	6500
+香肠	xiang chang	6500
+火腿	huo tui	6500
+火锅	huo guo	6500
+烧烤	shao kao	6500
+炒饭	chao fan	6500
+炒面	chao mian	6500
+炒菜	chao cai	6500
+凉菜	liang cai	6500
+炒鸡蛋	chao ji dan	6500
+红烧肉	hong shao rou	6500
+汤面	tang mian	6500
+鸡汤	ji tang	6500
+牛排	niu pai	6500
+汉堡	han bao	6500
+披萨	pi sa	6500
+薯条	shu tiao	6500
+冰淇淋	bing qi lin	6500
+食盐	shi yan	6500
+白糖	bai tang	6500
+酱油	jiang you	6500
+食用油	shi yong you	6500
+味道	wei dao	6500
+香味	xiang wei	6500
+好吃	hao chi	6500
+好喝	hao he	6500
+口味	kou wei	6500
+美味	mei wei	6500
+新鲜	xin xian	6500
+过期	guo qi	6500
+保质期	bao zhi qi	6500
+菜单	cai dan	6500
+点菜	dian cai	6500
+点餐	dian can	6500
+结账	jie zhang	6500
+外卖	wai mai	6500
+打包	da bao	6500
+用餐	yong can	6500
+商店	shang dian	6500
+超市	chao shi	6500
+商场	shang chang	6500
+市场	shi chang	6500
+菜市场	cai shi chang	6500
+便利店	bian li dian	6500
+购物	gou wu	6500
+商品	shang pin	6500
+产品	chan pin	6500
+价格	jia ge	6500
+价钱	jia qian	6500
+便宜	pian yi	6500
+昂贵	ang gui	6500
+打折	da zhe	6500
+优惠	you hui	6500
+促销	cu xiao	6500
+原价	yuan jia	6500
+折扣	zhe kou	6500
+付款	fu kuan	6500
+支付	zhi fu	6500
+现金	xian jin	6500
+零钱	ling qian	6500
+找零	zhao ling	6500
+发票	fa piao	6500
+收据	shou ju	6500
+订单	ding dan	6500
+下单	xia dan	6500
+购买	gou mai	6500
+退货	tui huo	6500
+换货	huan huo	6500
+退款	tui kuan	6500
+售后	shou hou	6500
+配送	pei song	6500
+快递	kuai di	6500
+包裹	bao guo	6500
+运费	yun fei	6500
+包装	bao zhuang	6500
+质量	zhi liang	6500
+尺寸	chi cun	6500
+规格	gui ge	6500
+库存	ku cun	6500
+# 衣物与颜色
+衣服	yi fu	5500
+裤子	ku zi	5500
+裙子	qun zi	5500
+外套	wai tao	5500
+大衣	da yi	5500
+衬衫	chen shan	5500
+毛衣	mao yi	5500
+背心	bei xin	5500
+短裤	duan ku	5500
+长裤	chang ku	5500
+牛仔裤	niu zai ku	5500
+连衣裙	lian yi qun	5500
+羽绒服	yu rong fu	5500
+鞋子	xie zi	5500
+袜子	wa zi	5500
+帽子	mao zi	5500
+围巾	wei jin	5500
+手套	shou tao	5500
+皮带	pi dai	5500
+口袋	kou dai	5500
+拉链	la lian	5500
+纽扣	niu kou	5500
+运动鞋	yun dong xie	5500
+皮鞋	pi xie	5500
+拖鞋	tuo xie	5500
+凉鞋	liang xie	5500
+雨衣	yu yi	5500
+雨伞	yu san	5500
+眼镜	yan jing	5500
+墨镜	mo jing	5500
+手表	shou biao	5500
+项链	xiang lian	5500
+戒指	jie zhi	5500
+耳环	er huan	5500
+手链	shou lian	5500
+背包	bei bao	5500
+书包	shu bao	5500
+钱包	qian bao	5500
+行李箱	xing li xiang	5500
+颜色	yan se	5500
+红色	hong se	5500
+黄色	huang se	5500
+蓝色	lan se	5500
+白色	bai se	5500
+黑色	hei se	5500
+灰色	hui se	5500
+紫色	zi se	5500
+粉色	fen se	5500
+橙色	cheng se	5500
+棕色	zong se	5500
+金色	jin se	5500
+银色	yin se	5500
+深色	shen se	5500
+浅色	qian se	5500
+彩色	cai se	5500
+无色	wu se	5500
+透明	tou ming	5500
+明亮	ming liang	5500
+鲜艳	xian yan	5500
+穿衣	chuan yi	5500
+穿鞋	chuan xie	5500
+换衣服	huan yi fu	5500
+试穿	shi chuan	5500
+合身	he shen	5500
+舒适	shu shi	5500
+柔软	rou ruan	5500
+保暖	bao nuan	5500
+时尚	shi shang	5500
+漂亮	piao liang	5500
+好看	hao kan	5500
+搭配	da pei	5500
+# 情绪与品质
+开心	kai xin	6000
+快乐	kuai le	6000
+高兴	gao xing	6000
+幸福	xing fu	6000
+满意	man yi	6000
+放心	fang xin	6000
+安心	an xin	6000
+担心	dan xin	6000
+害怕	hai pa	6000
+紧张	jin zhang	6000
+着急	zhao ji	6000
+生气	sheng qi	6000
+愤怒	fen nu	6000
+难过	nan guo	6000
+伤心	shang xin	6000
+失望	shi wang	6000
+后悔	hou hui	6000
+遗憾	yi han	6000
+难受	nan shou	6000
+痛苦	tong ku	6000
+悲伤	bei shang	6000
+烦恼	fan nao	6000
+无聊	wu liao	6000
+孤独	gu du	6000
+寂寞	ji mo	6000
+郁闷	yu men	6000
+兴奋	xing fen	6000
+激动	ji dong	6000
+感动	gan dong	6000
+惊讶	jing ya	6000
+吃惊	chi jing	6000
+感谢	gan xie	6000
+感激	gan ji	6000
+感觉	gan jue	6000
+感受	gan shou	6000
+感情	gan qing	6000
+心情	xin qing	6000
+情绪	qing xu	6000
+态度	tai du	6000
+热情	re qing	6000
+冷静	leng jing	6000
+平静	ping jing	6000
+耐心	nai xin	6000
+细心	xi xin	6000
+关心	guan xin	6000
+爱心	ai xin	6000
+信心	xin xin	6000
+决心	jue xin	6000
+专心	zhuan xin	6000
+认真	ren zhen	6000
+仔细	zi xi	6000
+小心	xiao xin	6000
+诚实	cheng shi	6000
+真诚	zhen cheng	6000
+善良	shan liang	6000
+温柔	wen rou	6000
+勇敢	yong gan	6000
+坚强	jian qiang	6000
+自信	zi xin	6000
+乐观	le guan	6000
+积极	ji ji	6000
+主动	zhu dong	6000
+谦虚	qian xu	6000
+礼貌	li mao	6000
+客气	ke qi	6000
+尊重	zun zhong	6000
+体贴	ti tie	6000
+公平	gong ping	6000
+公正	gong zheng	6000
+正直	zheng zhi	6000
+负责	fu ze	6000
+责任	ze ren	6000
+责任心	ze ren xin	6000
+信任	xin ren	6000
+诚意	cheng yi	6000
+友好	you hao	6000
+友谊	you yi	6000
+爱情	ai qing	6000
+亲情	qin qing	6000
+思念	si nian	6000
+想念	xiang nian	6000
+怀念	huai nian	6000
+牵挂	qian gua	6000
+在乎	zai hu	6000
+珍惜	zhen xi	6000
+宽容	kuan rong	6000
+包容	bao rong	6000
+理想	li xiang	6000
+梦想	meng xiang	6000
+目标	mu biao	6000
+聪明	cong ming	6000
+活泼	huo po	6000
+可爱	ke ai	6000
+优秀	you xiu	6500
+出色	chu se	6000
+独立	du li	6000
+自由	zi you	6000
+# 学校与教育
+学校	xue xiao	6500
+大学	da xue	6500
+中学	zhong xue	6500
+小学	xiao xue	6500
+高中	gao zhong	6500
+初中	chu zhong	6500
+幼儿园	you er yuan	6500
+校园	xiao yuan	6500
+班级	ban ji	6500
+年级	nian ji	6500
+教室	jiao shi	6500
+宿舍	su she	6500
+食堂	shi tang	6500
+操场	cao chang	6500
+图书馆	tu shu guan	6500
+实验室	shi yan shi	6500
+自习室	zi xi shi	6500
+校长	xiao zhang	6500
+班主任	ban zhu ren	6500
+教授	jiao shou	6500
+导师	dao shi	6500
+本科	ben ke	6500
+专科	zhuan ke	6500
+研究生	yan jiu sheng	6500
+硕士	shuo shi	6500
+博士	bo shi	6500
+学位	xue wei	6500
+学历	xue li	6500
+专业	zhuan ye	6500
+课程	ke cheng	6500
+学科	xue ke	6500
+语文	yu wen	6500
+数学	shu xue	6500
+英语	ying yu	6500
+外语	wai yu	6500
+物理	wu li	6500
+化学	hua xue	6500
+生物	sheng wu	6500
+历史	li shi	6500
+地理	di li	6500
+政治	zheng zhi	6500
+音乐	yin yue	6500
+美术	mei shu	6500
+体育	ti yu	6500
+科学	ke xue	6500
+教育	jiao yu	6500
+教学	jiao xue	6500
+知识	zhi shi	6500
+技能	ji neng	6500
+能力	neng li	6500
+上课	shang ke	6500
+下课	xia ke	6500
+听课	ting ke	6500
+讲课	jiang ke	6500
+预习	yu xi	6500
+复习	fu xi	6500
+练习	lian xi	6500
+作业	zuo ye	6500
+功课	gong ke	6500
+考试	kao shi	6500
+测验	ce yan	6500
+试卷	shi juan	6500
+答案	da an	6500
+成绩	cheng ji	6500
+分数	fen shu	6500
+满分	man fen	6500
+及格	ji ge	6500
+不及格	bu ji ge	6500
+题目	ti mu	6500
+难题	nan ti	6500
+解答	jie da	6500
+计算	ji suan	6500
+算术	suan shu	6500
+公式	gong shi	6500
+方程	fang cheng	6500
+图形	tu xing	6500
+几何	ji he	6500
+汉字	han zi	6500
+词语	ci yu	6500
+句子	ju zi	6500
+语法	yu fa	6500
+发音	fa yin	6500
+读音	du yin	6500
+朗读	lang du	6500
+阅读	yue du	6500
+写作	xie zuo	6500
+作文	zuo wen	6500
+文章	wen zhang	6500
+课文	ke wen	6500
+教材	jiao cai	6500
+课本	ke ben	6500
+笔记	bi ji	6500
+草稿	cao gao	6500
+文具	wen ju	6500
+铅笔	qian bi	6500
+钢笔	gang bi	6500
+圆珠笔	yuan zhu bi	6500
+橡皮	xiang pi	6500
+尺子	chi zi	6500
+书本	shu ben	6500
+书籍	shu ji	6500
+字典	zi dian	6500
+词典	ci dian	6500
+毕业	bi ye	6500
+入学	ru xue	6500
+开学	kai xue	6500
+招生	zhao sheng	6500
+报名	bao ming	6500
+学费	xue fei	6500
+奖学金	jiang xue jin	6500
+实习	shi xi	6500
+# 办公与协作
+公司	gong si	7000
+企业	qi ye	7000
+单位	dan wei	7000
+部门	bu men	7000
+团队	tuan dui	7000
+组织	zu zhi	7000
+机构	ji gou	7000
+办公室	ban gong shi	7000
+会议室	hui yi shi	7000
+工位	gong wei	7000
+岗位	gang wei	7000
+职位	zhi wei	7000
+办公	ban gong	7000
+会议	hui yi	7000
+开会	kai hui	7000
+讨论会	tao lun hui	7000
+例会	li hui	7000
+报告	bao gao	7000
+汇报	hui bao	7000
+总结	zong jie	7000
+计划	ji hua	7000
+方案	fang an	7000
+项目	xiang mu	7000
+任务	ren wu	7000
+进度	jin du	7000
+流程	liu cheng	7000
+步骤	bu zhou	7000
+业务	ye wu	7000
+需求	xu qiu	7000
+预算	yu suan	7000
+成本	cheng ben	7000
+效率	xiao lv	7000
+效果	xiao guo	7000
+成果	cheng guo	7000
+标准	biao zhun	7000
+规范	gui fan	7000
+制度	zhi du	7000
+规定	gui ding	7000
+政策	zheng ce	7000
+合同	he tong	7000
+协议	xie yi	7000
+文件	wen jian	7000
+文档	wen dang	7000
+资料	zi liao	7000
+材料	cai liao	7000
+表格	biao ge	7000
+报表	bao biao	7000
+清单	qing dan	7000
+内容	nei rong	7000
+标题	biao ti	7000
+目录	mu lu	7000
+章节	zhang jie	7000
+段落	duan luo	7000
+附件	fu jian	7000
+格式	ge shi	7000
+版本	ban ben	7000
+草案	cao an	7000
+模板	mu ban	7000
+示例	shi li	7000
+样本	yang ben	7000
+样品	yang pin	7000
+说明书	shuo ming shu	7000
+邮件	you jian	7000
+邮箱	you xiang	7000
+收件人	shou jian ren	7000
+发件人	fa jian ren	7000
+主题	zhu ti	7000
+正文	zheng wen	7000
+抄送	chao song	7000
+转发	zhuan fa	7000
+回复	hui fu	9500
+发送	fa song	7000
+接收	jie shou	7000
+收到	shou dao	7000
+提交	ti jiao	7000
+审批	shen pi	7000
+审核	shen he	7000
+申请	shen qing	7000
+评估	ping gu	7000
+评价	ping jia	7000
+反馈	fan kui	7000
+跟进	gen jin	7000
+对接	dui jie	7000
+协调	xie tiao	7000
+分工	fen gong	7000
+合作方	he zuo fang	7000
+负责人	fu ze ren	7000
+联系人	lian xi ren	7000
+联系方式	lian xi fang shi	7000
+工作时间	gong zuo shi jian	7000
+工作内容	gong zuo nei rong	7000
+工作计划	gong zuo ji hua	7000
+工作总结	gong zuo zong jie	7000
+会议记录	hui yi ji lu	7000
+会议纪要	hui yi ji yao	7000
+出差	chu chai	7000
+请假	qing jia	7000
+休假	xiu jia	7000
+签到	qian dao	7000
+考勤	kao qin	7000
+工资	gong zi	7000
+薪水	xin shui	7000
+招聘	zhao pin	7000
+应聘	ying pin	7000
+面试	mian shi	7000
+简历	jian li	7000
+入职	ru zhi	7000
+离职	li zhi	7000
+培训	pei xun	7000
+# 电脑与互联网
+手机	shou ji	10000
+平板	ping ban	7500
+笔记本	bi ji ben	7500
+台式机	tai shi ji	7500
+主机	zhu ji	7500
+显示器	xian shi qi	7500
+屏幕	ping mu	7500
+键盘	jian pan	7500
+鼠标	shu biao	7500
+耳机	er ji	7500
+音箱	yin xiang	7500
+摄像头	she xiang tou	7500
+麦克风	mai ke feng	7500
+打印机	da yin ji	7500
+扫描仪	sao miao yi	7500
+投影仪	tou ying yi	7500
+充电器	chong dian qi	7500
+数据线	shu ju xian	7500
+电池	dian chi	7500
+内存	nei cun	7500
+硬盘	ying pan	7500
+光盘	guang pan	7500
+存储	cun chu	7500
+处理器	chu li qi	7500
+显卡	xian ka	7500
+主板	zhu ban	7500
+接口	jie kou	7500
+插头	cha tou	7500
+设备	she bei	7500
+硬件	ying jian	7500
+应用	ying yong	7500
+系统	xi tong	7500
+平台	ping tai	7500
+服务	fu wu	7500
+功能	gong neng	7500
+操作	cao zuo	7500
+界面	jie mian	7500
+窗口	chuang kou	7500
+桌面	zhuo mian	7500
+图标	tu biao	7500
+按钮	an niu	7500
+面板	mian ban	7500
+选项	xuan xiang	7500
+工具	gong ju	7500
+工具栏	gong ju lan	7500
+菜单栏	cai dan lan	7500
+状态栏	zhuang tai lan	7500
+任务栏	ren wu lan	7500
+浏览器	liu lan qi	7500
+网站	wang zhan	7500
+网页	wang ye	7500
+首页	shou ye	7500
+页面	ye mian	7500
+网址	wang zhi	7500
+链接	lian jie	7500
+超链接	chao lian jie	7500
+域名	yu ming	7500
+搜索	sou suo	7500
+搜索引擎	sou suo yin qing	7500
+互联网	hu lian wang	7500
+无线	wu xian	7500
+无线网络	wu xian wang luo	7500
+路由器	lu you qi	7500
+宽带	kuan dai	7500
+连接	lian jie	7500
+断开	duan kai	7500
+在线	zai xian	7500
+联网	lian wang	7500
+上网	shang wang	7500
+断网	duan wang	7500
+登录	deng lu	7500
+登出	deng chu	7500
+注册	zhu ce	7500
+账号	zhang hao	7500
+账户	zhang hu	7500
+昵称	ni cheng	7500
+头像	tou xiang	7500
+验证码	yan zheng ma	7500
+身份验证	shen fen yan zheng	7500
+权限	quan xian	7500
+授权	shou quan	7500
+管理员	guan li yuan	7500
+下载	xia zai	7500
+上传	shang chuan	7500
+安装	an zhuang	7500
+卸载	xie zai	7500
+升级	sheng ji	7500
+启动	qi dong	7500
+运行	yun xing	7500
+重启	chong qi	7500
+关机	guan ji	7500
+开机	kai ji	7500
+卡顿	ka dun	7500
+崩溃	beng kui	7500
+报错	bao cuo	7500
+故障	gu zhang	7500
+复制	fu zhi	7500
+粘贴	zhan tie	7500
+剪切	jian qie	7500
+撤销	che xiao	7500
+重做	chong zuo	7500
+全选	quan xuan	7500
+查找	cha zhao	7500
+替换	ti huan	7500
+刷新	shua xin	7500
+导入	dao ru	7500
+导出	dao chu	7500
+备份	bei fen	7500
+还原	huan yuan	7500
+同步	tong bu	7500
+文件夹	wen jian jia	7500
+路径	lu jing	7500
+文件名	wen jian ming	7500
+扩展名	kuo zhan ming	7500
+快捷方式	kuai jie fang shi	7500
+快捷键	kuai jie jian	7500
+剪贴板	jian tie ban	7500
+回收站	hui shou zhan	7500
+压缩	ya suo	7500
+解压	jie ya	7500
+浏览	liu lan	7500
+点击	dian ji	7500
+双击	shuang ji	7500
+右键	you jian	7500
+左键	zuo jian	7500
+滚轮	gun lun	7500
+滚动	gun dong	7500
+拖动	tuo dong	7500
+缩放	suo fang	7500
+放大	fang da	7500
+缩小	suo xiao	7500
+全屏	quan ping	7500
+截图	jie tu	7500
+录屏	lu ping	7500
+截屏	jie ping	7500
+播放	bo fang	7500
+音量	yin liang	7500
+静音	jing yin	7500
+通知栏	tong zhi lan	7500
+消息	xiao xi	9500
+提示	ti shi	7500
+弹窗	tan chuang	7500
+后台	hou tai	7500
+前台	qian tai	7500
+缓存	huan cun	7500
+历史记录	li shi ji lu	7500
+浏览记录	liu lan ji lu	7500
+清空	qing kong	7500
+清理	qing li	7500
+电子邮件	dian zi you jian	7500
+# 开发与输入法
+代码	dai ma	6000
+源码	yuan ma	6000
+编程	bian cheng	6000
+算法	suan fa	6000
+函数	han shu	6000
+方法	fang fa	6000
+变量	bian liang	6000
+常量	chang liang	6000
+参数	can shu	6000
+返回值	fan hui zhi	6000
+类型	lei xing	6000
+数组	shu zu	6000
+字符	zi fu	6000
+字符串	zi fu chuan	6000
+整数	zheng shu	6000
+浮点数	fu dian shu	6000
+小数	xiao shu	6000
+布尔	bu er	6000
+对象	dui xiang	6500
+实例	shi li	6000
+属性	shu xing	6000
+成员	cheng yuan	6000
+结构	jie gou	6000
+结构体	jie gou ti	6000
+类名	lei ming	6000
+类库	lei ku	6000
+模块	mo kuai	6000
+组件	zu jian	6000
+编译	bian yi	6000
+编译器	bian yi qi	6000
+链接器	lian jie qi	6000
+解释器	jie shi qi	6000
+调试	tiao shi	6000
+调试器	tiao shi qi	6000
+断点	duan dian	6000
+单步	dan bu	6000
+堆栈	dui zhan	6000
+调用	diao yong	6000
+回调	hui diao	6000
+指针	zhi zhen	6000
+引用	yin yong	6000
+地址空间	di zhi kong jian	6000
+内存分配	nei cun fen pei	6000
+内存泄漏	nei cun xie lou	6000
+释放	shi fang	6000
+分配	fen pei	6000
+进程	jin cheng	6000
+线程	xian cheng	6000
+并发	bing fa	6000
+并行	bing xing	6000
+异步	yi bu	6000
+互斥	hu chi	6000
+死锁	si suo	6000
+锁定	suo ding	6000
+解锁	jie suo	6000
+队列	dui lie	6000
+链表	lian biao	6000
+集合	ji he	6000
+映射	ying she	6000
+哈希	ha xi	6000
+索引	suo yin	6000
+排序	pai xu	6000
+遍历	bian li	6000
+递归	di gui	6000
+循环	xun huan	6000
+条件	tiao jian	6000
+分支	fen zhi	6000
+判断	pan duan	6000
+表达式	biao da shi	6000
+运算符	yun suan fu	6000
+语句	yu ju	6000
+注释	zhu shi	6000
+语法错误	yu fa cuo wu	6000
+逻辑错误	luo ji cuo wu	6000
+异常	yi chang	6000
+错误	cuo wu	6500
+警告	jing gao	6000
+日志	ri zhi	6000
+输出	shu chu	6000
+输入框	shu ru kuang	6000
+文本	wen ben	6000
+文本框	wen ben kuang	6000
+光标	guang biao	6000
+编码	bian ma	6000
+解码	jie ma	6000
+字节	zi jie	6000
+字符集	zi fu ji	6000
+中文编码	zhong wen bian ma	6000
+换行	huan hang	6000
+空格	kong ge	6000
+退格	tui ge	6000
+回车	hui che	6000
+制表符	zhi biao fu	6000
+分隔符	fen ge fu	6000
+标点	biao dian	6000
+全角	quan jiao	6000
+半角	ban jiao	6000
+全拼	quan pin	6000
+简拼	jian pin	6000
+双拼	shuang pin	6000
+模糊音	mo hu yin	6000
+拼音输入法	pin yin shu ru fa	6000
+中文输入法	zhong wen shu ru fa	6000
+输入模式	shu ru mo shi	6000
+中英文	zhong ying wen	6000
+候选词	hou xuan ci	6000
+候选窗口	hou xuan chuang kou	6000
+选词	xuan ci	6000
+上屏	shang ping	6000
+组合文本	zu he wen ben	6000
+词条	ci tiao	6000
+词频	ci pin	6000
+权重	quan zhong	6000
+多音字	duo yin zi	6000
+多音词	duo yin ci	6000
+音节	yin jie	6000
+切分	qie fen	6000
+分词	fen ci	6000
+歧义	qi yi	6000
+补全	bu quan	6000
+纠错	jiu cuo	6000
+排名	pai ming	6000
+整句	zheng ju	6000
+语料	yu liao	6000
+词表	ci biao	6000
+基础词库	ji chu ci ku	6000
+用户词库	yong hu ci ku	6000
+自造词	zi zao ci	6000
+无痕	wu hen	6000
+无痕模式	wu hen mo shi	6000
+隐私保护	yin si bao hu	6000
+本地存储	ben di cun chu	6000
+数据保护	shu ju bao hu	6000
+加密	jia mi	6000
+解密	jie mi	6000
+认证	ren zheng	6000
+数字签名	shu zi qian ming	6000
+数据库	shu ju ku	6000
+数据结构	shu ju jie gou	6000
+网络协议	wang luo xie yi	6000
+服务器	fu wu qi	6000
+客户端	ke hu duan	6000
+请求体	qing qiu ti	6000
+响应	xiang ying	6000
+响应体	xiang ying ti	6000
+状态码	zhuang tai ma	6000
+错误码	cuo wu ma	6000
+请求头	qing qiu tou	6000
+超时	chao shi	6000
+重试	chong shi	6000
+重定向	chong ding xiang	6000
+端口	duan kou	6000
+套接字	tao jie zi	6000
+连接池	lian jie chi	6000
+数据包	shu ju bao	6000
+传输	chuan shu	6000
+带宽	dai kuan	6000
+延迟	yan chi	6000
+部署	bu shu	6000
+发布	fa bu	6000
+构建	gou jian	6000
+安装包	an zhuang bao	6000
+依赖	yi lai	6000
+环境	huan jing	6000
+配置	pei zhi	6000
+配置文件	pei zhi wen jian	6000
+环境变量	huan jing bian liang	6000
+命令行	ming ling hang	6000
+终端	zhong duan	6000
+控制台	kong zhi tai	6000
+脚本	jiao ben	6000
+自动化	zi dong hua	6000
+单元测试	dan yuan ce shi	6000
+集成测试	ji cheng ce shi	6000
+回归测试	hui gui ce shi	6000
+兼容性	jian rong xing	6000
+性能	xing neng	6000
+稳定性	wen ding xing	6000
+可靠性	ke kao xing	6000
+可用性	ke yong xing	6000
+可维护性	ke wei hu xing	6000
+版本控制	ban ben kong zhi	6000
+代码审查	dai ma shen cha	6000
+提交记录	ti jiao ji lu	6000
+合并	he bing	6000
+冲突	chong tu	6000
+拉取	la qu	6000
+推送	tui song	6000
+回滚	hui gun	6000
+补丁	bu ding	6000
+修复	xiu fu	6000
+重构	chong gou	6000
+优化	you hua	6000
+人工智能	ren gong zhi neng	6000
+机器学习	ji qi xue xi	6000
+深度学习	shen du xue xi	6000
+语言模型	yu yan mo xing	6000
+源代码	yuan dai ma	6000
+隐私输入法	yin si shu ru fa	6000
+# 交通与出行
+汽车	qi che	6500
+自行车	zi xing che	6500
+摩托车	mo tuo che	6500
+电动车	dian dong che	6500
+公交车	gong jiao che	6500
+出租车	chu zu che	6500
+网约车	wang yue che	6500
+地铁	di tie	6500
+火车	huo che	6500
+高铁	gao tie	6500
+飞机	fei ji	6500
+轮船	lun chuan	6500
+客车	ke che	6500
+货车	huo che	6500
+卡车	ka che	6500
+巴士	ba shi	6500
+救护车	jiu hu che	6500
+公交	gong jiao	6500
+车站	che zhan	6500
+火车站	huo che zhan	6500
+地铁站	di tie zhan	6500
+汽车站	qi che zhan	6500
+机场	ji chang	6500
+航班	hang ban	6500
+航空	hang kong	6500
+码头	ma tou	6500
+港口	gang kou	6500
+站台	zhan tai	6500
+车票	che piao	6500
+机票	ji piao	6500
+船票	chuan piao	6500
+月票	yue piao	6500
+票价	piao jia	6500
+订票	ding piao	6500
+购票	gou piao	6500
+售票	shou piao	6500
+检票	jian piao	6500
+退票	tui piao	6500
+改签	gai qian	6500
+乘车	cheng che	6500
+换乘	huan cheng	6500
+上车	shang che	6500
+下车	xia che	6500
+进站	jin zhan	6500
+出站	chu zhan	6500
+出发	chu fa	6500
+到达	dao da	6500
+抵达	di da	6500
+起飞	qi fei	6500
+降落	jiang luo	6500
+登机	deng ji	6500
+安检	an jian	6500
+值机	zhi ji	6500
+托运	tuo yun	6500
+行李	xing li	6500
+座位	zuo wei	6500
+座号	zuo hao	6500
+车厢	che xiang	6500
+卧铺	wo pu	6500
+硬座	ying zuo	6500
+窗边	chuang bian	6500
+乘客	cheng ke	6500
+旅客	lv ke	6500
+旅途	lv tu	6500
+路程	lu cheng	6500
+行程	xing cheng	6500
+路线	lu xian	6500
+导航	dao hang	6500
+地图	di tu	6500
+目的地	mu di di	6500
+出入口	chu ru kou	6500
+入口	ru kou	6500
+出口	chu kou	6500
+路口	lu kou	6500
+道路	dao lu	6500
+马路	ma lu	6500
+公路	gong lu	6500
+高速	gao su	6500
+高速公路	gao su gong lu	6500
+铁路	tie lu	6500
+桥梁	qiao liang	6500
+隧道	sui dao	6500
+人行道	ren xing dao	6500
+斑马线	ban ma xian	6500
+天桥	tian qiao	6500
+红绿灯	hong lv deng	6500
+交通灯	jiao tong deng	6500
+交通	jiao tong	6500
+交通规则	jiao tong gui ze	6500
+堵车	du che	6500
+塞车	sai che	6500
+拥堵	yong du	6500
+通行	tong xing	6500
+停车	ting che	6500
+停车场	ting che chang	6500
+车库	che ku	6500
+开车	kai che	6500
+驾驶	jia shi	6500
+驾照	jia zhao	6500
+驾驶证	jia shi zheng	6500
+车牌	che pai	6500
+方向盘	fang xiang pan	6500
+刹车	sha che	6500
+油门	you men	6500
+安全带	an quan dai	6500
+加油站	jia you zhan	6500
+充电站	chong dian zhan	6500
+充电	chong dian	6500
+违章	wei zhang	6500
+罚款	fa kuan	6500
+限速	xian su	6500
+直行	zhi xing	6500
+左转	zuo zhuan	6500
+右转	you zhuan	6500
+掉头	diao tou	6500
+绕行	rao xing	6500
+步行	bu xing	6500
+旅行	lv xing	6500
+游客	you ke	6500
+景点	jing dian	6500
+风景	feng jing	6500
+门票	men piao	6500
+酒店	jiu dian	6500
+旅馆	lv guan	6500
+民宿	min su	6500
+住宿	zhu su	6500
+预订	yu ding	6500
+入住	ru zhu	6500
+退房	tui fang	6500
+护照	hu zhao	6500
+签证	qian zheng	6500
+出境	chu jing	6500
+入境	ru jing	6500
+海关	hai guan	6500
+观光	guan guang	6500
+留念	liu nian	6500
+纪念品	ji nian pin	6500
+# 城市与地名
+城市	cheng shi	6000
+城镇	cheng zhen	6000
+乡村	xiang cun	6000
+农村	nong cun	6000
+市区	shi qu	6000
+郊区	jiao qu	6000
+省份	sheng fen	6000
+省会	sheng hui	6000
+首都	shou du	6000
+县城	xian cheng	6000
+街道	jie dao	6000
+社区	she qu	6000
+天津	tian jin	6000
+杭州	hang zhou	6000
+苏州	su zhou	6000
+成都	cheng du	6000
+武汉	wu han	6000
+长沙	chang sha	6000
+郑州	zheng zhou	6000
+济南	ji nan	6000
+青岛	qing dao	6000
+大连	da lian	6000
+沈阳	shen yang	6000
+长春	chang chun	6000
+哈尔滨	ha er bin	6000
+石家庄	shi jia zhuang	6000
+太原	tai yuan	6000
+呼和浩特	hu he hao te	6000
+合肥	he fei	6000
+福州	fu zhou	6000
+厦门	xia men	6000
+泉州	quan zhou	6000
+南昌	nan chang	6000
+南宁	nan ning	6000
+昆明	kun ming	6000
+贵阳	gui yang	6000
+海口	hai kou	6000
+三亚	san ya	6000
+拉萨	la sa	6000
+西宁	xi ning	6000
+兰州	lan zhou	6000
+银川	yin chuan	6000
+乌鲁木齐	wu lu mu qi	6000
+宁波	ning bo	6000
+温州	wen zhou	6000
+绍兴	shao xing	6000
+嘉兴	jia xing	6000
+湖州	hu zhou	6000
+金华	jin hua	6000
+无锡	wu xi	6000
+常州	chang zhou	6000
+南通	nan tong	6000
+扬州	yang zhou	6000
+徐州	xu zhou	6000
+镇江	zhen jiang	6000
+珠海	zhu hai	6000
+东莞	dong guan	6000
+佛山	fo shan	6000
+惠州	hui zhou	6000
+中山	zhong shan	6000
+汕头	shan tou	6000
+湛江	zhan jiang	6000
+江门	jiang men	6000
+桂林	gui lin	6000
+柳州	liu zhou	6000
+绵阳	mian yang	6000
+乐山	le shan	6000
+宜宾	yi bin	6000
+洛阳	luo yang	6000
+开封	kai feng	6000
+南阳	nan yang	6000
+宜昌	yi chang	6000
+襄阳	xiang yang	6000
+岳阳	yue yang	6000
+株洲	zhu zhou	6000
+湘潭	xiang tan	6000
+赣州	gan zhou	6000
+九江	jiu jiang	6000
+景德镇	jing de zhen	6000
+威海	wei hai	6000
+烟台	yan tai	6000
+潍坊	wei fang	6000
+临沂	lin yi	6000
+济宁	ji ning	6000
+泰安	tai an	6000
+淄博	zi bo	6000
+保定	bao ding	6000
+唐山	tang shan	6000
+秦皇岛	qin huang dao	6000
+邯郸	han dan	6000
+廊坊	lang fang	6000
+大同	da tong	6000
+运城	yun cheng	6000
+长治	chang zhi	6000
+包头	bao tou	6000
+赤峰	chi feng	6000
+鄂尔多斯	e er duo si	6000
+鞍山	an shan	6000
+抚顺	fu shun	6000
+锦州	jin zhou	6000
+吉林	ji lin	6000
+大庆	da qing	6000
+齐齐哈尔	qi qi ha er	6000
+牡丹江	mu dan jiang	6000
+芜湖	wu hu	6000
+蚌埠	beng bu	6000
+安庆	an qing	6000
+黄山	huang shan	6000
+滁州	chu zhou	6000
+六安	lu an	6000
+遵义	zun yi	6000
+大理	da li	6000
+丽江	li jiang	6000
+曲靖	qu jing	6000
+玉溪	yu xi	6000
+延安	yan an	6000
+宝鸡	bao ji	6000
+咸阳	xian yang	6000
+榆林	yu lin	6000
+天水	tian shui	6000
+酒泉	jiu quan	6000
+香港	xiang gang	6000
+澳门	ao men	6000
+台北	tai bei	6000
+台湾	tai wan	6000
+浙江	zhe jiang	6000
+江苏	jiang su	6000
+安徽	an hui	6000
+福建	fu jian	6000
+江西	jiang xi	6000
+山东	shan dong	6000
+河南	he nan	6000
+河北	he bei	6000
+湖北	hu bei	6000
+湖南	hu nan	6000
+广东	guang dong	6000
+广西	guang xi	6000
+海南	hai nan	6000
+四川	si chuan	6000
+贵州	gui zhou	6000
+云南	yun nan	6000
+陕西	shan xi	6000
+山西	shan xi	6000
+甘肃	gan su	6000
+青海	qing hai	6000
+宁夏	ning xia	6000
+新疆	xin jiang	6000
+西藏	xi zang	6000
+内蒙古	nei meng gu	6000
+黑龙江	hei long jiang	6000
+辽宁	liao ning	6000
+长江	chang jiang	6000
+黄河	huang he	6000
+西湖	xi hu	6000
+太湖	tai hu	6000
+洞庭湖	dong ting hu	6000
+鄱阳湖	po yang hu	6000
+珠江	zhu jiang	6000
+黄河流域	huang he liu yu	6000
+泰山	tai shan	6000
+华山	hua shan	6000
+衡山	heng shan	6000
+恒山	heng shan	6000
+嵩山	song shan	6000
+峨眉山	e mei shan	6000
+武夷山	wu yi shan	6000
+长白山	chang bai shan	6000
+武当山	wu dang shan	6000
+长城	chang cheng	6000
+故宫	gu gong	6000
+天安门	tian an men	6000
+# 自然与天气
+天气	tian qi	5500
+气候	qi hou	5500
+气温	qi wen	5500
+天气预报	tian qi yu bao	5500
+晴天	qing tian	5500
+阴天	yin tian	5500
+多云	duo yun	5500
+阵雨	zhen yu	5500
+大雨	da yu	5500
+小雨	xiao yu	5500
+暴雨	bao yu	5500
+下雨	xia yu	5500
+下雪	xia xue	5500
+大雪	da xue	5500
+小雪	xiao xue	5500
+风雪	feng xue	5500
+台风	tai feng	5500
+雷雨	lei yu	5500
+雷电	lei dian	5500
+打雷	da lei	5500
+闪电	shan dian	5500
+雨水	yu shui	5500
+雨滴	yu di	5500
+雪花	xue hua	5500
+彩虹	cai hong	5500
+阳光	yang guang	5500
+太阳	tai yang	5500
+月亮	yue liang	5500
+星星	xing xing	5500
+星空	xing kong	5500
+天空	tian kong	5500
+云朵	yun duo	5500
+空气	kong qi	5500
+湿度	shi du	5500
+气压	qi ya	5500
+风力	feng li	5500
+风向	feng xiang	5500
+寒冷	han leng	5500
+炎热	yan re	5500
+凉爽	liang shuang	5500
+温暖	wen nuan	5500
+暖和	nuan huo	5500
+凉快	liang kuai	5500
+干燥	gan zao	5500
+潮湿	chao shi	5500
+春天	chun tian	5500
+夏天	xia tian	5500
+秋天	qiu tian	5500
+冬天	dong tian	5500
+春季	chun ji	5500
+夏季	xia ji	5500
+秋季	qiu ji	5500
+冬季	dong ji	5500
+四季	si ji	5500
+季节	ji jie	5500
+大自然	da zi ran	5500
+自然	zi ran	5500
+地球	di qiu	5500
+海洋	hai yang	5500
+大海	da hai	5500
+河流	he liu	5500
+湖泊	hu po	5500
+小溪	xiao xi	5500
+山川	shan chuan	5500
+山峰	shan feng	5500
+山顶	shan ding	5500
+山脚	shan jiao	5500
+山谷	shan gu	5500
+森林	sen lin	5500
+树林	shu lin	5500
+草原	cao yuan	5500
+草地	cao di	5500
+沙漠	sha mo	5500
+沙滩	sha tan	5500
+海滩	hai tan	5500
+岛屿	dao yu	5500
+海岛	hai dao	5500
+海岸	hai an	5500
+土地	tu di	5500
+土壤	tu rang	5500
+岩石	yan shi	5500
+石头	shi tou	5500
+泥土	ni tu	5500
+泥沙	ni sha	5500
+冰雪	bing xue	5500
+冰块	bing kuai	5500
+冰山	bing shan	5500
+火山	huo shan	5500
+地震	di zhen	5500
+洪水	hong shui	5500
+干旱	gan han	5500
+动物	dong wu	5500
+植物	zhi wu	5500
+生长	sheng zhang	5500
+花朵	hua duo	5500
+花草	hua cao	5500
+花园	hua yuan	5500
+树木	shu mu	5500
+树叶	shu ye	5500
+树枝	shu zhi	5500
+树根	shu gen	5500
+树干	shu gan	5500
+草坪	cao ping	5500
+玫瑰	mei gui	5500
+牡丹	mu dan	5500
+菊花	ju hua	5500
+荷花	he hua	5500
+梅花	mei hua	5500
+兰花	lan hua	5500
+桂花	gui hua	5500
+竹子	zhu zi	5500
+松树	song shu	5500
+柳树	liu shu	5500
+杨树	yang shu	5500
+银杏	yin xing	5500
+叶子	ye zi	5500
+种子	zhong zi	5500
+发芽	fa ya	5500
+开花	kai hua	5500
+结果	jie guo	6500
+落叶	luo ye	5500
+果实	guo shi	5500
+环保	huan bao	5500
+污染	wu ran	5500
+环境保护	huan jing bao hu	5500
+垃圾分类	la ji fen lei	5500
+节约	jie yue	5500
+节能	jie neng	5500
+回收	hui shou	5500
+# 动物与运动
+小猫	xiao mao	5000
+小狗	xiao gou	5000
+猫咪	mao mi	5000
+狗狗	gou gou	5000
+兔子	tu zi	5000
+老鼠	lao shu	5000
+仓鼠	cang shu	5000
+熊猫	xiong mao	5000
+大熊猫	da xiong mao	5000
+老虎	lao hu	5000
+狮子	shi zi	5000
+大象	da xiang	5000
+猴子	hou zi	5000
+长颈鹿	chang jing lu	5000
+斑马	ban ma	5000
+河马	he ma	5000
+犀牛	xi niu	5000
+骆驼	luo tuo	5000
+松鼠	song shu	5000
+狐狸	hu li	5000
+企鹅	qi e	5000
+海豚	hai tun	5000
+鲸鱼	jing yu	5000
+鲨鱼	sha yu	5000
+海龟	hai gui	5000
+乌龟	wu gui	5000
+鳄鱼	e yu	5000
+青蛙	qing wa	5000
+蛇类	she lei	5000
+麻雀	ma que	5000
+乌鸦	wu ya	5000
+喜鹊	xi que	5000
+燕子	yan zi	5000
+鸽子	ge zi	5000
+老鹰	lao ying	5000
+鹦鹉	ying wu	5000
+猫头鹰	mao tou ying	5000
+蝴蝶	hu die	5000
+蜜蜂	mi feng	5000
+蚂蚁	ma yi	5000
+蚊子	wen zi	5000
+苍蝇	cang ying	5000
+蜘蛛	zhi zhu	5000
+昆虫	kun chong	5000
+萤火虫	ying huo chong	5000
+瓢虫	piao chong	5000
+蜻蜓	qing ting	5000
+落叶蝶	luo ye die	5000
+宠物	chong wu	5000
+饲养	si yang	5000
+喂养	wei yang	5000
+运动	yun dong	5000
+锻炼	duan lian	5000
+健身	jian shen	5000
+游泳	you yong	5000
+骑车	qi che	5000
+跳绳	tiao sheng	5000
+爬山	pa shan	5000
+登山	deng shan	5000
+徒步	tu bu	5000
+慢跑	man pao	5000
+体操	ti cao	5000
+瑜伽	yu jia	5000
+足球	zu qiu	5000
+篮球	lan qiu	5000
+排球	pai qiu	5000
+网球	wang qiu	5000
+乒乓球	ping pang qiu	5000
+羽毛球	yu mao qiu	5000
+台球	tai qiu	5000
+棒球	bang qiu	5000
+高尔夫	gao er fu	5000
+滑雪	hua xue	5000
+滑冰	hua bing	5000
+滑板	hua ban	5000
+冲浪	chong lang	5000
+攀岩	pan yan	5000
+拳击	quan ji	5000
+武术	wu shu	5000
+太极拳	tai ji quan	5000
+射箭	she jian	5000
+球场	qiu chang	5000
+体育馆	ti yu guan	5000
+游泳池	you yong chi	5000
+健身房	jian shen fang	5000
+运动员	yun dong yuan	5000
+教练	jiao lian	5000
+裁判	cai pan	5000
+比赛	bi sai	5000
+冠军	guan jun	5000
+亚军	ya jun	5000
+季军	ji jun	5000
+胜利	sheng li	5000
+获胜	huo sheng	5000
+得分	de fen	5000
+进球	jin qiu	5000
+训练	xun lian	5000
+热身	re shen	5000
+赛场	sai chang	5000
+# 身体与健康
+身体	shen ti	6000
+健康	jian kang	6000
+头发	tou fa	6000
+头部	tou bu	6000
+脸颊	lian jia	6000
+额头	e tou	6000
+眼睛	yan jing	6000
+眼皮	yan pi	6000
+眉毛	mei mao	6000
+耳朵	er duo	6000
+鼻子	bi zi	6000
+嘴巴	zui ba	6000
+牙齿	ya chi	6000
+舌头	she tou	6000
+脖子	bo zi	6000
+喉咙	hou long	6000
+肩膀	jian bang	6000
+手臂	shou bi	6000
+胳膊	ge bo	6000
+手指	shou zhi	6000
+手掌	shou zhang	6000
+指甲	zhi jia	6000
+手腕	shou wan	6000
+肚子	du zi	6000
+胸口	xiong kou	6000
+腰部	yao bu	6000
+背部	bei bu	6000
+腿部	tui bu	6000
+膝盖	xi gai	6000
+脚踝	jiao huai	6000
+脚趾	jiao zhi	6000
+脚掌	jiao zhang	6000
+皮肤	pi fu	6000
+肌肉	ji rou	6000
+骨头	gu tou	6000
+骨骼	gu ge	6000
+心脏	xin zang	6000
+血液	xue ye	6000
+血管	xue guan	6000
+大脑	da nao	6000
+神经	shen jing	6000
+关节	guan jie	6000
+视力	shi li	6000
+听力	ting li	6000
+体力	ti li	6000
+精力	jing li	6000
+体温	ti wen	6000
+血压	xue ya	6000
+呼吸	hu xi	6000
+心跳	xin tiao	6000
+睡眠	shui mian	6000
+饮食	yin shi	6000
+营养	ying yang	6000
+疲劳	pi lao	6000
+疲倦	pi juan	6000
+生病	sheng bing	6000
+感冒	gan mao	6000
+发烧	fa shao	6000
+发热	fa re	6000
+咳嗽	ke sou	6000
+头疼	tou teng	6000
+头痛	tou tong	6000
+肚子疼	du zi teng	6000
+牙疼	ya teng	6000
+疼痛	teng tong	6000
+受伤	shou shang	6000
+伤口	shang kou	6000
+骨折	gu zhe	6000
+过敏	guo min	6000
+炎症	yan zheng	6000
+医院	yi yuan	6000
+诊所	zhen suo	6000
+药店	yao dian	6000
+挂号	gua hao	6000
+就诊	jiu zhen	6000
+看病	kan bing	6000
+门诊	men zhen	6000
+急诊	ji zhen	6000
+住院	zhu yuan	6000
+出院	chu yuan	6000
+病房	bing fang	6000
+病人	bing ren	6000
+患者	huan zhe	6000
+诊断	zhen duan	6000
+治疗	zhi liao	6000
+康复	kang fu	6000
+体检	ti jian	6000
+检验	jian yan	6000
+化验	hua yan	6000
+药物	yao wu	6000
+药品	yao pin	6000
+药片	yao pian	6000
+药水	yao shui	6000
+处方	chu fang	6000
+病历	bing li	6000
+疫苗	yi miao	6000
+服药	fu yao	6000
+吃药	chi yao	6000
+打针	da zhen	6000
+输液	shu ye	6000
+手术	shou shu	6000
+消毒	xiao du	6000
+口罩	kou zhao	6000
+防护	fang hu	6000
+预防	yu fang	6000
+保健	bao jian	6000
+急救	ji jiu	6000
+医疗	yi liao	6000
+医保	yi bao	6000
+报销	bao xiao	6000
+# 经济与事务
+经济	jing ji	5500
+金融	jin rong	5500
+财务	cai wu	5500
+会计	kuai ji	5500
+资金	zi jin	5500
+资产	zi chan	5500
+财富	cai fu	5500
+收入	shou ru	6000
+支出	zhi chu	5500
+存款	cun kuan	5500
+取款	qu kuan	5500
+转账	zhuan zhang	5500
+汇款	hui kuan	5500
+借款	jie kuan	5500
+贷款	dai kuan	5500
+还款	huan kuan	5500
+本金	ben jin	5500
+利息	li xi	5500
+利率	li lv	5500
+余额	yu e	5500
+银行卡	yin hang ka	5500
+信用卡	xin yong ka	5500
+储蓄卡	chu xu ka	5500
+存折	cun zhe	5500
+柜台	gui tai	5500
+开户	kai hu	5500
+开户行	kai hu hang	5500
+账户名	zhang hu ming	5500
+收款	shou kuan	5500
+收款人	shou kuan ren	5500
+付款人	fu kuan ren	5500
+收款码	shou kuan ma	5500
+付款码	fu kuan ma	5500
+二维码	er wei ma	5500
+条形码	tiao xing ma	5500
+账单	zhang dan	5500
+账本	zhang ben	5500
+账目	zhang mu	5500
+记账	ji zhang	5500
+对账	dui zhang	5500
+税费	shui fei	5500
+纳税	na shui	5500
+税收	shui shou	5500
+税率	shui lv	5500
+税务	shui wu	5500
+营业	ying ye	5500
+经营	jing ying	5500
+管理	guan li	6000
+投资	tou zi	5500
+融资	rong zi	5500
+理财	li cai	5500
+保险	bao xian	5500
+社保	she bao	5500
+养老	yang lao	5500
+养老保险	yang lao bao xian	5500
+医疗保险	yi liao bao xian	5500
+公积金	gong ji jin	5500
+收益	shou yi	5500
+利润	li run	5500
+亏损	kui sun	5500
+股票	gu piao	5500
+基金	ji jin	5500
+债券	zhai quan	5500
+证券	zheng quan	5500
+交易	jiao yi	5500
+买入	mai ru	5500
+卖出	mai chu	5500
+成交	cheng jiao	5500
+行情	hang qing	5500
+涨幅	zhang fu	5500
+上涨	shang zhang	5500
+下跌	xia die	5500
+汇率	hui lv	5500
+货币	huo bi	5500
+人民币	ren min bi	5500
+美元	mei yuan	5500
+欧元	ou yuan	5500
+日元	ri yuan	5500
+港币	gang bi	5500
+金额	jin e	5500
+总额	zong e	5500
+总价	zong jia	5500
+单价	dan jia	5500
+定价	ding jia	5500
+收费	shou fei	5500
+免费	mian fei	5500
+付费	fu fei	5500
+押金	ya jin	5500
+定金	ding jin	5500
+保证金	bao zheng jin	5500
+现金流	xian jin liu	5500
+风险	feng xian	5500
+收益率	shou yi lv	5500
+营业额	ying ye e	5500
+销售	xiao shou	5500
+营销	ying xiao	5500
+采购	cai gou	5500
+供应	gong ying	5500
+供应商	gong ying shang	5500
+批发	pi fa	5500
+零售	ling shou	5500
+经销	jing xiao	5500
+经营范围	jing ying fan wei	5500
+注册资金	zhu ce zi jin	5500
+营业执照	ying ye zhi zhao	5500
+开票	kai piao	5500
+办理	ban li	5500
+手续	shou xu	5500
+证件	zheng jian	5500
+身份证	shen fen zheng	5500
+户口	hu kou	5500
+户籍	hu ji	5500
+证明材料	zheng ming cai liao	5500
+申请表	shen qing biao	5500
+复印件	fu yin jian	5500
+原件	yuan jian	5500
+复印	fu yin	5500
+签字	qian zi	5500
+签名	qian ming	5500
+盖章	gai zhang	5500
+公章	gong zhang	5500
+预约	yu yue	5500
+受理	shou li	5500
+# 文化与娱乐
+文化	wen hua	5500
+艺术	yi shu	5500
+文学	wen xue	5500
+作品	zuo pin	5500
+创作	chuang zuo	5500
+小说	xiao shuo	5500
+故事	gu shi	5500
+诗歌	shi ge	5500
+散文	san wen	5500
+剧本	ju ben	5500
+童话	tong hua	5500
+寓言	yu yan	5500
+成语	cheng yu	5500
+谚语	yan yu	5500
+电影	dian ying	5500
+电视剧	dian shi ju	5500
+纪录片	ji lu pian	5500
+动画	dong hua	5500
+动画片	dong hua pian	5500
+漫画	man hua	5500
+视频	shi pin	5500
+短视频	duan shi pin	5500
+直播	zhi bo	5500
+录制	lu zhi	5500
+录像	lu xiang	5500
+剪辑	jian ji	5500
+配音	pei yin	5500
+导演	dao yan	5500
+编剧	bian ju	5500
+演出	yan chu	5500
+表演	biao yan	5500
+舞台	wu tai	5500
+观众	guan zhong	5500
+观赏	guan shang	5500
+节目	jie mu	5500
+综艺	zong yi	5500
+新闻	xin wen	5500
+广告	guang gao	5500
+广播	guang bo	5500
+电台	dian tai	5500
+媒体	mei ti	5500
+报纸	bao zhi	5500
+杂志	za zhi	5500
+期刊	qi kan	5500
+出版	chu ban	5500
+出版社	chu ban she	5500
+印刷	yin shua	5500
+唱歌	chang ge	5500
+跳舞	tiao wu	5500
+舞蹈	wu dao	5500
+歌曲	ge qu	5500
+歌词	ge ci	5500
+乐曲	yue qu	5500
+旋律	xuan lv	5500
+节奏	jie zou	5500
+音符	yin fu	5500
+乐器	yue qi	5500
+钢琴	gang qin	5500
+吉他	ji ta	5500
+小提琴	xiao ti qin	5500
+二胡	er hu	5500
+古筝	gu zheng	5500
+笛子	di zi	5500
+鼓声	gu sheng	5500
+乐队	yue dui	5500
+合唱	he chang	5500
+演唱会	yan chang hui	5500
+音乐会	yin yue hui	5500
+听歌	ting ge	5500
+听音乐	ting yin yue	5500
+看电影	kan dian ying	5500
+画画	hua hua	5500
+绘画	hui hua	5500
+书法	shu fa	5500
+摄影	she ying	5500
+照片	zhao pian	5500
+图片	tu pian	5500
+相册	xiang ce	5500
+相机	xiang ji	5500
+拍照	pai zhao	5500
+合影	he ying	5500
+自拍	zi pai	5500
+照相	zhao xiang	5500
+素描	su miao	5500
+油画	you hua	5500
+展览	zhan lan	5500
+博物馆	bo wu guan	5500
+美术馆	mei shu guan	5500
+文化馆	wen hua guan	5500
+文物	wen wu	5500
+古迹	gu ji	5500
+娱乐	yu le	5500
+游戏	you xi	5500
+玩家	wan jia	5500
+关卡	guan qia	5500
+通关	tong guan	5500
+角色	jue se	5500
+技巧	ji qiao	5500
+规则	gui ze	5500
+积分	ji fen	5500
+排行榜	pai hang bang	5500
+象棋	xiang qi	5500
+围棋	wei qi	5500
+棋盘	qi pan	5500
+棋子	qi zi	5500
+麻将	ma jiang	5500
+扑克	pu ke	5500
+扑克牌	pu ke pai	5500
+拼图	pin tu	5500
+玩具	wan ju	5500
+积木	ji mu	5500
+游乐园	you le yuan	5500
+公园	gong yuan	5500
+动物园	dong wu yuan	5500
+植物园	zhi wu yuan	5500
+儿童乐园	er tong le yuan	5500
+爱好	ai hao	5500
+兴趣	xing qu	5500
+# 社会与公共服务
+社会	she hui	5000
+国家	guo jia	5000
+民族	min zu	5000
+公民	gong min	5000
+居民	ju min	5000
+群众	qun zhong	5000
+大众	da zhong	5000
+市民	shi min	5000
+人员	ren yuan	5000
+人类	ren lei	5000
+政府	zheng fu	5000
+公共	gong gong	5000
+公益	gong yi	5000
+公务	gong wu	5000
+公共服务	gong gong fu wu	5000
+社会服务	she hui fu wu	5000
+社会保障	she hui bao zhang	5000
+社区服务	she qu fu wu	5000
+法律	fa lv	5000
+法规	fa gui	5000
+条例	tiao li	5000
+规章	gui zhang	5000
+权利	quan li	5000
+义务	yi wu	5000
+法院	fa yuan	5000
+律师	lv shi	5000
+法官	fa guan	5000
+案件	an jian	5000
+案例	an li	5000
+诉讼	su song	5000
+仲裁	zhong cai	5000
+调解	tiao jie	5000
+证据	zheng ju	5000
+事实	shi shi	6500
+判决	pan jue	5000
+执行	zhi xing	6000
+遵守	zun shou	5000
+违反	wei fan	5000
+违法	wei fa	5000
+犯罪	fan zui	5000
+治安	zhi an	5000
+秩序	zhi xu	5000
+报警	bao jing	5000
+消防	xiao fang	5000
+救援	jiu yuan	5000
+派出所	pai chu suo	5000
+警务	jing wu	5000
+消防员	xiao fang yuan	5000
+消防车	xiao fang che	5000
+应急	ying ji	5000
+应急预案	ying ji yu an	5000
+疏散	shu san	5000
+避险	bi xian	5000
+安全出口	an quan chu kou	5000
+紧急	jin ji	5000
+紧急情况	jin ji qing kuang	5000
+安全检查	an quan jian cha	5000
+事故	shi gu	5000
+意外	yi wai	5000
+火灾	huo zai	5000
+灾害	zai hai	5000
+灾难	zai nan	5000
+隐患	yin huan	5000
+排查	pai cha	5000
+抢救	qiang jiu	5000
+防范	fang fan	5000
+通知书	tong zhi shu	5000
+公告	gong gao	5000
+公示	gong shi	5000
+公报	gong bao	5000
+报道	bao dao	5000
+采访	cai fang	5000
+民生	min sheng	5000
+发展	fa zhan	5000
+建设	jian she	5000
+改革	gai ge	5000
+创新	chuang xin	5000
+进步	jin bu	5000
+文明	wen ming	5000
+传统	chuan tong	5500
+现代	xian dai	5000
+时代	shi dai	5000
+价值	jia zhi	5000
+意义	yi yi	5000
+精神	jing shen	5000
+信念	xin nian	5000
+道德	dao de	5000
+诚信	cheng xin	5000
+平等	ping deng	5000
+和平	he ping	5000
+团结	tuan jie	5500
+互助	hu zhu	5000
+奉献	feng xian	5000
+# 常用描述与概念
+情况	qing kuang	6500
+状况	zhuang kuang	6500
+状态	zhuang tai	6500
+现象	xian xiang	6500
+原因	yuan yin	6500
+过程	guo cheng	6500
+经过	jing guo	6500
+经验	jing yan	6500
+经历	jing li	6500
+真相	zhen xiang	6500
+本质	ben zhi	6500
+原因分析	yuan yin fen xi	6500
+分析	fen xi	6500
+研究	yan jiu	6500
+调查	diao cha	6500
+统计	tong ji	6500
+数据分析	shu ju fen xi	6500
+差别	cha bie	6500
+差异	cha yi	6500
+差距	cha ju	6500
+对比	dui bi	6500
+对照	dui zhao	6500
+方式	fang shi	6500
+形式	xing shi	6500
+模式	mo shi	6500
+样式	yang shi	6500
+风格	feng ge	6500
+特点	te dian	6500
+特征	te zheng	6500
+特色	te se	6500
+特性	te xing	6500
+优点	you dian	6500
+缺点	que dian	6500
+优势	you shi	6500
+劣势	lie shi	6500
+长处	chang chu	6500
+不足	bu zu	6500
+问题分析	wen ti fen xi	6500
+难度	nan du	6500
+难点	nan dian	6500
+重点	zhong dian	6500
+要点	yao dian	6500
+关键	guan jian	6500
+核心	he xin	6500
+中心	zhong xin	6500
+基础	ji chu	6500
+根本	gen ben	6500
+起点	qi dian	6500
+终点	zhong dian	6500
+起源	qi yuan	6500
+来源	lai yuan	6500
+去向	qu xiang	6500
+影响	ying xiang	6500
+作用	zuo yong	6500
+用途	yong tu	6500
+目的	mu di	6500
+理由	li you	6500
+道理	dao li	6500
+原理	yuan li	6500
+理论	li lun	6500
+实践	shi jian	6500
+实际	shi ji	6500
+实用	shi yong	6500
+现实	xian shi	6500
+现状	xian zhuang	6500
+概念	gai nian	6500
+定义	ding yi	6500
+含义	han yi	6500
+名称	ming cheng	6500
+标识	biao zhi	6500
+标记	biao ji	6500
+标志	biao zhi	6500
+记号	ji hao	6500
+信息	xin xi	6500
+信息量	xin xi liang	6500
+选择题	xuan ze ti	6500
+可能性	ke neng xing	6500
+必要	bi yao	6500
+必要性	bi yao xing	6500
+可行	ke xing	6500
+可行性	ke xing xing	6500
+重要性	zhong yao xing	6500
+合理	he li	6500
+合理性	he li xing	6500
+正确	zheng que	6500
+准确	zhun que	6500
+精确	jing que	6500
+明确	ming que	6500
+完整	wan zheng	6500
+完善	wan shan	6500
+丰富	feng fu	6500
+充足	chong zu	6500
+充分	chong fen	6500
+有效	you xiao	6500
+无效	wu xiao	6500
+合适	he shi	6500
+适合	shi he	6500
+适当	shi dang	6500
+适应	shi ying	6500
+适用	shi yong	6500
+真实	zhen shi	6500
+抽象	chou xiang	6500
+主观	zhu guan	6500
+客观	ke guan	6500
+普通	pu tong	6500
+普遍	pu bian	6500
+通常	tong chang	6500
+常见	chang jian	6500
+少见	shao jian	6500
+罕见	han jian	6500
+普通话	pu tong hua	6500
+标准化	biao zhun hua	6500
+高级	gao ji	6500
+初级	chu ji	6500
+中级	zhong ji	6500
+基础版	ji chu ban	6500
+开发版	kai fa ban	6500
+正式版	zheng shi ban	6500
+免费版	mian fei ban	6500
+专业版	zhuan ye ban	6500
+试用版	shi yong ban	6500
+体验版	ti yan ban	6500
+稳定	wen ding	6500
+可靠	ke kao	6500
+流畅	liu chang	6500
+快速	kuai su	6500
+高效	gao xiao	6500
+优质	you zhi	6500
+良好	liang hao	6500
+熟悉	shu xi	6500
+陌生	mo sheng	6500
+清晰	qing xi	6500
+完美	wan mei	6500
+# 常用动词补充
+生产	sheng chan	6000
+制作	zhi zuo	6000
+制造	zhi zao	6000
+建立	jian li	6000
+创建	chuang jian	6000
+生成	sheng cheng	6000
+设计	she ji	9000
+涉及	she ji	6500
+射击	she ji	5000
+获取	huo qu	6000
+获得	huo de	6000
+收集	shou ji	7000
+收获	shou huo	6000
+收回	shou hui	6000
+收藏	shou cang	6000
+接待	jie dai	6000
+招待	zhao dai	6000
+接触	jie chu	6000
+配合	pei he	6000
+匹配	pi pei	6000
+适配	shi pei	6000
+保证	bao zheng	6000
+确保	que bao	6000
+保障	bao zhang	6000
+维护	wei hu	6000
+维修	wei xiu	6000
+修理	xiu li	6000
+修正	xiu zheng	6000
+改进	gai jin	6000
+改善	gai shan	6000
+清除	qing chu	6000
+消除	xiao chu	6000
+去除	qu chu	6000
+排除	pai chu	6000
+避免	bi mian	6000
+防止	fang zhi	6000
+限制	xian zhi	6000
+控制	kong zhi	6000
+约束	yue shu	6000
+推进	tui jin	6000
+推广	tui guang	6000
+推荐	tui jian	6000
+表扬	biao yang	6000
+批评	pi ping	6000
+鼓励	gu li	6000
+激励	ji li	6000
+督促	du cu	6000
+坚持	jian chi	6000
+维持	wei chi	6000
+持续	chi xu	6000
+持有	chi you	6000
+持久	chi jiu	6000
+珍爱	zhen ai	6000
+爱护	ai hu	6000
+照顾	zhao gu	6000
+关照	guan zhao	6000
+陪伴	pei ban	6000
+陪同	pei tong	6000
+寻找	xun zhao	6000
+追求	zhui qiu	6000
+追赶	zhui gan	6000
+追踪	zhui zong	6000
+跟踪	gen zong	6000
+跟随	gen sui	6000
+实行	shi xing	6000
+施行	shi xing	6000
+实施	shi shi	6000
+落实	luo shi	6000
+利用	li yong	6000
+运用	yun yong	6000
+引入	yin ru	6000
+引导	yin dao	6000
+验证	yan zheng	6000
+校验	jiao yan	6000
+检测	jian ce	6000
+探索	tan suo	6000
+探讨	tan tao	6000
+争论	zheng lun	6000
+辩论	bian lun	6000
+论证	lun zheng	6000
+认定	ren ding	6000
+认可	ren ke	6000
+认识	ren shi	6000
+认知	ren zhi	6000
+识别	shi bie	6000
+辨别	bian bie	6000
+区分	qu fen	6000
+划分	hua fen	6000
+分离	fen li	6000
+分开	fen kai	6000
+分发	fen fa	6000
+组合	zu he	6000
+整合	zheng he	6000
+联合	lian he	6000
+结合	jie he	6000
+集中	ji zhong	6000
+汇总	hui zong	6000
+归纳	gui na	6000
+概括	gai kuo	6000
+提取	ti qu	6000
+抽取	chou qu	6000
+筛选	shai xuan	6000
+过滤	guo lv	6000
+补充	bu chong	6000
+补偿	bu chang	6000
+弥补	mi bu	6000
+填写	tian xie	6000
+填充	tian chong	6000
+填补	tian bu	6000
+取代	qu dai	6000
+代替	dai ti	6000
+替代	ti dai	6000
+转换	zhuan huan	6000
+转移	zhuan yi	6000
+转变	zhuan bian	6000
+转换器	zhuan huan qi	6000
+翻译	fan yi	6000
+传播	chuan bo	6000
+传递	chuan di	6000
+传送	chuan song	6000
+传达	chuan da	6000
+表达	biao da	6000
+描述	miao shu	6000
+描写	miao xie	6000
+描绘	miao hui	6000
+描述符	miao shu fu	6000
+展示	zhan shi	6000
+展现	zhan xian	6000
+呈现	cheng xian	6000
+显示	xian shi	6000
+显现	xian xian	6000
+显著	xian zhu	6000
+提高	ti gao	6000
+提升	ti sheng	6000
+增强	zeng qiang	6000
+加强	jia qiang	6000
+扩大	kuo da	6000
+扩展	kuo zhan	6000
+延长	yan chang	6000
+延续	yan xu	6000
+延伸	yan shen	6000
+缩短	suo duan	6000
+缩减	suo jian	6000
+减轻	jian qing	6000
+# 常见多音词与同音词
+长久	chang jiu	5500
+长远	chang yuan	5500
+长期	chang qi	5500
+成长	cheng zhang	5500
+厂长	chang zhang	5500
+长辈	zhang bei	5500
+长者	zhang zhe	5500
+重复	chong fu	5500
+重来	chong lai	5500
+重逢	chong feng	5500
+重叠	chong die	5500
+双重	shuang chong	5500
+重视	zhong shi	5500
+重大	zhong da	5500
+崇敬	chong jing	5500
+憧憬	chong jing	5500
+钟情	zhong qing	6000
+衷情	zhong qing	3500
+行动	xing dong	5500
+行人	xing ren	5500
+行驶	xing shi	5500
+行业	hang ye	5500
+行家	hang jia	5500
+行列	hang lie	5500
+同行	tong hang	5500
+同行	tong xing	5500
+外行	wai hang	5500
+内行	nei hang	5500
+行号	hang hao	5500
+行数	hang shu	5500
+乐谱	yue pu	5500
+交响乐	jiao xiang yue	5500
+欢乐	huan le	5500
+乐趣	le qu	5500
+享乐	xiang le	5500
+觉察	jue cha	5500
+午觉	wu jiao	5500
+睡着	shui zhao	5500
+着凉	zhao liang	5500
+着火	zhao huo	5500
+着眼	zhuo yan	5500
+着手	zhuo shou	5500
+着重	zhuo zhong	5500
+穿着	chuan zhuo	5500
+执着	zhi zhuo	5500
+着落	zhuo luo	5500
+看着	kan zhe	5500
+听着	ting zhe	5500
+跟着	gen zhe	5500
+便利	bian li	5500
+大便	da bian	5500
+小便	xiao bian	5500
+便捷	bian jie	5500
+调节	tiao jie	5500
+调动	diao dong	5500
+调研	diao yan	5500
+强调	qiang diao	5500
+声调	sheng diao	5500
+曲调	qu diao	5500
+低调	di diao	5500
+相处	xiang chu	5500
+处境	chu jing	5500
+住处	zhu chu	5500
+到处	dao chu	5500
+好处	hao chu	5500
+藏书	cang shu	5500
+储藏	chu cang	5500
+隐藏	yin cang	5500
+宝藏	bao zang	5500
+教书	jiao shu	5500
+教师	jiao shi	5500
+请教	qing jiao	5500
+结论	jie lun	5500
+结实	jie shi	5500
+打结	da jie	5500
+传说	chuan shuo	5500
+传记	zhuan ji	5500
+自传	zi zhuan	5500
+朝阳	zhao yang	5500
+朝阳	chao yang	5500
+朝霞	zhao xia	5500
+朝代	chao dai	5500
+朝向	chao xiang	5500
+朝气	zhao qi	5500
+称呼	cheng hu	5500
+称赞	cheng zan	5500
+称职	chen zhi	5500
+对称	dui chen	5500
+称重	cheng zhong	5500
+简称	jian cheng	5500
+人参	ren shen	5500
+参观	can guan	5500
+参与	can yu	5500
+参考	can kao	5500
+参差	cen ci	5500
+主角	zhu jue	5500
+角度	jiao du	5500
+角落	jiao luo	5500
+三角形	san jiao xing	5500
+角逐	jue zhu	5500
+差事	chai shi	5500
+数数	shu shu	5500
+数目	shu mu	5500
+数额	shu e	5500
+供给	gong ji	5500
+给予	ji yu	5500
+给与	gei yu	5500
+还给	huan gei	5500
+给钱	gei qian	5500
+各位	ge wei	5500
+# 日常短语
+没办法	mei ban fa	4500
+没时间	mei shi jian	4500
+没想到	mei xiang dao	4500
+不知道	bu zhi dao	4500
+不一定	bu yi ding	4500
+不可能	bu ke neng	4500
+不需要	bu xu yao	4500
+不着急	bu zhao ji	4500
+不方便	bu fang bian	4500
+没必要	mei bi yao	4500
+有意思	you yi si	4500
+有机会	you ji hui	4500
+有时间	you shi jian	4500
+有道理	you dao li	4500
+有可能	you ke neng	4500
+看一下	kan yi xia	4500
+看一看	kan yi kan	4500
+想一想	xiang yi xiang	4500
+试一下	shi yi xia	4500
+等一下	deng yi xia	4500
+等一会儿	deng yi hui er	4500
+稍等一下	shao deng yi xia	4500
+休息一下	xiu xi yi xia	4500
+再试一次	zai shi yi ci	4500
+帮个忙	bang ge mang	4500
+帮我一下	bang wo yi xia	4500
+请帮忙	qing bang mang	4500
+请注意	qing zhu yi	4500
+请稍后	qing shao hou	4500
+请确认	qing que ren	4500
+请查收	qing cha shou	4500
+请回复	qing hui fu	4500
+请尽快	qing jin kuai	4500
+请问一下	qing wen yi xia	4500
+麻烦你	ma fan ni	4500
+麻烦了	ma fan le	4500
+打扰了	da rao le	4500
+抱歉	bao qian	4500
+真的谢谢	zhen de xie xie	4500
+谢谢大家	xie xie da jia	4500
+谢谢您的帮助	xie xie nin de bang zhu	4500
+感谢支持	gan xie zhi chi	4500
+感谢理解	gan xie li jie	4500
+感谢配合	gan xie pei he	4500
+辛苦大家了	xin ku da jia le	4500
+收到谢谢	shou dao xie xie	4500
+好的谢谢	hao de xie xie	4500
+我知道了	wo zhi dao le	4500
+我明白了	wo ming bai le	4500
+我看一下	wo kan yi xia	4500
+我试一下	wo shi yi xia	4500
+我想一下	wo xiang yi xia	4500
+我先看看	wo xian kan kan	4500
+我不确定	wo bu que ding	4500
+我不知道	wo bu zhi dao	4500
+我觉得可以	wo jue de ke yi	4500
+没什么	mei shen me	4500
+没什么问题	mei shen me wen ti	4500
+应该可以	ying gai ke yi	4500
+可以了	ke yi le	4500
+可以使用	ke yi shi yong	4500
+已经完成	yi jing wan cheng	4500
+已经解决	yi jing jie jue	4500
+已经收到	yi jing shou dao	4500
+正在处理	zheng zai chu li	4500
+正在下载	zheng zai xia zai	4500
+下载完成	xia zai wan cheng	4500
+安装完成	an zhuang wan cheng	4500
+安装成功	an zhuang cheng gong	4500
+操作成功	cao zuo cheng gong	4500
+操作失败	cao zuo shi bai	4500
+保存成功	bao cun cheng gong	4500
+修改成功	xiu gai cheng gong	4500
+提交成功	ti jiao cheng gong	4500
+请稍候	qing shao hou	4500
+请重试	qing chong shi	4500
+重新启动	chong xin qi dong	4500
+稍后再试	shao hou zai shi	4500
+下次再说	xia ci zai shuo	4500
+明天再说	ming tian zai shuo	4500
+回头再聊	hui tou zai liao	4500
+一会儿见	yi hui er jian	4500
+注意安全	zhu yi an quan	4500
+一路顺风	yi lu shun feng	4500
+路上小心	lu shang xiao xin	4500
+早点休息	zao dian xiu xi	4500
+明天见	ming tian jian	4500
+周末愉快	zhou mo yu kuai	4500
+生日快乐	sheng ri kuai le	4500
+新年快乐	xin nian kuai le	4500
+节日快乐	jie ri kuai le	4500
+万事如意	wan shi ru yi	4500
+身体健康	shen ti jian kang	4500
+工作顺利	gong zuo shun li	4500
+欢迎使用	huan ying shi yong	4500
+欢迎回来	huan ying hui lai	4500
+欢迎光临	huan ying guang lin	4500
+很高兴认识你	hen gao xing ren shi ni	4500
+很高兴见到你	hen gao xing jian dao ni	4500
+请多关照	qing duo guan zhao	4500
+有什么问题	you shen me wen ti	4500
+有什么建议	you shen me jian yi	4500
+有什么需要	you shen me xu yao	4500
+怎么回事	zen me hui shi	4500
+什么情况	shen me qing kuang	4500
+怎么解决	zen me jie jue	4500
+怎么使用	zen me shi yong	4500
+# 词语推导的单字读音
+圳	zhen	3500
+置	zhi	3500
+什	shen	3500
+乎	hu	3500
+殊	shu	3500
+虑	lv	3500
+弃	qi	3500
+绍	shao	3500
+尔	er	3500
+暑	shu	3500
+迅	xun	3500
+姥	lao	3500
+姨	yi	3500
+陌	mo	3500
+觉	jiao	3500
+宵	xiao	3500
+浴	yu	3500
+枕	zhen	3500
+钥	yao	3500
+匙	shi	3500
+巾	jin	3500
+膏	gao	3500
+皂	zao	3500
+沐	mu	3500
+垃	la	3500
+圾	ji	3500
+馒	man	3500
+饺	jiao	3500
+浆	jiang	3500
+啡	fei	3500
+啤	pi	3500
+萄	tao	3500
+蕉	jiao	3500
+莓	mei	3500
+柠	ning	3500
+檬	meng	3500
+菠	bo	3500
+樱	ying	3500
+猕	mi	3500
+卜	bo	3500
+柿	shi	3500
+椒	jiao	3500
+蘑	mo	3500
+菇	gu	3500
+螃	pang	3500
+蟹	xie	3500
+萨	sa	3500
+薯	shu	3500
+淇	qi	3500
+销	xiao	3500
+衬	chen	3500
+仔	zai	3500
+纽	niu	3500
+艳	yan	3500
+悔	hui	3500
+憾	han	3500
+寂	ji	3500
+寞	mo	3500
+讶	ya	3500
+绪	xu	3500
+谊	yi	3500
+授	shou	3500
+绩	ji	3500
+橡	xiang	3500
+籍	ji	3500
+骤	zhou	3500
+率	lv	3500
+模	mu	3500
+馈	kui	3500
+浏	liu	3500
+擎	qing	3500
+昵	ni	3500
+卸	xie	3500
+溃	kui	3500
+粘	zhan	3500
+捷	jie	3500
+函	han	3500
+栈	zhan	3500
+循	xun	3500
+逻	luo	3500
+辑	ji	3500
+歧	qi	3500
+础	chu	3500
+署	shu	3500
+摩	mo	3500
+厢	xiang	3500
+隧	sui	3500
+斑	ban	3500
+驾	jia	3500
+驶	shi	3500
+都	du	3500
+厦	xia	3500
+莞	guan	3500
+汕	shan	3500
+湛	zhan	3500
+襄	xiang	3500
+株	zhu	3500
+湘	xiang	3500
+潭	tan	3500
+赣	gan	3500
+德	de	3500
+潍	wei	3500
+坊	fang	3500
+沂	yi	3500
+淄	zi	3500
+邯	han	3500
+郸	dan	3500
+鄂	e	3500
+斯	si	3500
+鞍	an	3500
+抚	fu	3500
+锦	jin	3500
+牡	mu	3500
+芜	wu	3500
+蚌	beng	3500
+埠	bu	3500
+滁	chu	3500
+六	lu	3500
+靖	jing	3500
+榆	yu	3500
+澳	ao	3500
+徽	hui	3500
+鄱	po	3500
+嵩	song	3500
+峨	e	3500
+夷	yi	3500
+和	huo	3500
+燥	zao	3500
+泊	po	3500
+漠	mo	3500
+滩	tan	3500
+屿	yu	3500
+壤	rang	3500
+植	zhi	3500
+坪	ping	3500
+玫	mei	3500
+瑰	gui	3500
+菊	ju	3500
+杏	xing	3500
+咪	mi	3500
+颈	jing	3500
+犀	xi	3500
+狐	hu	3500
+狸	li	3500
+豚	tun	3500
+鲸	jing	3500
+鲨	sha	3500
+龟	gui	3500
+鳄	e	3500
+鸦	ya	3500
+鸽	ge	3500
+鹦	ying	3500
+鹉	wu	3500
+蝴	hu	3500
+蜂	feng	3500
+蚂	ma	3500
+蚁	yi	3500
+蝇	ying	3500
+蜘	zhi	3500
+蛛	zhu	3500
+萤	ying	3500
+瓢	piao	3500
+蜻	qing	3500
+蜓	ting	3500
+饲	si	3500
+炼	lian	3500
+瑜	yu	3500
+伽	jia	3500
+乒	ping	3500
+乓	pang	3500
+箭	jian	3500
+颊	jia	3500
+睛	jing	3500
+咙	long	3500
+膀	bang	3500
+臂	bi	3500
+胳	ge	3500
+膊	bo	3500
+腕	wan	3500
+膝	xi	3500
+踝	huai	3500
+趾	zhi	3500
+肤	fu	3500
+肌	ji	3500
+骼	ge	3500
+倦	juan	3500
+症	zheng	3500
+疫	yi	3500
+会	kuai	3500
+券	quan	3500
+谚	yan	3500
+蹈	dao	3500
+筝	zheng	3500
+笛	di	3500
+迹	ji	3500
+娱	yu	3500
+讼	song	3500
+仲	zhong	3500
+秩	zhi	3500
+援	yuan	3500
+疏	shu	3500
+奉	feng	3500
+势	shi	3500
+劣	lie	3500
+践	jian	3500
+识	zhi	3500
+罕	han	3500
+悉	xi	3500
+晰	xi	3500
+荐	jian	3500
+励	li	3500
+踪	zong	3500
+校	jiao	3500
+偿	chang	3500
+弥	mi	3500
+呈	cheng	3500
+憧	chong	3500
+憬	jing	3500
+衷	zhong	3500
+称	chen	3500
+参	shen	3500
+参	cen	3500
+差	ci	3500
+歉	qian	3500
+愉	yu	3500

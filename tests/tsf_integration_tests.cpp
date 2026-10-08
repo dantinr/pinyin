@@ -77,6 +77,16 @@ int wmain(int argc, wchar_t* argv[]) {
             const auto before = ime.store->text;
             ime.type("nihao"); ime.key(VK_SPACE);
             check(ime.store->text == before + L"你好", "next composition overwrote passed-through punctuation");
+            // These words are absent from the original 99-entry fixture: verify
+            // that the DLL actually loads and commits the expanded deployed data.
+            for (const auto& sample : {std::pair{"shouji", L"手机"},
+                                      std::pair{"lvcha", L"绿茶"},
+                                      std::pair{"xiexienindebangzhu", L"谢谢您的帮助"}}) {
+                const auto previous = ime.store->text;
+                ime.type(sample.first); ime.key(VK_SPACE);
+                check(ime.store->text == previous + sample.second && ime.compositions() == 0,
+                    "expanded deployed dictionary failed to commit");
+            }
             ime.close();
             check(ime.unload_result == S_OK, "activated service leaked DLL references");
         }
