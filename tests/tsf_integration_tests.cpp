@@ -224,6 +224,15 @@ int wmain(int argc, wchar_t* argv[]) {
             choose(ime, L"在"); choose(ime, L"背景"); ime.key(VK_SPACE);
             check(ime.store->text == before_sentence + L"我在北京上班我在背景上班" && ime.compositions() == 0,
                 "manual sentence correction did not commit through real TSF");
+            for (const auto& sample : {std::pair{"nh", L"你好"}, std::pair{"nhao", L"你好"},
+                                      std::pair{"bj", L"北京"}, std::pair{"zhg", L"中国"},
+                                      std::pair{"chq", L"重庆"}, std::pair{"shh", L"上海"},
+                                      std::pair{"wozaibjshangb", L"我在北京上班"}}) {
+                const auto previous = ime.store->text;
+                ime.type(sample.first); choose(ime, sample.second);
+                check(ime.store->text == previous + sample.second && ime.compositions() == 0,
+                    "short/mixed candidate did not commit through real TSF");
+            }
             ime.close();
             check(ime.unload_result == S_OK, "activated service leaked DLL references");
         }
@@ -249,6 +258,10 @@ int wmain(int argc, wchar_t* argv[]) {
             check(ime.store->text == L"我在北京上班" &&
                 personal_words(user_path).at({"wo zai bei jing shang ban", "我在北京上班"}) == 2,
                 "restarted TSF did not reuse a selected sentence");
+            ime.type("wzbjsb"); ime.key(VK_SPACE);
+            check(ime.store->text == L"我在北京上班我在北京上班" &&
+                personal_words(user_path).at({"wo zai bei jing shang ban", "我在北京上班"}) == 3,
+                "restarted TSF did not reuse a full sentence by its initials");
             ime.close(); check(ime.unload_result == S_OK, "restarted sentence service leaked DLL references");
         }
         std::string long_spelling, long_reading, long_utf8;
@@ -273,6 +286,31 @@ int wmain(int argc, wchar_t* argv[]) {
             check(ime.store->text == long_text && personal_words(user_path).at({long_reading, long_utf8}) == 2,
                 "restarted TSF did not reuse a long learned sentence");
             ime.close(); check(ime.unload_result == S_OK, "restarted long sentence service leaked DLL references");
+        }
+        { pinyin::UserStore store(user_path); store.save({}); }
+        {
+            Harness ime(argv[1]); ime.type("rh"); choose(ime, L"如");
+            check(ime.store->text == L"如h" && ime.compositions() == 1 && personal_words(user_path).empty(),
+                "short TSF prefix lost its remainder or learned too early");
+            choose(ime, L"荷");
+            check(ime.store->text == L"如荷" && ime.compositions() == 0 &&
+                personal_words(user_path).size() == 1 && personal_words(user_path).at({"ru he", "如荷"}) == 1,
+                "short TSF phrase did not save its full pronunciation");
+            ime.close(); check(ime.unload_result == S_OK, "short learning service leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); ime.type("rh"); ime.key(VK_SPACE);
+            check(ime.store->text == L"如荷" && personal_words(user_path).at({"ru he", "如荷"}) == 2,
+                "restarted TSF did not reuse abbreviated personal word");
+            ime.type("ruhe"); ime.key(VK_SPACE);
+            check(ime.store->text == L"如荷如荷" && personal_words(user_path).size() == 1 &&
+                personal_words(user_path).at({"ru he", "如荷"}) == 3, "short/full TSF input created separate personal words");
+            const auto previous = personal_words(user_path);
+            ime.type("nh"); ime.key(VK_ESCAPE);
+            ime.type("nh"); ime.key(VK_RETURN);
+            check(ime.store->text == L"如荷如荷nh" && personal_words(user_path) == previous,
+                "cancelled or raw abbreviated TSF input was learned");
+            ime.close(); check(ime.unload_result == S_OK, "restarted short service leaked DLL references");
         }
         { pinyin::UserStore store(user_path); store.save({}); }
         {

@@ -57,6 +57,13 @@ try {
     $run = Invoke-CLI -CliArguments @('--query', "xi'an", '--learn', '--user', $batchUser)
     Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('西安') -and -not $run.Output.Contains('先')) 'batch boundary query failed'
     Assert-Check (-not (Test-Path -LiteralPath ([IO.Path]::GetDirectoryName($batchUser)))) 'batch query wrote personal data'
+    foreach ($spelling in @('nh', 'nhao', 'nih')) {
+        $run = Invoke-CLI -CliArguments @('--query', $spelling, '--learn', '--user', $batchUser)
+        Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('1. 你好  [ni hao]')) 'short/mixed word query failed'
+    }
+    $run = Invoke-CLI -CliArguments @('--sentence', 'wzbj', '--learn', '--user', $batchUser)
+    Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('1. 我在北京  [wo zai bei jing]')) 'abbreviated sentence query failed'
+    Assert-Check (-not (Test-Path -LiteralPath ([IO.Path]::GetDirectoryName($batchUser)))) 'abbreviated batch query accessed personal data'
 
     $run = Invoke-CLI -CliArguments @('--sentence', 'wozaibeijing', '--learn', '--user', $batchUser)
     Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('1. 我在北京') -and $run.Output.Contains('[wo zai bei jing]')) 'offline sentence query failed'
@@ -77,6 +84,12 @@ try {
 
     $run = Invoke-CLI -CliArguments @('--learn', '--user', $user) -InputText "yinsishurufa`n/quit`n"
     Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('本地选择 2 次')) 'persisted custom word failed on restart'
+    $run = Invoke-CLI -CliArguments @('--learn', '--user', $user) -InputText "yssrf`n1`n/quit`n"
+    Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('确认：隐私输入法')) 'custom word abbreviation failed on restart'
+    $saved = [IO.File]::ReadAllText($user, $encoding)
+    Assert-Check ($saved.Contains("隐私输入法`tyin si shu ru fa`t3") -and -not $saved.Contains('yssrf')) 'abbreviation was stored instead of canonical reading'
+    $run = Invoke-CLI -CliArguments @('--learn', '--user', $user) -InputText "yinsishurufa`n/quit`n"
+    Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('本地选择 3 次')) 'short/full CLI input did not share personal counts'
 
     $run = Invoke-CLI -CliArguments @('--learn', '--user', $user) -InputText "/clear`nyinsishurufa`n/quit`n"
     Assert-Check ($run.Code -eq 0 -and $run.Output.Contains('没有完整匹配')) 'clear left custom word in memory'

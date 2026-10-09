@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(private_pinyin VERSION 0.2.0 LANGUAGES CXX)
+project(private_pinyin VERSION 0.3.0 LANGUAGES CXX)
 if(NOT WIN32)
   message(FATAL_ERROR "This prototype currently targets Windows.")
 endif()
@@ -23,9 +23,11 @@ add_custom_command(TARGET private_pinyin POST_BUILD
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   enable_language(RC)
+  configure_file(src/ime/private_pinyin_ime.rc.in generated/private_pinyin_ime.rc @ONLY)
   add_library(private_pinyin_ime SHARED
     src/ime/module.cpp src/ime/text_service.cpp src/ime/candidate_window.cpp
-    src/ime/display_attribute.cpp src/ime/private_pinyin_ime.def src/ime/private_pinyin_ime.rc)
+    src/ime/display_attribute.cpp src/ime/private_pinyin_ime.def
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/private_pinyin_ime.rc")
   target_include_directories(private_pinyin_ime PRIVATE src/ime)
   target_compile_definitions(private_pinyin_ime PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00 WINVER=0x0A00)
   target_link_libraries(private_pinyin_ime PRIVATE pinyin_core ole32 oleaut32 uuid user32 gdi32 advapi32)
@@ -45,6 +47,9 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(abbreviation_tests tests/abbreviation_tests.cpp)
+  target_link_libraries(abbreviation_tests PRIVATE pinyin_core)
+  add_test(NAME pinyin_abbreviations COMMAND abbreviation_tests "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv")
   add_executable(sentence_tests tests/sentence_tests.cpp)
   target_link_libraries(sentence_tests PRIVATE pinyin_core)
   add_test(NAME sentence_decoder COMMAND sentence_tests "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv")

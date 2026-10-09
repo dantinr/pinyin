@@ -61,7 +61,8 @@ void usage() {
         "交互：输入拼音查词；输入候选编号确认；/add 拼音 词语；/clear；/help；/quit。\n"
         "多音节自造词请用分隔符，例如：/add yin'si 隐私\n"
         "--query 查询完整词条；--sentence 生成离线整句候选；两者均不读取或保存个人词库。\n"
-        "暂不支持简拼、补全、模糊音或纠错。\n";
+        "支持全拼、简拼和混输，例如 nihao / nh / nhao；zh/ch/sh 也可缩写为 z/c/s。\n"
+        "自造词读音仍需填写完整音节；暂不支持补全、模糊音或纠错。\n";
 }
 
 pinyin::Lexicon with_users(const pinyin::Lexicon& base, const pinyin::UserDictionary& users) {

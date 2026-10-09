@@ -50,7 +50,8 @@ int wmain(int argc, wchar_t* argv[]) {
             check(word.input_end == spelling.size() && !word.pronunciation.empty(), "incomplete whole-sentence candidate");
         }
         check(lexicon.decode(spelling, {}, 1).size() == 1 && lexicon.decode(spelling, {}, 0).empty(), "result limit failed");
-        check(lexicon.decode("wozaibeijingshangb").empty() && lexicon.decode("wozz").empty(), "unfinished input was completed");
+        check(lexicon.decode("wozaibeijingshangb").front().text == chinese, "mixed full/initial sentence failed");
+        check(lexicon.decode("wovi").empty(), "invalid initial was completed");
         for (const auto& invalid : {"wo1", "'wo", "wo''zai", "wo'"}) {
             bool rejected = false;
             try { lexicon.decode(invalid); } catch (const std::invalid_argument&) { rejected = true; }

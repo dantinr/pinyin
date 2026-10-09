@@ -1,7 +1,9 @@
 #include "pinyin/lexicon.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <deque>
 #include <fstream>
 #include <limits>
 #include <set>
@@ -52,21 +54,41 @@ std::uint64_t parse_weight(const std::string& value) {
     return result;
 }
 
+// Full spelling, first letter, and the optional zh/ch/sh initial. Dictionary
+// readings remain canonical; only the spelling consumed from the query changes.
+std::array<std::size_t, 3> spelling_lengths(const std::string& syllable,
+                                          const std::string& query, std::size_t offset) {
+    if (offset >= query.size() || query[offset] != syllable.front()) return {};
+    const bool digraph = syllable.size() > 2 && syllable[1] == 'h' &&
+        (syllable[0] == 'z' || syllable[0] == 'c' || syllable[0] == 's');
+    return {
+        query.compare(offset, syllable.size(), syllable) == 0 ? syllable.size() : 0,
+        syllable.size() > 1 ? 1u : 0u,
+        digraph && query.compare(offset, 2, syllable, 0, 2) == 0 ? 2u : 0u
+    };
+}
+
 std::vector<bool> spellable_suffixes(const std::string& query) {
     std::vector<bool> reachable(query.size() + 1, false);
     reachable.back() = true;
     for (auto position = query.size(); position-- > 0;) {
-        for (const auto& syllable : syllables()) {
+        const auto& all = syllables();
+        for (auto it = all.lower_bound(std::string(1, query[position]));
+             it != all.end() && it->front() == query[position]; ++it) {
+            const auto& syllable = *it;
             const auto remaining = query.size() - position;
             // The last syllable may still be in progress, e.g. niha -> ni + ha.
             if (remaining < syllable.size() && syllable.compare(0, remaining, query, position, remaining) == 0) {
                 reachable[position] = true;
                 break;
             }
-            if (query.compare(position, syllable.size(), syllable) != 0) continue;
-            auto next = position + syllable.size();
-            if (next < query.size() && query[next] == '\'') ++next;
-            if (reachable[next]) { reachable[position] = true; break; }
+            for (const auto length : spelling_lengths(syllable, query, position)) {
+                if (!length) continue;
+                auto next = position + length;
+                if (next < query.size() && query[next] == '\'') ++next;
+                if (reachable[next]) { reachable[position] = true; break; }
+            }
+            if (reachable[position]) break;
         }
     }
     return reachable;
@@ -82,6 +104,8 @@ Candidate ranked(const Entry& entry, const UserDictionary& users) {
     return candidate;
 }
 bool preferred(const Candidate& a, const Candidate& b) {
+    // Preserve full-pinyin choices when an input can also be read as initials.
+    if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
     // A confirmed personal word is useful immediately, even if its base weight
     // is low. Frequency breaks ties among learned words and among other words.
     if (!!a.selections != !!b.selections) return !!a.selections;
@@ -220,34 +244,18 @@ void Lexicon::add(Entry entry) {
     entry_index_.emplace(key, id);
 }
 
-void Lexicon::match(std::size_t node, std::size_t offset, const std::string& query,
-                    std::vector<std::size_t>& result) const {
-    std::vector<std::pair<std::size_t, std::size_t>> pending{{node, offset}};
-    while (!pending.empty()) {
-        const auto current = pending.back(); pending.pop_back();
-        if (current.second == query.size()) {
-            const auto& entries = nodes_[current.first].entries;
-            result.insert(result.end(), entries.begin(), entries.end());
-            continue;
-        }
-        for (const auto& edge : nodes_[current.first].next) {
-            if (query.compare(current.second, edge.first.size(), edge.first) != 0) continue;
-            auto next = current.second + edge.first.size();
-            if (next < query.size() && query[next] == '\'') ++next;
-            pending.emplace_back(edge.second, next);
-        }
-    }
-}
-
 std::vector<Candidate> Lexicon::lookup(const std::string& input, const UserDictionary& users,
                                       std::size_t limit) const {
     const auto query = normalize_query(input);
-    std::vector<std::size_t> matches;
-    match(0, 0, query, matches);
+    std::vector<Match> matches;
+    match_prefixes(0, 0, query, matches);
     // One displayed candidate per text, preserving the best matching pronunciation.
     std::map<std::string, Candidate> unique;
-    for (const auto id : matches) {
-        auto candidate = ranked(entries_[id], users);
+    for (const auto& match : matches) {
+        if (match.end != query.size()) continue;
+        auto candidate = ranked(entries_[match.id], users);
+        candidate.input_end = match.end;
+        candidate.abbreviations = match.abbreviations;
         const auto previous = unique.find(candidate.text);
         if (previous == unique.end() || preferred(candidate, previous->second) ||
             (!preferred(previous->second, candidate) && candidate.pronunciation < previous->second.pronunciation))
@@ -261,17 +269,30 @@ std::vector<Candidate> Lexicon::lookup(const std::string& input, const UserDicti
 }
 
 void Lexicon::match_prefixes(std::size_t node, std::size_t offset, const std::string& query,
-                            std::vector<std::pair<std::size_t, std::size_t>>& result) const {
-    std::vector<std::pair<std::size_t, std::size_t>> pending{{node, offset}};
+                            std::vector<Match>& result) const {
+    struct State { std::size_t node, offset, abbreviations; };
+    std::deque<State> pending{{node, offset, 0}};
+    std::set<std::pair<std::size_t, std::size_t>> visited;
     while (!pending.empty()) {
-        const auto current = pending.back(); pending.pop_back();
-        for (const auto id : nodes_[current.first].entries) result.emplace_back(id, current.second);
-        if (current.second == query.size()) continue;
-        for (const auto& edge : nodes_[current.first].next) {
-            if (query.compare(current.second, edge.first.size(), edge.first) != 0) continue;
-            auto next = current.second + edge.first.size();
-            if (next < query.size() && query[next] == '\'') ++next;
-            pending.emplace_back(edge.second, next);
+        const auto current = pending.front(); pending.pop_front();
+        // Zero-cost full spellings go to the front, shortened spellings to the
+        // back. The first visit to a node/offset has the fewest abbreviations.
+        if (!visited.emplace(current.node, current.offset).second) continue;
+        for (const auto id : nodes_[current.node].entries)
+            result.push_back({id, current.offset, current.abbreviations});
+        if (current.offset == query.size()) continue;
+        const auto& edges = nodes_[current.node].next;
+        for (auto it = edges.lower_bound(std::string(1, query[current.offset]));
+             it != edges.end() && it->first.front() == query[current.offset]; ++it) {
+            for (const auto length : spelling_lengths(it->first, query, current.offset)) {
+                if (!length) continue;
+                auto next = current.offset + length;
+                if (next < query.size() && query[next] == '\'') ++next;
+                const bool shortened = length != it->first.size();
+                State state{it->second, next, current.abbreviations + shortened};
+                if (shortened) pending.push_back(state);
+                else pending.push_front(state);
+            }
         }
     }
 }
@@ -279,16 +300,17 @@ void Lexicon::match_prefixes(std::size_t node, std::size_t offset, const std::st
 std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
                                                 const UserDictionary& users, std::size_t limit) const {
     const auto query = normalize_query(input);
-    std::vector<std::pair<std::size_t, std::size_t>> matches;
+    std::vector<Match> matches;
     match_prefixes(0, 0, query, matches);
     // Compute once rather than scan the remainder again for every prefix word.
     const auto suffixes = matches.empty() ? std::vector<bool>{} : spellable_suffixes(query);
     std::map<std::pair<std::string, std::size_t>, Candidate> unique;
     for (const auto& match : matches) {
-        const auto end = match.second;
+        const auto end = match.end;
         if (!suffixes[end]) continue;
-        auto candidate = ranked(entries_[match.first], users);
+        auto candidate = ranked(entries_[match.id], users);
         candidate.input_end = end;
+        candidate.abbreviations = match.abbreviations;
         const auto key = std::make_pair(candidate.text, end);
         const auto previous = unique.find(key);
         if (previous == unique.end() || preferred(candidate, previous->second) ||
@@ -306,9 +328,16 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
     for (auto& item : unique) result.push_back(std::move(item.second));
     std::sort(result.begin(), result.end(), [](const Candidate& a, const Candidate& b) {
         if (a.input_end != b.input_end) return a.input_end > b.input_end;
+        if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
         if (a.synthesized != b.synthesized) return !a.synthesized;
         return preferred(a, b);
     });
+    // The same word may match both nihao and the shorter ni+h prefix. Display
+    // it once, retaining the longest consumption and then the best reading.
+    std::set<std::string> displayed;
+    result.erase(std::remove_if(result.begin(), result.end(), [&](const auto& candidate) {
+        return !displayed.insert(candidate.text).second;
+    }), result.end());
     if (result.size() > limit) result.resize(limit);
     return result;
 }

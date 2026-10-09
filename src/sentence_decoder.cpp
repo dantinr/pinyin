@@ -11,8 +11,10 @@ struct Path {
     std::string text, pronunciation, last_single, last_reading;
     double score = 0;
     std::size_t words = 0;
+    std::size_t abbreviations = 0;
 };
 bool better(const Path& a, const Path& b) {
+    if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
     if (a.score != b.score) return a.score > b.score;
     if (a.words != b.words) return a.words < b.words;
     if (a.text != b.text) return a.text < b.text;
@@ -30,7 +32,7 @@ void keep(std::vector<Path>& beam, Path path) {
     if (beam.size() > beam_width) beam.pop_back();
 }
 struct Edge {
-    std::size_t id, end;
+    std::size_t id, end, abbreviations;
     double score;
     bool single;
 };
@@ -44,17 +46,17 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
                                                  const UserDictionary& users, std::size_t limit) const {
     auto result = lookup(query, users, limit);
     for (auto& word : result) word.input_end = query.size();
-    if (result.size() == limit) return result;
+    if (limit == 0 || (result.size() == limit && result.back().abbreviations == 0)) return result;
 
     std::vector<std::vector<Path>> paths(query.size() + 1);
     paths[0].push_back({});
     for (std::size_t start = 0; start < query.size(); ++start) {
         if (paths[start].empty() || query[start] == '\'') continue;
-        std::vector<std::pair<std::size_t, std::size_t>> matches;
+        std::vector<Match> matches;
         match_prefixes(0, start, query, matches);
         std::map<std::size_t, std::vector<Edge>> ends;
         for (const auto& match : matches) {
-            const auto& word = entries_[match.first];
+            const auto& word = entries_[match.id];
             const auto count = static_cast<std::size_t>(std::count(word.pronunciation.begin(), word.pronunciation.end(), ' ') + 1);
             const auto user = users.find({word.pronunciation, word.text});
             const auto uses = user == users.end() ? 0 : user->second;
@@ -69,11 +71,12 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
             const bool single = count == 1 && std::count_if(word.text.begin(), word.text.end(), [](unsigned char c) {
                 return (c & 0xc0) != 0x80;
             }) == 1;
-            ends[match.second].push_back({match.first, match.second, score, single});
+            ends[match.end].push_back({match.id, match.end, match.abbreviations, score, single});
         }
         for (auto& end : ends) {
             auto& edges = end.second;
             std::sort(edges.begin(), edges.end(), [&](const auto& a, const auto& b) {
+                if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
                 if (a.score != b.score) return a.score > b.score;
                 return entries_[a.id].text < entries_[b.id].text;
             });
@@ -83,7 +86,10 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
                 for (const auto& prefix : paths[start]) {
                     auto& beam = paths[edge.end];
                     const auto score = prefix.score + edge.score;
-                    if (beam.size() == beam_width && score < beam.back().score) continue;
+                    const auto abbreviations = prefix.abbreviations + edge.abbreviations;
+                    if (beam.size() == beam_width &&
+                        (abbreviations > beam.back().abbreviations ||
+                         (abbreviations == beam.back().abbreviations && score < beam.back().score))) continue;
                     // Do not invent a different reading for a known two-character
                     // word by joining its polyphonic characters, e.g. 重/庆.
                     if (edge.single && !prefix.last_single.empty()) {
@@ -95,6 +101,7 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
                     next.text = prefix.text + word.text;
                     next.pronunciation = prefix.pronunciation.empty() ? word.pronunciation : prefix.pronunciation + ' ' + word.pronunciation;
                     next.score = score; next.words = prefix.words + 1;
+                    next.abbreviations = abbreviations;
                     if (edge.single) { next.last_single = word.text; next.last_reading = word.pronunciation; }
                     keep(beam, std::move(next));
                 }
@@ -114,9 +121,17 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
         Candidate word;
         word.text = std::move(path.text); word.pronunciation = std::move(path.pronunciation);
         word.score = path.score; word.input_end = query.size(); word.synthesized = true;
+        word.abbreviations = path.abbreviations;
         result.push_back(std::move(word));
-        if (result.size() == limit) break;
     }
+    // Rank full spellings ahead of stored words that only match by initials
+    // (e.g. a + n versus ai + ni). The synthesized beam has at most 16 paths.
+    std::stable_sort(result.begin(), result.end(), [](const auto& a, const auto& b) {
+        if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
+        if (a.synthesized != b.synthesized) return !a.synthesized;
+        return false;
+    });
+    if (result.size() > limit) result.resize(limit);
     return result;
 }
 }

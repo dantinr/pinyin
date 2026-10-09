@@ -35,7 +35,8 @@ int wmain(int argc, wchar_t* argv[]) {
         type(input, lexicon, "nihao"); result = input.handle(InputKey::escape, 0, lexicon);
         check(result.action == InputAction::cancel && input.empty(), "escape cancellation failed");
         type(input, lexicon, "nihao"); input.handle(InputKey::backspace, 0, lexicon);
-        check(input.raw() == "niha" && input.candidates().front().text == "你", "backspace prefix lookup was stale");
+        check(input.raw() == "niha" && input.candidates()[index_of(input, "你")].input_end == 2,
+            "backspace prefix lookup was stale");
         input.clear(); type(input, lexicon, "niho"); input.handle(InputKey::left, 0, lexicon);
         input.handle(InputKey::letter, 'a', lexicon);
         check(input.raw() == "nihao" && input.cursor() == 4, "middle insertion failed");
@@ -114,7 +115,7 @@ int wmain(int argc, wchar_t* argv[]) {
         type(input, segmented, "ruhe"); input.select(index_of(input, "如"), segmented);
         result = input.handle(InputKey::escape, 0, segmented);
         check(result.action == InputAction::cancel && input.empty() && result.pronunciation.empty(), "mixed preedit cancellation retained a word");
-        type(input, segmented, "ruzz"); check(input.candidates().empty(), "invalid suffix offered a convertible prefix");
+        type(input, segmented, "ruvi"); check(input.candidates().empty(), "invalid suffix offered a convertible prefix");
         input.clear(); type(input, segmented, "rux"); input.select(index_of(input, "如"), segmented);
         check(input.preedit() == "如x" && input.candidates().empty(), "unfinished second syllable was not preserved");
         input.handle(InputKey::letter, 'i', segmented); // No xi entry in this miniature lexicon.
