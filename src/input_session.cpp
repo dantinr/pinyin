@@ -4,7 +4,7 @@
 
 namespace pinyin {
 void InputSession::clear() noexcept {
-    raw_.clear(); segments_.clear(); candidates_.clear(); cursor_ = 0; selected_ = 0;
+    raw_.clear(); segments_.clear(); candidates_.clear(); cursor_ = 0; selected_ = 0; literal_ = false;
 }
 std::string InputSession::confirmed_text() const {
     std::string text;
@@ -32,7 +32,8 @@ void InputSession::undo_segment() {
 }
 void InputSession::refresh(const Lexicon& lexicon, const UserDictionary& users) {
     candidates_.clear(); selected_ = 0;
-    if (raw_.empty()) return;
+    if (raw_.empty()) { if (empty()) literal_ = false; return; }
+    if (literal_) return;
     try { candidates_ = lexicon.lookup_composition(raw_, users); }
     catch (const std::invalid_argument&) {} // An unfinished apostrophe is a valid editing state.
 }
@@ -62,15 +63,18 @@ InputResult InputSession::select(std::size_t index, const Lexicon& lexicon, cons
 }
 InputResult InputSession::handle(InputKey key, char value, const Lexicon& lexicon, const UserDictionary& users) {
     if (key == InputKey::letter) {
-        if (value < 'a' || value > 'z') return {};
+        const bool uppercase = value >= 'A' && value <= 'Z';
+        if (!uppercase && (value < 'a' || value > 'z')) return {};
+        if (uppercase && !empty() && !literal_) return {};
+        if (empty()) literal_ = uppercase;
         raw_.insert(cursor_++, 1, value); refresh(lexicon, users);
         return {InputAction::update, {}, {}};
     }
     if (empty()) return {};
     switch (key) {
     case InputKey::separator:
-        if (cursor_ > 0 && raw_[cursor_ - 1] != '\'' &&
-            (cursor_ == raw_.size() || raw_[cursor_] != '\'')) {
+        if (literal_ || (cursor_ > 0 && raw_[cursor_ - 1] != '\'' &&
+            (cursor_ == raw_.size() || raw_[cursor_] != '\''))) {
             raw_.insert(cursor_++, 1, '\''); refresh(lexicon, users);
         }
         break;
@@ -100,9 +104,16 @@ InputResult InputSession::handle(InputKey key, char value, const Lexicon& lexico
         if ((page() + 1) * page_size < candidates_.size()) selected_ = (page() + 1) * page_size;
         break;
     case InputKey::digit:
+        if (literal_ && value >= '0' && value <= '9') {
+            raw_.insert(cursor_++, 1, value); refresh(lexicon, users); break;
+        }
         if (value >= '1' && value <= '9') return select(page() * page_size + value - '1', lexicon, users);
         return {};
     case InputKey::space:
+        if (literal_) {
+            auto text = raw_ + ' '; clear();
+            return {InputAction::commit, std::move(text), {}};
+        }
         if (!candidates_.empty()) return select(selected_, lexicon, users);
         if (raw_.empty()) {
             auto text = confirmed_text(), pronunciation = confirmed_pronunciation();

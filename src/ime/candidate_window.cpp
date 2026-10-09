@@ -74,7 +74,7 @@ void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND ow
     SIZE measured{};
     GetTextExtentPoint32W(dc, raw_.data(), static_cast<int>(raw_.size()), &measured);
     width = std::max(width, static_cast<int>(measured.cx) + 2 * padding_);
-    hint_ = mode + L" · " + hint_text(rows_.empty());
+    hint_ = input.literal() ? L"英文 · 空格 / Enter 确认 · Esc 取消" : mode + L" · " + hint_text(rows_.empty());
     GetTextExtentPoint32W(dc, hint_.data(), static_cast<int>(hint_.size()), &measured);
     width = std::max(width, static_cast<int>(measured.cx) + 2 * padding_ + 2);
     for (const auto& row : rows_) {

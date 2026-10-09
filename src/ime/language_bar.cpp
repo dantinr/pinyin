@@ -5,10 +5,11 @@
 namespace pinyin::ime {
 namespace {
 struct MenuEntry { BarCommand command; std::wstring text; bool checked; };
-std::array<MenuEntry, 5> entries(const BarState& state) {
+std::array<MenuEntry, 6> entries(const BarState& state) {
     return {{{BarCommand::mode, state.chinese ? L"切换为英文（Shift）" : L"切换为中文（Shift）", false},
         {BarCommand::learning, L"本地学习", state.settings.learning},
         {BarCommand::punctuation, L"中文标点", state.settings.chinese_punctuation},
+        {BarCommand::automatic_english, L"自动英文识别（试用）", state.settings.automatic_english},
         {BarCommand::settings, L"设置…", false}, {BarCommand::directory, L"打开个人词库目录", false}}};
 }
 HICON mode_icon(bool chinese) {
@@ -69,6 +70,7 @@ HRESULT LanguageBar::GetTooltipString(BSTR* text) {
     return protect([&] {
         const auto state = state_ ? state_() : BarState{};
         std::wstring value = state.chinese ? L"隐私拼音 · 中文" : L"隐私拼音 · 英文";
+        if (state.automatic_english) value += L"（自动识别，Shift 返回中文）";
         value += state.settings.learning ? L" · 本地学习" : L" · 无痕";
         value += L"\n点击或按 Shift 切换；右键打开设置";
         *text = SysAllocString(value.c_str()); return *text ? S_OK : E_OUTOFMEMORY;
@@ -106,7 +108,7 @@ HRESULT LanguageBar::InitMenu(ITfMenu* menu) {
     });
 }
 HRESULT LanguageBar::OnMenuSelect(UINT command) {
-    if (command < static_cast<UINT>(BarCommand::mode) || command > static_cast<UINT>(BarCommand::directory)) return E_INVALIDARG;
+    if (command < static_cast<UINT>(BarCommand::mode) || command > static_cast<UINT>(BarCommand::automatic_english)) return E_INVALIDARG;
     return protect([&] { auto action = command_; return action ? action(static_cast<BarCommand>(command)) : S_FALSE; });
 }
 HRESULT LanguageBar::GetIcon(HICON* icon) {

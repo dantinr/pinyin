@@ -32,6 +32,8 @@ public:
     std::size_t selected() const noexcept { return selected_; }
     std::size_t page() const noexcept { return selected_ / page_size; }
     bool empty() const noexcept { return raw_.empty() && segments_.empty(); }
+    // An initial uppercase letter starts editable literal text, without Chinese candidates or learning.
+    bool literal() const noexcept { return literal_; }
 private:
     struct Segment { Candidate word; std::string spelling; };
     std::vector<Segment> segments_;
@@ -39,6 +41,7 @@ private:
     std::vector<Candidate> candidates_;
     std::size_t cursor_ = 0;
     std::size_t selected_ = 0;
+    bool literal_ = false;
     void refresh(const Lexicon& lexicon, const UserDictionary& users);
     void undo_segment();
     std::string confirmed_pronunciation() const;

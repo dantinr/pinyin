@@ -7,6 +7,7 @@ void refresh(HWND window) {
     const auto settings = pinyin::read_ime_settings(pinyin::default_user_path());
     CheckDlgButton(window, IDC_LEARNING, settings.learning ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(window, IDC_PUNCTUATION, settings.chinese_punctuation ? BST_CHECKED : BST_UNCHECKED);
+    CheckDlgButton(window, IDC_AUTOMATIC_ENGLISH, settings.automatic_english ? BST_CHECKED : BST_UNCHECKED);
 }
 INT_PTR CALLBACK dialog(HWND window, UINT message, WPARAM wparam, LPARAM) noexcept {
     try {
@@ -26,6 +27,10 @@ INT_PTR CALLBACK dialog(HWND window, UINT message, WPARAM wparam, LPARAM) noexce
             case IDC_OPEN_DIRECTORY:
                 if (FAILED(pinyin::open_user_directory(window))) throw std::runtime_error("cannot open dictionary directory");
                 return TRUE;
+            case IDC_AUTOMATIC_ENGLISH:
+                if (HIWORD(wparam) != BN_CLICKED) return FALSE;
+                pinyin::set_automatic_english(pinyin::default_user_path(), IsDlgButtonChecked(window, IDC_AUTOMATIC_ENGLISH) == BST_CHECKED);
+                refresh(window); return TRUE;
             case IDOK: case IDCANCEL: EndDialog(window, 0); return TRUE;
             }
             break;

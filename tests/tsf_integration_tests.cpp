@@ -355,17 +355,19 @@ int wmain(int argc, wchar_t* argv[]) {
         }
         {
             Harness ime(argv[1]); const auto previous = personal_words(user_path);
-            // Let the application receive shifted letters with its keyboard
-            // layout's casing; holding Shift is not a solo mode-switch gesture.
+            // An initial shifted letter starts editable literal composition;
+            // holding Shift is not a solo mode-switch gesture.
             check(ime.key(VK_SHIFT), "Shift press was not handled");
             std::wstring capitals;
             for (WPARAM letter = 'A'; letter <= 'Z'; ++letter) {
-                check(!ime.modified_key(letter, {VK_SHIFT}), "Shift+letter was consumed as lowercase pinyin");
+                check(ime.modified_key(letter, {VK_SHIFT}), "Shift+letter did not enter literal composition");
                 const std::wstring text(1, static_cast<wchar_t>(letter));
-                ime.store->insert_external(text); Harness::pump(); capitals += text;
+                capitals += text;
             }
-            check(!ime.key_up(VK_SHIFT) && ime.store->text == capitals && ime.compositions() == 0,
-                "shifted alphabet changed mode or started a composition");
+            check(!ime.key_up(VK_SHIFT) && ime.store->text == capitals && ime.compositions() == 1,
+                "shifted alphabet changed mode, lost casing, or committed prematurely");
+            check(ime.key(VK_RETURN) && ime.store->text == capitals && ime.compositions() == 0 && personal_words(user_path) == previous,
+                "literal Enter lost uppercase text or learned it");
             check(ime.key('N'), "Shift+letters switched away from Chinese mode"); ime.key(VK_ESCAPE);
 
             ime.type("niha"); ime.key(VK_SHIFT);

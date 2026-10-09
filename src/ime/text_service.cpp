@@ -5,6 +5,7 @@
 #include "pinyin/input_session.hpp"
 #include "pinyin/learning_dictionary.hpp"
 #include "pinyin/punctuation.hpp"
+#include "pinyin/english_input.hpp"
 #include <functional>
 #include <memory>
 #include <optional>
@@ -91,7 +92,7 @@ struct Key {
 };
 std::optional<Key> translate(WPARAM key) {
     if (key >= 'A' && key <= 'Z') return Key{InputKey::letter, static_cast<char>(key - 'A' + 'a')};
-    if (key >= '1' && key <= '9') return Key{InputKey::digit, static_cast<char>(key)};
+    if (key >= '0' && key <= '9') return Key{InputKey::digit, static_cast<char>(key)};
     switch (key) {
     case VK_OEM_7: return Key{InputKey::separator};
     case VK_BACK: return Key{InputKey::backspace};
@@ -108,6 +109,14 @@ std::optional<Key> translate(WPARAM key) {
     case VK_RETURN: return Key{InputKey::enter};
     case VK_ESCAPE: return Key{InputKey::escape};
     default: return {};
+    }
+}
+bool ends_english(WPARAM key) {
+    switch (key) {
+    case VK_RETURN: case VK_TAB: case VK_ESCAPE:
+    case VK_LEFT: case VK_RIGHT: case VK_UP: case VK_DOWN:
+    case VK_HOME: case VK_END: case VK_PRIOR: case VK_NEXT: return true;
+    default: return false;
     }
 }
 
@@ -154,6 +163,8 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     Punctuation punctuation_;
     CandidateWindow window_;
     bool chinese_ = true;
+    bool automatic_english_ = false;
+    bool candidate_navigation_ = false;
     bool shift_alone_ = false;
     bool editing_ = false;
     bool own_edit_ = false;
@@ -162,19 +173,28 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     std::uint64_t generation_ = 0;
 
     IUnknown* identity() { return static_cast<ITfTextInputProcessorEx*>(this); }
+    void set_english(bool active) {
+        if (automatic_english_ == active) return;
+        automatic_english_ = active;
+        if (language_bar_) language_bar_->notify();
+    }
     void refresh_settings() {
         const auto next = read_ime_settings(user_path_);
-        const bool changed = next.learning != settings_.learning || next.chinese_punctuation != settings_.chinese_punctuation;
+        const bool changed = next.learning != settings_.learning || next.chinese_punctuation != settings_.chinese_punctuation ||
+            next.automatic_english != settings_.automatic_english;
         if (dictionary_ && next.learning != settings_.learning) {
             dictionary_->refresh();
             input_.refresh_candidates(dictionary_->lexicon(), dictionary_->users());
         }
         if (next.chinese_punctuation != settings_.chinese_punctuation) punctuation_.reset();
         settings_ = next;
+        if (!settings_.automatic_english) set_english(false);
         if (changed && language_bar_) language_bar_->notify();
     }
     void toggle_mode() {
-        chinese_ = !chinese_; shift_alone_ = false; punctuation_.reset(); finish_later();
+        if (automatic_english_) set_english(false);
+        else chinese_ = !chinese_;
+        shift_alone_ = false; punctuation_.reset(); finish_later();
         if (language_bar_) language_bar_->notify();
     }
     HRESULT bar_command(BarCommand command) {
@@ -185,6 +205,8 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             set_ime_learning(user_path_, !read_ime_settings(user_path_).learning); refresh_settings(); return S_OK;
         case BarCommand::punctuation:
             set_chinese_punctuation(user_path_, !read_ime_settings(user_path_).chinese_punctuation); refresh_settings(); return S_OK;
+        case BarCommand::automatic_english:
+            set_automatic_english(user_path_, !read_ime_settings(user_path_).automatic_english); refresh_settings(); return S_OK;
         case BarCommand::settings: {
             const auto executable = module_path().parent_path() / L"private_pinyin_settings.exe";
             const auto result = reinterpret_cast<INT_PTR>(ShellExecuteW(nullptr, L"open", executable.c_str(),
@@ -209,7 +231,8 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         element_id_ = TF_INVALID_UIELEMENTID; element_.Reset();
     }
     void discard_state() noexcept {
-        ++generation_; input_.clear(); composition_.Reset(); composing_.Reset(); ui_suspended_ = false; close_ui();
+        ++generation_; input_.clear(); candidate_navigation_ = false;
+        composition_.Reset(); composing_.Reset(); ui_suspended_ = false; close_ui();
     }
     HRESULT finish(TfEditCookie cookie, const std::optional<std::wstring>& replacement) {
         if (!composition_) { discard_state(); return S_OK; }
@@ -235,6 +258,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         discard_state(); return hr;
     }
     void finish_later() {
+        set_english(false);
         // Queued layout/UI read sessions can run before the terminating write
         // session. They must not resurrect a popup after focus loss/deactivation.
         ui_suspended_ = true;
@@ -261,6 +285,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     }
     HRESULT observe(ITfContext* context) {
         if (same_object(context, observed_.Get())) return S_OK;
+        set_english(false);
         if (composition_ && !same_object(context, composing_.Get())) finish_later();
         unobserve();
         punctuation_.reset();
@@ -420,6 +445,28 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             if (shifted > -64 || FAILED(range->Collapse(cookie, TF_ANCHOR_START))) return result;
         }
     }
+    std::string english_word(ITfContext* context, TfEditCookie cookie) {
+        ComPtr<ITfRange> range;
+        if (composition_) {
+            if (FAILED(composition_->GetRange(&range))) return {};
+        } else {
+            TF_SELECTION selection{}; ULONG fetched = 0;
+            if (FAILED(context->GetSelection(cookie, TF_DEFAULT_SELECTION, 1, &selection, &fetched)) || !fetched) return {};
+            range.Attach(selection.range);
+        }
+        if (FAILED(range->Collapse(cookie, TF_ANCHOR_START))) return {};
+        // Only the adjacent ASCII word, transiently, including text entered
+        // directly by the application (for example with CapsLock).
+        LONG shifted = 0; wchar_t text[64]{}; ULONG read = 0;
+        if (FAILED(range->ShiftStart(cookie, -64, &shifted, nullptr)) ||
+            FAILED(range->GetText(cookie, 0, text, 64, &read))) return {};
+        auto start = read;
+        while (start && ((text[start - 1] >= L'a' && text[start - 1] <= L'z') ||
+                        (text[start - 1] >= L'A' && text[start - 1] <= L'Z') || text[start - 1] == L'\'')) --start;
+        std::string word;
+        for (auto i = start; i < read; ++i) word += static_cast<char>(text[i]);
+        return word + input_.raw();
+    }
     HRESULT apply_result(ITfContext* context, TfEditCookie cookie, const InputResult& result,
                          const std::wstring& suffix = {}) {
         if (result.action == InputAction::pass) return S_FALSE;
@@ -444,20 +491,28 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         if (!manager_) return false;
         refresh_settings();
         if (input_disabled(context)) return false;
+        if (automatic_english_ && same_object(context, observed_.Get()) && ends_english(key)) return true;
         if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000) ||
             (GetKeyState(VK_LWIN) & 0x8000) || (GetKeyState(VK_RWIN) & 0x8000)) return false;
         if (key == VK_SHIFT) return true;
+        // Probe without changing sentence state; the real end key is still
+        // passed to the application after OnKeyDown resets automatic English.
+        if (automatic_english_ && same_object(context, observed_.Get())) return false;
         if (!chinese_ || (GetKeyState(VK_CAPITAL) & 1)) return false;
         if (const auto mark = punctuation_key(key); mark && (*mark != '\'' || input_.raw().empty()))
             return settings_.chinese_punctuation || !input_.empty();
         const auto translated = translate(key);
         if (!translated) return false;
-        // Shifted letters belong to the application's keyboard layout, so it
-        // can apply Shift/CapsLock casing instead of starting lowercase pinyin.
-        if (translated->type == InputKey::letter) return !(GetKeyState(VK_SHIFT) & 0x8000);
+        // Keep an initial Shift+letter and the rest of that literal word in
+        // the same editable composition. Existing Chinese segments keep their behavior.
+        if (translated->type == InputKey::letter)
+            return !(GetKeyState(VK_SHIFT) & 0x8000) || input_.empty() || input_.literal();
+        if (translated->type == InputKey::space && settings_.automatic_english) return true;
         if (input_.empty()) return false;
         if (translated->type == InputKey::digit) {
             if (GetKeyState(VK_SHIFT) & 0x8000) return false;
+            if (input_.literal()) return true;
+            if (translated->value == '0') return false;
             return input_.page() * InputSession::page_size + translated->value - '1' < input_.candidates().size();
         }
         if (translated->type == InputKey::separator && (GetKeyState(VK_SHIFT) & 0x8000)) return false;
@@ -504,7 +559,7 @@ public:
             manager_.As(&ui_manager_);
             hr = manager_.As(&bar_manager_);
             if (SUCCEEDED(hr)) {
-                language_bar_.Attach(new LanguageBar([this] { return BarState{chinese_, read_ime_settings(user_path_)}; },
+                language_bar_.Attach(new LanguageBar([this] { return BarState{chinese_ && !automatic_english_, read_ime_settings(user_path_), automatic_english_}; },
                     [this](BarCommand command) { return bar_command(command); }));
                 hr = bar_manager_->AddItem(language_bar_.Get());
             }
@@ -557,9 +612,14 @@ public:
             if (!wants_key(context, key)) return S_OK;
             if (key == VK_SHIFT) { shift_alone_ = true; *eaten = TRUE; return S_OK; }
             shift_alone_ = false;
+            if (automatic_english_ && same_object(context, observed_.Get()) && ends_english(key)) {
+                set_english(false); punctuation_.reset(); return S_OK;
+            }
             auto mark = punctuation_key(key);
-            if (mark && *mark == '\'' && !input_.raw().empty()) mark.reset(); // Pinyin separator.
-            const auto translated = translate(key); if (!mark && !translated) return S_OK;
+            if (mark && *mark == '\'' && !input_.raw().empty()) mark.reset(); // Pinyin separator or English contraction.
+            auto translated = translate(key); if (!mark && !translated) return S_OK;
+            if (translated && translated->type == InputKey::letter && (GetKeyState(VK_SHIFT) & 0x8000))
+                translated->value = static_cast<char>(key);
             auto hr = observe(context); if (FAILED(hr)) return hr;
             auto target = ComPtr<ITfContext>(context);
             hr = request(context, TF_ES_SYNC | TF_ES_READWRITE, [this, target, translated, mark](TfEditCookie cookie) {
@@ -567,6 +627,29 @@ public:
                 if (input_disabled(target.Get()) || kind == FieldKind::sensitive) return S_FALSE;
                 if (composition_ && !same_object(composing_.Get(), target.Get())) return S_FALSE;
                 auto previous = input_;
+                if (input_.literal() && ((translated && translated->type == InputKey::space) || mark)) {
+                    const bool english = settings_.automatic_english && kind == FieldKind::normal &&
+                        input_.cursor() == input_.raw().size() &&
+                        !punctuation_context(target.Get(), cookie, kind).literal_scope &&
+                        starts_english(input_.raw(), dictionary_->lexicon(), dictionary_->users());
+                    const auto result = input_.handle(InputKey::enter, 0, dictionary_->lexicon(), dictionary_->users());
+                    const auto hr = apply_result(target.Get(), cookie, result, mark ? std::wstring(1, *mark) : L" ");
+                    if (hr == S_OK) { punctuation_.reset(); set_english(english); }
+                    else if (FAILED(hr)) input_ = std::move(previous);
+                    return hr;
+                }
+                if (settings_.automatic_english && kind == FieldKind::normal && !candidate_navigation_ &&
+                    input_.confirmed_text().empty() && input_.cursor() == input_.raw().size() &&
+                    ((translated && translated->type == InputKey::space) || mark) &&
+                    !punctuation_context(target.Get(), cookie, kind).literal_scope &&
+                    starts_english(english_word(target.Get(), cookie), dictionary_->lexicon(), dictionary_->users())) {
+                    const auto result = input_.empty() ? InputResult{InputAction::commit, {}, {}} :
+                        input_.handle(InputKey::enter, 0, dictionary_->lexicon(), dictionary_->users());
+                    const auto hr = apply_result(target.Get(), cookie, result, mark ? std::wstring(1, *mark) : L" ");
+                    if (hr == S_OK) { punctuation_.reset(); set_english(true); }
+                    else if (FAILED(hr)) input_ = std::move(previous);
+                    return hr;
+                }
                 if (mark) {
                     const auto punctuation = punctuation_.resolve(*mark, punctuation_context(target.Get(), cookie, kind));
                     // Disabling Chinese punctuation changes the symbol, not the
@@ -584,6 +667,10 @@ public:
                 const auto result = input_.handle(translated->type, translated->value, dictionary_->lexicon(), dictionary_->users());
                 if (result.action == InputAction::pass) return S_FALSE;
                 const auto hr = apply_result(target.Get(), cookie, result);
+                if (hr == S_OK && result.action == InputAction::update &&
+                    (translated->type == InputKey::previous || translated->type == InputKey::next ||
+                     translated->type == InputKey::page_previous || translated->type == InputKey::page_next))
+                    candidate_navigation_ = true;
                 if (FAILED(hr)) input_ = std::move(previous);
                 return hr;
             });

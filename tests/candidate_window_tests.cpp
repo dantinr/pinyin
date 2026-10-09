@@ -99,6 +99,15 @@ int main() {
             }
             check(candidates(second.window).count == 0, "repeated compositions accumulated hidden windows");
 
+            InputSession literal;
+            literal.handle(InputKey::letter, 'H', lexicon);
+            popup.show(literal, caret, second.window, [](std::size_t) {}, L"本地学习");
+            check(literal.candidates().empty() && popup.visible() && candidates(second.window).count == 1,
+                "initial uppercase letter had no visible composition popup");
+            literal.handle(InputKey::escape, 0, lexicon);
+            popup.show(literal, caret, second.window, [](std::size_t) {}, L"本地学习");
+            check(candidates(second.window).count == 0, "cancelling uppercase composition left a blank popup");
+
             Lexicon no_words; InputSession short_input, long_input;
             short_input.handle(InputKey::letter, 'n', no_words);
             popup.show(short_input, caret, second.window, [](std::size_t) {}, L"本地学习");

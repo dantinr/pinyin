@@ -6,8 +6,8 @@
 #include <functional>
 
 namespace pinyin::ime {
-enum class BarCommand : UINT { mode = 1, learning, punctuation, settings, directory };
-struct BarState { bool chinese = true; ImeSettings settings; };
+enum class BarCommand : UINT { mode = 1, learning, punctuation, settings, directory, automatic_english };
+struct BarState { bool chinese = true; ImeSettings settings; bool automatic_english = false; };
 class LanguageBar final : public ITfLangBarItemButton, public ITfSource, private ModuleObject {
     std::atomic<ULONG> refs_{1};
     ComPtr<ITfLangBarItemSink> sink_;

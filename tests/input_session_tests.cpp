@@ -20,9 +20,31 @@ int wmain(int argc, wchar_t* argv[]) {
         if (argc != 2) throw std::runtime_error("expected dictionary");
         Lexicon lexicon; lexicon.load(argv[1]); InputSession input;
         check(input.handle(InputKey::space, 0, lexicon).action == InputAction::pass, "empty space must pass through");
+        type(input, lexicon, "Hello");
+        check(input.literal() && input.preedit() == "Hello" && input.candidates().empty(),
+            "uppercase word was lowercased or offered Chinese candidates");
+        input.handle(InputKey::home, 0, lexicon); input.handle(InputKey::delete_forward, 0, lexicon);
+        check(input.raw() == "ello" && input.literal() && input.candidates().empty(),
+            "editing away the uppercase letter changed literal intent");
+        input.handle(InputKey::letter, 'H', lexicon); input.handle(InputKey::end, 0, lexicon);
+        auto literal = input.handle(InputKey::space, 0, lexicon);
+        check(literal.text == "Hello " && literal.pronunciation.empty() && input.empty() && !input.literal(),
+            "literal space lost casing, its space, or created a learnable word");
+        type(input, lexicon, "I'm");
+        check(input.raw() == "I'm" && input.candidates().empty(), "literal contraction lost its apostrophe");
+        literal = input.handle(InputKey::enter, 0, lexicon);
+        check(literal.text == "I'm" && literal.pronunciation.empty(), "literal Enter altered the word");
+        type(input, lexicon, "Version"); input.handle(InputKey::digit, '2', lexicon); input.handle(InputKey::digit, '0', lexicon);
+        check(input.raw() == "Version20" && input.candidates().empty(), "literal digits selected Chinese or lost zero");
+        literal = input.handle(InputKey::escape, 0, lexicon);
+        check(literal.action == InputAction::cancel && input.empty() && !input.literal(), "literal Escape left the initial capital behind");
+        type(input, lexicon, "H"); input.handle(InputKey::backspace, 0, lexicon);
+        check(input.empty() && !input.literal(), "deleting the last literal character retained literal mode");
         type(input, lexicon, "nihao");
         check(input.raw() == "nihao" && input.cursor() == 5, "preedit state failed");
         check(input.candidates().front().text == "你好", "candidate lookup failed");
+        check(!input.literal() && input.handle(InputKey::letter, 'H', lexicon).action == InputAction::pass && input.raw() == "nihao",
+            "mid-pinyin uppercase unexpectedly converted Chinese composition to literal text");
         auto result = input.handle(InputKey::space, 0, lexicon);
         check(result.action == InputAction::commit && result.text == "你好" && input.empty(), "space commit failed");
         type(input, lexicon, "nihao"); result = input.handle(InputKey::digit, '2', lexicon);
