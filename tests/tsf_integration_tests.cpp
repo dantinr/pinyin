@@ -251,6 +251,29 @@ int wmain(int argc, wchar_t* argv[]) {
                 "restarted TSF did not reuse a selected sentence");
             ime.close(); check(ime.unload_result == S_OK, "restarted sentence service leaked DLL references");
         }
+        std::string long_spelling, long_reading, long_utf8;
+        std::wstring long_text;
+        for (int i = 0; i < 80; ++i) {
+            long_spelling += "wo"; long_utf8 += "我"; long_text += L"我";
+            if (i) long_reading += ' ';
+            long_reading += "wo";
+        }
+        {
+            Harness ime(argv[1]); ime.type(long_spelling.c_str());
+            check(ime.store->text == wide(long_spelling) && ime.compositions() == 1,
+                "TSF stopped accepting a preedit beyond 128 characters");
+            ime.key(VK_SPACE);
+            check(ime.store->text == long_text && ime.compositions() == 0 &&
+                personal_words(user_path).at({long_reading, long_utf8}) == 1,
+                "long TSF sentence failed to commit and learn");
+            ime.close(); check(ime.unload_result == S_OK, "long sentence service leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); ime.type(long_spelling.c_str()); ime.key(VK_SPACE);
+            check(ime.store->text == long_text && personal_words(user_path).at({long_reading, long_utf8}) == 2,
+                "restarted TSF did not reuse a long learned sentence");
+            ime.close(); check(ime.unload_result == S_OK, "restarted long sentence service leaked DLL references");
+        }
         { pinyin::UserStore store(user_path); store.save({}); }
         {
             Harness ime(argv[1]);
@@ -263,9 +286,8 @@ int wmain(int argc, wchar_t* argv[]) {
             ime.close(); check(ime.unload_result == S_OK, "learning service leaked DLL references");
         }
         {
-            // A learned custom word remains selectable alongside the newly
-            // curated common homophone 如何, whose base priority stays higher.
-            Harness ime(argv[1]); ime.type("ruhe"); choose(ime, L"如荷");
+            // A new personal word becomes the first candidate immediately.
+            Harness ime(argv[1]); ime.type("ruhe"); ime.key(VK_SPACE);
             check(ime.store->text == L"如荷" && ime.compositions() == 0, "restarted TSF did not offer the learned whole word");
             check(personal_words(user_path).at({"ru he", "如荷"}) == 2, "restarted TSF learning lost the selection count");
             const auto previous = personal_words(user_path);
@@ -283,8 +305,17 @@ int wmain(int argc, wchar_t* argv[]) {
             ime.close(); check(ime.unload_result == S_OK, "restarted learning service leaked DLL references");
         }
         pinyin::set_ime_learning(user_path, true);
+        {
+            Harness ime(argv[1], IS_PRIVATE); ime.type("nihao");
+            check(ime.store->text == L"nihao" && ime.compositions() == 1,
+                "private text field blocked Chinese composition");
+            ime.key(VK_SPACE);
+            check(ime.store->text == L"你好" && personal_words(user_path).at({"ni hao", "你好"}) == 1,
+                "private text field did not commit and learn the selected word");
+            ime.close(); check(ime.unload_result == S_OK, "private text context leaked service references");
+        }
         const auto before_private = personal_words(user_path);
-        for (const auto scope : {IS_PRIVATE, IS_PASSWORD, IS_NUMERIC_PASSWORD, IS_NUMERIC_PIN,
+        for (const auto scope : {IS_PASSWORD, IS_NUMERIC_PASSWORD, IS_NUMERIC_PIN,
                                  IS_ALPHANUMERIC_PIN, IS_ALPHANUMERIC_PIN_SET}) {
             Harness ime(argv[1], scope);
             check(!ime.key('N'), "sensitive InputScope swallowed a letter");

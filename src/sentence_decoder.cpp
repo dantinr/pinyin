@@ -6,13 +6,11 @@ namespace pinyin {
 namespace {
 constexpr std::size_t beam_width = 16;
 constexpr std::size_t edges_per_end = 16;
-constexpr std::size_t max_syllables = 32;
-constexpr std::size_t max_text_bytes = 512;
 
 struct Path {
     std::string text, pronunciation, last_single, last_reading;
     double score = 0;
-    std::size_t words = 0, syllables = 0;
+    std::size_t words = 0;
 };
 bool better(const Path& a, const Path& b) {
     if (a.score != b.score) return a.score > b.score;
@@ -32,7 +30,7 @@ void keep(std::vector<Path>& beam, Path path) {
     if (beam.size() > beam_width) beam.pop_back();
 }
 struct Edge {
-    std::size_t id, end, syllables;
+    std::size_t id, end;
     double score;
     bool single;
 };
@@ -59,10 +57,10 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
             const auto& word = entries_[match.first];
             const auto count = static_cast<std::size_t>(std::count(word.pronunciation.begin(), word.pronunciation.end(), ' ') + 1);
             const auto user = users.find({word.pronunciation, word.text});
-            const auto uses = user == users.end() ? 0 : std::min<std::uint64_t>(user->second, 100);
-            // User-created words have no corpus frequency. Give confirmed words
-            // a modest prior when reusing them inside a longer sentence.
-            const auto weight = word.weight == 1 && uses ? 3500 : word.weight;
+            const auto uses = user == users.end() ? 0 : user->second;
+            // A personal choice has an immediate effect inside sentences too,
+            // including a new word whose base weight is only one.
+            const auto weight = uses ? std::max<std::uint64_t>(word.weight, 12000) : word.weight;
             // Center the heuristic weights and penalize word boundaries. This
             // favors known multi-character words over arbitrary single letters
             // without rewarding extra syllables in an ambiguous segmentation.
@@ -71,7 +69,7 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
             const bool single = count == 1 && std::count_if(word.text.begin(), word.text.end(), [](unsigned char c) {
                 return (c & 0xc0) != 0x80;
             }) == 1;
-            ends[match.second].push_back({match.first, match.second, count, score, single});
+            ends[match.second].push_back({match.first, match.second, score, single});
         }
         for (auto& end : ends) {
             auto& edges = end.second;
@@ -83,8 +81,6 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
             for (const auto& edge : edges) {
                 const auto& word = entries_[edge.id];
                 for (const auto& prefix : paths[start]) {
-                    if (prefix.syllables + edge.syllables > max_syllables ||
-                        prefix.text.size() + word.text.size() > max_text_bytes) continue;
                     auto& beam = paths[edge.end];
                     const auto score = prefix.score + edge.score;
                     if (beam.size() == beam_width && score < beam.back().score) continue;
@@ -98,12 +94,15 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
                     Path next;
                     next.text = prefix.text + word.text;
                     next.pronunciation = prefix.pronunciation.empty() ? word.pronunciation : prefix.pronunciation + ' ' + word.pronunciation;
-                    next.score = score; next.words = prefix.words + 1; next.syllables = prefix.syllables + edge.syllables;
+                    next.score = score; next.words = prefix.words + 1;
                     if (edge.single) { next.last_single = word.text; next.last_reading = word.pronunciation; }
                     keep(beam, std::move(next));
                 }
             }
         }
+        // Edges always point forward. Release completed beams so long input
+        // does not retain a copy of every sentence prefix.
+        paths[start].clear();
     }
     for (auto& path : paths.back()) {
         if (path.words < 2) continue;

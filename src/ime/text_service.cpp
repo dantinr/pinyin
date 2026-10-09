@@ -28,7 +28,7 @@ bool input_disabled(ITfContext* context) {
         compartment_enabled(context, GUID_COMPARTMENT_KEYBOARD_DISABLED) ||
         compartment_enabled(context, GUID_COMPARTMENT_EMPTYCONTEXT);
 }
-bool private_input(ITfContext* context, TfEditCookie cookie) {
+bool direct_input(ITfContext* context, TfEditCookie cookie) {
     ComPtr<ITfReadOnlyProperty> property;
     TF_SELECTION selection{}; ULONG fetched = 0;
     if (FAILED(context->GetSelection(cookie, TF_DEFAULT_SELECTION, 1, &selection, &fetched)) || !fetched) return true;
@@ -42,7 +42,7 @@ bool private_input(ITfContext* context, TfEditCookie cookie) {
             InputScope* scopes = nullptr; UINT count = 0;
             if (SUCCEEDED(scope->GetInputScopes(&scopes, &count))) {
                 for (UINT i = 0; i < count; ++i)
-                    if (scopes[i] == IS_PRIVATE || scopes[i] == IS_PASSWORD || scopes[i] == IS_NUMERIC_PASSWORD ||
+                    if (scopes[i] == IS_PASSWORD || scopes[i] == IS_NUMERIC_PASSWORD ||
                         scopes[i] == IS_NUMERIC_PIN || scopes[i] == IS_ALPHANUMERIC_PIN || scopes[i] == IS_ALPHANUMERIC_PIN_SET)
                         sensitive = true;
                 CoTaskMemFree(scopes);
@@ -250,7 +250,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
                             input_.candidates()[index].text != word.text ||
                             input_.candidates()[index].pronunciation != word.pronunciation ||
                             input_.candidates()[index].input_end != word.input_end) return S_FALSE;
-                        if (input_disabled(context.Get()) || private_input(context.Get(), write)) return S_FALSE;
+                        if (input_disabled(context.Get()) || direct_input(context.Get(), write)) return S_FALSE;
                         auto previous = input_;
                         const auto result = input_.select(index, dictionary_->lexicon(), dictionary_->users());
                         const auto hr = apply_result(context.Get(), write, result);
@@ -324,7 +324,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         if (!chinese_ || (GetKeyState(VK_CAPITAL) & 1)) return false;
         const auto translated = translate(key);
         if (!translated) return false;
-        if (translated->type == InputKey::letter) return input_.spelling_size() < 128;
+        if (translated->type == InputKey::letter) return true;
         if (input_.empty()) return false;
         if (translated->type == InputKey::digit) {
             if (GetKeyState(VK_SHIFT) & 0x8000) return false;
@@ -416,7 +416,7 @@ public:
             auto hr = observe(context); if (FAILED(hr)) return hr;
             auto target = ComPtr<ITfContext>(context);
             hr = request(context, TF_ES_SYNC | TF_ES_READWRITE, [this, target, translated](TfEditCookie cookie) {
-                if (input_disabled(target.Get()) || private_input(target.Get(), cookie)) return S_FALSE;
+                if (input_disabled(target.Get()) || direct_input(target.Get(), cookie)) return S_FALSE;
                 if (composition_ && !same_object(composing_.Get(), target.Get())) return S_FALSE;
                 auto previous = input_;
                 if (input_.empty() && translated->type == InputKey::letter) dictionary_->refresh();

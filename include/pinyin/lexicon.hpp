@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <map>
 #include <set>
 #include <string>
@@ -40,7 +41,7 @@ public:
     std::vector<Candidate> lookup(const std::string& input,
                                   const UserDictionary& users = {},
                                   std::size_t limit = 10) const;
-    // Offline, bounded sentence decoding. Existing whole words precede
+    // Offline sentence decoding with a bounded beam. Existing whole words precede
     // synthesized sentences; every result consumes the complete input.
     std::vector<Candidate> decode(const std::string& input,
                                  const UserDictionary& users = {},
@@ -48,7 +49,7 @@ public:
     // Full matches first, then convertible prefixes with a spellable remainder.
     std::vector<Candidate> lookup_composition(const std::string& input,
                                              const UserDictionary& users = {},
-                                             std::size_t limit = 90) const;
+                                             std::size_t limit = std::numeric_limits<std::size_t>::max()) const;
     std::size_t size() const noexcept { return entries_.size(); }
 
 private:

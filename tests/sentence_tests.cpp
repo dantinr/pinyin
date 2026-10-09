@@ -56,11 +56,11 @@ int wmain(int argc, wchar_t* argv[]) {
             try { lexicon.decode(invalid); } catch (const std::invalid_argument&) { rejected = true; }
             check(rejected, "invalid input accepted");
         }
-        UserDictionary users; users[{"bei jing", "背景"}] = 20;
+        UserDictionary users; users[{"bei jing", "背景"}] = 1;
         check(lexicon.decode(spelling, users).front().text == "我在背景上班", "local preference not used within a sentence");
         check(lexicon.decode(spelling).front().text == chinese, "local preference changed the base dictionary");
         auto custom = lexicon; custom.add({"北景", "bei jing", 1});
-        UserDictionary custom_users; custom_users[{"bei jing", "北景"}] = 3;
+        UserDictionary custom_users; custom_users[{"bei jing", "北景"}] = 1;
         check(custom.decode(spelling, custom_users).front().text == "我在北景上班", "confirmed custom word not reused inside a sentence");
 
         InputSession input; type(input, lexicon, spelling);
@@ -83,12 +83,13 @@ int wmain(int argc, wchar_t* argv[]) {
         check(result.text == spelling && result.pronunciation.empty(), "raw Enter submission became learnable");
 
         Lexicon repetitive; repetitive.add({"阿", "a", 10000});
-        check(repetitive.decode(std::string(32, 'a')).front().text.size() == 96, "32 syllable boundary failed");
-        check(repetitive.decode(std::string(33, 'a')).empty() && repetitive.decode(std::string(128, 'a')).empty(), "sentence length bound failed");
+        for (const auto length : {32u, 33u, 128u, 512u})
+            check(repetitive.decode(std::string(length, 'a')).front().text.size() == length * 3,
+                "long sentence hit an old spelling, syllable or output length restriction");
         const auto started = std::chrono::steady_clock::now();
-        std::string ambiguous; for (int i = 0; i < 32; ++i) ambiguous += "shi";
+        std::string ambiguous; for (int i = 0; i < 256; ++i) ambiguous += "shi";
         for (int i = 0; i < 8; ++i) check(lexicon.decode(ambiguous).size() <= 5, "stress result limit failed");
-        lexicon.decode(std::string(128, 'a'));
+        lexicon.decode(std::string(1024, 'a'));
         const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - started).count();
         check(elapsed < 5000, "ambiguous sentence decoding exceeded its bounded work budget");
 
@@ -102,12 +103,20 @@ int wmain(int argc, wchar_t* argv[]) {
         LearningDictionary restarted(argv[1], user_path); restarted.refresh();
         const auto learned = restarted.lexicon().decode(spelling, restarted.users());
         check(learned.front().text == chinese && !learned.front().synthesized, "restart did not reuse the learned sentence as a word");
-        std::string long_spelling; for (int i = 0; i < 17; ++i) long_spelling += "wo";
+        std::string long_spelling, long_text, long_reading;
+        for (int i = 0; i < 192; ++i) {
+            long_spelling += "wo"; long_text += "我";
+            if (i) long_reading += ' ';
+            long_reading += "wo";
+        }
         input.clear(); type(input, restarted.lexicon(), long_spelling, restarted.users());
         result = input.handle(InputKey::space, 0, restarted.lexicon(), restarted.users());
-        const auto saved = restarted.users();
-        check(result.action == InputAction::commit && !restarted.remember(result) && restarted.users() == saved,
-            "sentence decoder bypassed the 16 character learning boundary");
+        check(result.action == InputAction::commit && result.text == long_text && result.pronunciation == long_reading &&
+            restarted.remember(result) && restarted.users().at({long_reading, long_text}) == 1,
+            "a confirmed long sentence was truncated or not learned");
+        LearningDictionary long_restart(argv[1], user_path); long_restart.refresh();
+        check(long_restart.lexicon().lookup(long_spelling, long_restart.users()).front().text == long_text,
+            "restart did not reload a long learned sentence");
         std::cout << "PASS: " << checks << " sentence/correction/learning checks; stress " << elapsed << " ms\n";
         return 0;
     } catch (const std::exception& error) {

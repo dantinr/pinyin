@@ -41,20 +41,10 @@ namespace {
 bool learnable(const InputResult& result) {
     if (result.action != InputAction::commit || result.pronunciation.empty()) return false;
     validate_text(result.text);
-    // Bound learned phrases; raw ASCII, cancelled preedits and long sentences
-    // cannot become records in the automatic word dictionary.
-    if (result.text.size() % 3 || result.text.size() > 16 * 3) return false;
-    for (std::size_t i = 0; i < result.text.size(); i += 3) {
-        const auto a = static_cast<unsigned char>(result.text[i]);
-        const auto b = static_cast<unsigned char>(result.text[i + 1]);
-        const auto c = static_cast<unsigned char>(result.text[i + 2]);
-        if ((a & 0xf0) != 0xe0) return false;
-        const auto code = ((a & 0x0f) << 12) | ((b & 0x3f) << 6) | (c & 0x3f);
-        if (code < 0x4e00 || code > 0x9fff) return false;
-    }
-    const auto pronunciation = normalize_pronunciation(result.pronunciation);
-    const auto syllables = static_cast<std::size_t>(std::count(pronunciation.begin(), pronunciation.end(), ' ') + 1);
-    return syllables == result.text.size() / 3;
+    // Candidate confirmation supplies the reading, including custom phrases and
+    // mixed text. Raw Enter submissions have no reading and never reach here.
+    normalize_pronunciation(result.pronunciation);
+    return true;
 }
 }
 LearningDictionary::LearningDictionary(const std::filesystem::path& base_path, std::filesystem::path user_path)

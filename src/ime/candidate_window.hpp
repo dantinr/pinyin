@@ -21,6 +21,7 @@ private:
     HFONT font_ = nullptr;
     int row_height_ = 28;
     int padding_ = 10;
+    int raw_scroll_ = 0;
     std::size_t page_start_ = 0;
     std::size_t selected_ = 0;
     std::wstring raw_;

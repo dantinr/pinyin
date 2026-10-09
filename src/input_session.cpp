@@ -52,14 +52,14 @@ InputResult InputSession::select(std::size_t index, const Lexicon& lexicon, cons
 }
 InputResult InputSession::handle(InputKey key, char value, const Lexicon& lexicon, const UserDictionary& users) {
     if (key == InputKey::letter) {
-        if (value < 'a' || value > 'z' || spelling_size() >= 128) return {};
+        if (value < 'a' || value > 'z') return {};
         raw_.insert(cursor_++, 1, value); refresh(lexicon, users);
         return {InputAction::update, {}, {}};
     }
     if (empty()) return {};
     switch (key) {
     case InputKey::separator:
-        if (spelling_size() < 128 && cursor_ > 0 && raw_[cursor_ - 1] != '\'' &&
+        if (cursor_ > 0 && raw_[cursor_ - 1] != '\'' &&
             (cursor_ == raw_.size() || raw_[cursor_] != '\'')) {
             raw_.insert(cursor_++, 1, '\''); refresh(lexicon, users);
         }

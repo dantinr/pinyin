@@ -72,7 +72,7 @@ int wmain(int argc, wchar_t* argv[]) {
         rejects([&] { base.lookup("'nihao"); }, "leading apostrophe was accepted");
         rejects([&] { base.lookup("ni''hao"); }, "consecutive apostrophes were accepted");
         rejects([&] { base.lookup("nihao'"); }, "trailing apostrophe was accepted");
-        rejects([&] { base.lookup(std::string(300, 'a')); }, "long input was accepted");
+        check(base.lookup(std::string(300, 'a')).empty(), "long valid input was rejected");
         rejects([&] { base.lookup("你好"); }, "non-pinyin input was accepted");
         rejects([&] { base.add({"错误", "nihao", 10}); }, "unseparated dictionary pronunciation was accepted");
         rejects([&] { base.add({"错误", "zzz", 10}); }, "invalid dictionary syllable was accepted");
@@ -84,7 +84,9 @@ int wmain(int argc, wchar_t* argv[]) {
               "duplicate merge should keep larger weight");
         pinyin::UserDictionary users;
         const auto less_frequent = base.lookup("beijing")[1];
-        for (int i = 0; i < 20; ++i) pinyin::learn(users, less_frequent);
+        pinyin::learn(users, less_frequent);
+        check(base.lookup("beijing", users).front().text == "背景", "a personal choice did not take effect immediately");
+        for (int i = 1; i < 20; ++i) pinyin::learn(users, less_frequent);
         check(base.lookup("beijing", users).front().text == "背景", "personal ranking did not adapt");
         check(base.lookup("beijing").front().text == "北京", "stateless ranking was affected by learning");
         auto capped = users;
@@ -95,6 +97,25 @@ int wmain(int argc, wchar_t* argv[]) {
         repeated.add({"重", "zhong", 10});
         repeated.add({"重", "chong", 20});
         check(repeated.size() == 2, "distinct readings were merged");
+        pinyin::Lexicon personal;
+        personal.add({"常", "chang", 10000}); personal.add({"昶", "chang", 1}); personal.add({"敞", "chang", 1});
+        pinyin::UserDictionary preferences{{{"chang", "昶"}, 1}};
+        check(personal.lookup("chang", preferences).front().text == "昶", "a rare personal word stayed behind the base frequency");
+        preferences[{"chang", "昶"}] = 100; preferences[{"chang", "敞"}] = 1000;
+        check(personal.lookup("chang", preferences).front().text == "敞", "personal ranking still capped the number of uses at 100");
+
+        // A deep learned phrase must also be queryable without recursive trie
+        // traversal exhausting the native thread's stack.
+        pinyin::Candidate long_word; std::string long_query;
+        for (int i = 0; i < 4096; ++i) {
+            long_word.text += "汉"; long_query += "han";
+            if (i) long_word.pronunciation += ' ';
+            long_word.pronunciation += "han";
+        }
+        pinyin::Lexicon long_lexicon; long_lexicon.add({long_word.text, long_word.pronunciation, 1});
+        check(long_lexicon.lookup(long_query).front().text == long_word.text &&
+            long_lexicon.lookup_composition(long_query).front().pronunciation == long_word.pronunciation,
+            "long custom phrase failed lookup or prefix matching");
 
         TemporaryDirectory temporary;
         const auto broken = temporary.root / L"broken.tsv";
@@ -122,6 +143,7 @@ int wmain(int argc, wchar_t* argv[]) {
             custom.text = "隐私输入法";
             custom.pronunciation = "yin si shu ru fa";
             pinyin::learn(users, custom);
+            pinyin::learn(users, long_word);
             store.save(users);
             check(store.load() == users, "replacement save lost records");
             auto combined = base;

@@ -55,13 +55,27 @@ int main() {
         check(input.candidates().front().text == "如何", "restart did not promote whole-word matching");
         result = input.handle(InputKey::space, 0, restarted.lexicon(), restarted.users());
         check(restarted.remember(result) && restarted.users().at({"ru he", "如何"}) == 2, "repeated use duplicated a word instead of increasing its count");
+        // Confirmed custom candidates can contain mixed text, rare characters,
+        // or a phrase expanded from a shorter reading.
+        for (const auto& custom : {Entry{"Git项目", "ji xiang mu", 1}, Entry{"𠮷", "ji", 1},
+                                  Entry{"常用地址和联系方式", "di zhi", 1}}) {
+            auto lexicon = dictionary.lexicon(); lexicon.add(custom);
+            auto spelling = normalize_query(custom.pronunciation);
+            for (auto ch : spelling) input.handle(ch == '\'' ? InputKey::separator : InputKey::letter, ch, lexicon);
+            result = input.handle(InputKey::space, 0, lexicon);
+            check(result.text == custom.text && dictionary.remember(result) &&
+                dictionary.lexicon().lookup(spelling, dictionary.users()).front().text == custom.text,
+                "confirmed custom candidate was rejected by automatic learning");
+        }
         const auto saved = read(path);
         for (const auto& ignored : {
             InputResult{InputAction::commit, "ruhe", {}}, InputResult{InputAction::cancel, "如何", "ru he"},
-            InputResult{InputAction::update, "如", "ru"}, InputResult{InputAction::commit, "如he", "ru he"},
-            InputResult{InputAction::commit, "如何", "ru"}, InputResult{InputAction::commit, "如何", "invalid"},
-            InputResult{InputAction::commit, "如如何何如如何何如如何何如如何何如", "ru"}})
-            check(!dictionary.remember(ignored) && read(path) == saved, "unconfirmed/non-Chinese/malformed/long text was learned");
+            InputResult{InputAction::update, "如", "ru"}, InputResult{InputAction::commit, "如何", "invalid"},
+            InputResult{InputAction::commit, "如\t何", "ru he"}})
+            check(!dictionary.remember(ignored) && read(path) == saved, "unconfirmed or malformed input was learned");
+        type(input, dictionary, "ruhe");
+        result = input.handle(InputKey::enter, 0, dictionary.lexicon(), dictionary.users());
+        check(!dictionary.remember(result) && read(path) == saved, "raw Enter submission became a custom word");
 
         // Two independent caches use separate kernel file handles, like two apps.
         std::atomic<unsigned> failures{0};

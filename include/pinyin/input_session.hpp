@@ -8,7 +8,7 @@ enum class InputAction { pass, update, commit, cancel };
 struct InputResult {
     InputAction action = InputAction::pass;
     std::string text;
-    // Nonempty only for a completely confirmed Chinese candidate selection.
+    // Nonempty only for a completely confirmed candidate selection.
     std::string pronunciation;
 };
 

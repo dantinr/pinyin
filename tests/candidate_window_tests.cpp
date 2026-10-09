@@ -1,4 +1,5 @@
 #include "candidate_window.hpp"
+#include <algorithm>
 #include <iostream>
 
 namespace pinyin::ime {
@@ -28,6 +29,22 @@ BOOL CALLBACK collect(HWND window, LPARAM parameter) {
 }
 Search candidates(HWND owner) {
     Search search{owner}; EnumThreadWindows(GetCurrentThreadId(), collect, reinterpret_cast<LPARAM>(&search)); return search;
+}
+std::vector<COLORREF> marker_pixels(HWND window, bool right, bool first = false) {
+    const auto dpi = GetDpiForWindow(window);
+    const auto font = CreateFontW(-MulDiv(16, dpi, 96), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Microsoft YaHei UI");
+    HDC dc = GetDC(window); const auto previous = SelectObject(dc, font);
+    SIZE letter{}, marker{};
+    GetTextExtentPoint32W(dc, L"n", 1, &letter); GetTextExtentPoint32W(dc, L"|", 1, &marker);
+    RECT area{}; GetClientRect(window, &area);
+    const int padding = MulDiv(10, dpi, 96);
+    const int x = right ? area.right - padding - marker.cx : padding + (first ? 0 : letter.cx);
+    std::vector<COLORREF> pixels;
+    for (int y = padding; y < padding + MulDiv(28, dpi, 96); ++y)
+        for (int column = 0; column < marker.cx; ++column) pixels.push_back(GetPixel(dc, x + column, y));
+    SelectObject(dc, previous); ReleaseDC(window, dc); DeleteObject(font);
+    return pixels;
 }
 }
 int main() {
@@ -81,6 +98,26 @@ int main() {
                 popup.show(input, caret, second.window, [](std::size_t) {}, L"无痕"); popup.hide();
             }
             check(candidates(second.window).count == 0, "repeated compositions accumulated hidden windows");
+
+            Lexicon no_words; InputSession short_input, long_input;
+            short_input.handle(InputKey::letter, 'n', no_words);
+            popup.show(short_input, caret, second.window, [](std::size_t) {}, L"本地学习");
+            const auto reference = marker_pixels(candidates(second.window).result, false);
+            check(std::any_of(reference.begin(), reference.end(), [](auto pixel) {
+                return pixel != GetSysColor(COLOR_WINDOW) && pixel != CLR_INVALID;
+            }), "cursor rendering fixture contains no visible marker");
+            for (int i = 0; i < 1024; ++i) long_input.handle(InputKey::letter, 'n', no_words);
+            popup.show(long_input, caret, second.window, [](std::size_t) {}, L"本地学习");
+            check(marker_pixels(candidates(second.window).result, true) == reference,
+                "long spelling scrolled its end cursor outside the popup");
+            long_input.handle(InputKey::home, 0, no_words);
+            popup.show(long_input, caret, second.window, [](std::size_t) {}, L"本地学习");
+            check(marker_pixels(candidates(second.window).result, false, true) == reference,
+                "Home did not bring the long spelling's start cursor into view");
+            for (int i = 0; i < 512; ++i) long_input.handle(InputKey::right, 0, no_words);
+            popup.show(long_input, caret, second.window, [](std::size_t) {}, L"本地学习");
+            check(marker_pixels(candidates(second.window).result, true) == reference,
+                "editing the middle of long spelling hid its cursor");
         }
         WNDCLASSEXW registered{sizeof(registered)};
         check(!GetClassInfoExW(module, L"PrivatePinyin.Candidate.4ea569f1", &registered), "candidate class was not released");

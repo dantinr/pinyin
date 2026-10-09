@@ -52,9 +52,15 @@ int wmain(int argc, wchar_t* argv[]) {
         check(result.action == InputAction::cancel && input.empty(), "deleting final letter must end composition");
         type(input, lexicon, "nihao");
         check(input.handle(InputKey::digit, '9', lexicon).action == InputAction::pass, "invalid number must pass through");
-        input.clear(); type(input, lexicon, std::string(128, 'a'));
-        check(input.handle(InputKey::letter, 'a', lexicon).action == InputAction::pass && input.raw().size() == 128,
-            "preedit length bound failed");
+        Lexicon empty;
+        input.clear(); type(input, empty, std::string(1024, 'a'));
+        check(input.handle(InputKey::letter, 'a', empty).action == InputAction::update && input.raw().size() == 1025,
+            "long preedit stopped accepting letters");
+        input.handle(InputKey::separator, 0, empty); type(input, empty, "a");
+        check(input.raw().size() == 1027 && input.raw().substr(1024) == "a'a", "long preedit rejected a syllable separator");
+        input.handle(InputKey::home, 0, empty); input.handle(InputKey::delete_forward, 0, empty);
+        result = input.handle(InputKey::enter, 0, empty);
+        check(result.text.size() == 1026 && result.pronunciation.empty() && input.empty(), "long raw preedit could not be edited and committed");
         Lexicon pages;
         for (int i = 0; i < 22; ++i) pages.add({"词" + std::to_string(i), "ni hao", static_cast<std::uint64_t>(100 - i)});
         input.clear(); type(input, pages, "nihao"); input.handle(InputKey::page_next, 0, pages);
@@ -64,6 +70,13 @@ int wmain(int argc, wchar_t* argv[]) {
         check(input.page() == 2, "last partial page failed");
         input.handle(InputKey::page_previous, 0, pages); check(input.page() == 1, "page up failed");
         result = input.select(9, pages); check(result.text == "词9", "mouse candidate selection failed");
+        Lexicon many;
+        for (int i = 0; i < 120; ++i) many.add({"词" + std::to_string(i), "ni hao", static_cast<std::uint64_t>(200 - i)});
+        type(input, many, "nihao");
+        check(input.candidates().size() == 120, "composition silently truncated candidates to 90");
+        for (int i = 0; i < 13; ++i) input.handle(InputKey::page_next, 0, many);
+        result = input.handle(InputKey::digit, '3', many);
+        check(result.text == "词119" && input.empty(), "late-page candidate could not be selected");
 
         Lexicon segmented;
         segmented.add({"如", "ru", 20}); segmented.add({"入", "ru", 10});

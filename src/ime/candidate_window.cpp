@@ -31,7 +31,7 @@ void CandidateWindow::hide() noexcept {
         // A hidden owned popup can otherwise outlive its candidate state.
         DestroyWindow(window_);
     }
-    raw_.clear(); rows_.clear(); hint_.clear();
+    raw_.clear(); rows_.clear(); hint_.clear(); raw_scroll_ = 0;
 }
 void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND owner,
                            std::function<void(std::size_t)> select, const std::wstring& mode) {
@@ -61,7 +61,8 @@ void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND ow
         DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, L"Microsoft YaHei UI");
     const auto confirmed = wide(input.confirmed_text());
     raw_ = confirmed + wide(input.raw());
-    raw_.insert(confirmed.size() + input.cursor(), L"|");
+    const auto cursor = confirmed.size() + input.cursor();
+    raw_.insert(cursor, L"|");
     page_start_ = input.page() * InputSession::page_size;
     selected_ = input.selected(); rows_.clear();
     for (auto i = page_start_; i < input.candidates().size() && i < page_start_ + InputSession::page_size; ++i)
@@ -80,11 +81,13 @@ void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND ow
         GetTextExtentPoint32W(dc, row.data(), static_cast<int>(row.size()), &measured);
         width = std::max(width, static_cast<int>(measured.cx) + 2 * padding_);
     }
-    SelectObject(dc, previous_font); ReleaseDC(window_, dc);
     const int height = 2 * padding_ + row_height_ * static_cast<int>(2 + rows_.size());
     MONITORINFO monitor{sizeof(monitor)};
     GetMonitorInfoW(MonitorFromRect(&caret, MONITOR_DEFAULTTONEAREST), &monitor);
     width = std::min(width, static_cast<int>(monitor.rcWork.right - monitor.rcWork.left));
+    GetTextExtentPoint32W(dc, raw_.data(), static_cast<int>(cursor + 1), &measured);
+    raw_scroll_ = std::max(0, static_cast<int>(measured.cx) - (width - 2 * padding_ - 2));
+    SelectObject(dc, previous_font); ReleaseDC(window_, dc);
     int x = std::clamp(caret.left, monitor.rcWork.left, std::max(monitor.rcWork.left, monitor.rcWork.right - width));
     int y = caret.bottom + 3;
     if (y + height > monitor.rcWork.bottom) y = caret.top - height - 3;
@@ -100,13 +103,17 @@ void CandidateWindow::paint(HWND window) noexcept {
     const auto previous_font = SelectObject(dc, font_);
     SetBkMode(dc, TRANSPARENT); SetTextColor(dc, GetSysColor(COLOR_WINDOWTEXT));
     RECT row{padding_, padding_, area.right - padding_, padding_ + row_height_};
-    DrawTextW(dc, raw_.data(), static_cast<int>(raw_.size()), &row, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
+    const int saved = SaveDC(dc);
+    IntersectClipRect(dc, row.left, row.top, row.right, row.bottom);
+    RECT spelling = row; spelling.left -= raw_scroll_;
+    DrawTextW(dc, raw_.data(), static_cast<int>(raw_.size()), &spelling, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
+    RestoreDC(dc, saved);
     for (std::size_t i = 0; i < rows_.size(); ++i) {
         OffsetRect(&row, 0, row_height_);
         const bool selected = page_start_ + i == selected_;
         if (selected) FillRect(dc, &row, GetSysColorBrush(COLOR_HIGHLIGHT));
         SetTextColor(dc, GetSysColor(selected ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
-        DrawTextW(dc, rows_[i].data(), static_cast<int>(rows_[i].size()), &row, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
+        DrawTextW(dc, rows_[i].data(), static_cast<int>(rows_[i].size()), &row, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
     }
     OffsetRect(&row, 0, row_height_);
     SetTextColor(dc, GetSysColor(COLOR_GRAYTEXT));
