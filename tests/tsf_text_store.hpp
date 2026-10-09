@@ -268,9 +268,11 @@ public:
             ComPtr<IClassFactory> factory;
             require(get(service_id, IID_PPV_ARGS(&factory)), "get class factory");
             factory_.Attach(new CapturingFactory(factory.Get()));
-            // A system-installed service with the production CLSID can bypass
-            // our capturing factory. Alias the same DLL factory only in this process.
-            require(CoCreateGuid(&local_service_), "create local service identity");
+            // Override only this process's factory before activating TSF. Use
+            // the real service identity: the language bar's owner must match
+            // the activated profile, including when the IME is installed.
+            // The random profile below is process-local, never a system profile.
+            local_service_ = service_id;
             require(CoCreateGuid(&local_profile_), "create local profile identity");
             require(CoRegisterClassObject(local_service_, factory_.Get(), CLSCTX_INPROC_SERVER,
                 REGCLS_MULTIPLEUSE, &class_cookie_), "register process-local class factory");
@@ -303,7 +305,7 @@ public:
         require(profiles_->ActivateProfile(TF_PROFILETYPE_INPUTPROCESSOR, local_language_, local_service_,
             local_profile_, nullptr, TF_IPPMF_FORPROCESS), "activate process-local profile");
         service = factory_->last;
-        if (!service) throw std::runtime_error("TSF did not instantiate the process-local service");
+        if (!service) throw std::runtime_error("TSF did not instantiate the process-local service factory");
         require(service.As(&keys), "get active key interface");
     }
     bool key(WPARAM value, bool drain_messages = true) {

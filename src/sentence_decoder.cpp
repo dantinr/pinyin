@@ -12,10 +12,12 @@ struct Path {
     double score = 0;
     std::size_t words = 0;
     std::size_t abbreviations = 0;
+    bool completed = false;
 };
 bool better(const Path& a, const Path& b) {
     if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
     if (a.score != b.score) return a.score > b.score;
+    if (a.completed != b.completed) return !a.completed;
     if (a.words != b.words) return a.words < b.words;
     if (a.text != b.text) return a.text < b.text;
     return a.pronunciation < b.pronunciation;
@@ -35,6 +37,7 @@ struct Edge {
     std::size_t id, end, abbreviations;
     double score;
     bool single;
+    bool completed;
 };
 }
 
@@ -46,7 +49,7 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
                                                  const UserDictionary& users, std::size_t limit) const {
     auto result = lookup(query, users, limit);
     for (auto& word : result) word.input_end = query.size();
-    if (limit == 0 || (result.size() == limit && result.back().abbreviations == 0)) return result;
+    if (limit == 0 || (result.size() == limit && result.back().abbreviations == 0 && !result.back().completed)) return result;
 
     std::vector<std::vector<Path>> paths(query.size() + 1);
     paths[0].push_back({});
@@ -67,11 +70,11 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
             // favors known multi-character words over arbitrary single letters
             // without rewarding extra syllables in an ambiguous segmentation.
             const auto score = count * (std::log1p(static_cast<double>(weight)) - std::log1p(12000.0)) +
-                2.0 * std::log1p(static_cast<double>(uses)) - 2.0;
+                2.0 * std::log1p(static_cast<double>(uses)) - 2.0 - (match.completed ? 0.75 : 0.0);
             const bool single = count == 1 && std::count_if(word.text.begin(), word.text.end(), [](unsigned char c) {
                 return (c & 0xc0) != 0x80;
             }) == 1;
-            ends[match.end].push_back({match.id, match.end, match.abbreviations, score, single});
+            ends[match.end].push_back({match.id, match.end, match.abbreviations, score, single, match.completed});
         }
         for (auto& end : ends) {
             auto& edges = end.second;
@@ -102,6 +105,7 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
                     next.pronunciation = prefix.pronunciation.empty() ? word.pronunciation : prefix.pronunciation + ' ' + word.pronunciation;
                     next.score = score; next.words = prefix.words + 1;
                     next.abbreviations = abbreviations;
+                    next.completed = prefix.completed || edge.completed;
                     if (edge.single) { next.last_single = word.text; next.last_reading = word.pronunciation; }
                     keep(beam, std::move(next));
                 }
@@ -122,6 +126,7 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
         word.text = std::move(path.text); word.pronunciation = std::move(path.pronunciation);
         word.score = path.score; word.input_end = query.size(); word.synthesized = true;
         word.abbreviations = path.abbreviations;
+        word.completed = path.completed;
         result.push_back(std::move(word));
     }
     // Rank full spellings ahead of stored words that only match by initials

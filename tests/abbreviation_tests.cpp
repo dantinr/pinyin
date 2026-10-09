@@ -79,7 +79,8 @@ int wmain(int argc, wchar_t* argv[]) {
         check(repeated.lookup("aai").front().text == "啊爱" && repeated.lookup("aai").front().abbreviations == 0,
             "multiple segmentation routes lost the best full spelling");
         Lexicon partial; partial.add({"你好", "ni hao", 1}); partial.add({"北京", "bei jing", 1});
-        check(partial.lookup("niha").empty() && partial.lookup("beiji").empty(), "unfinished final syllable was completed");
+        check(partial.lookup("niha").front().text == "你好" && partial.lookup("beiji").front().text == "北京",
+            "tail completion lost mixed-spelling support");
         for (const auto& query : {"nvi", "nhv", "nhi"})
             check(lexicon.decode(query).empty() && lexicon.lookup_composition(query).empty(), "invalid initial created a candidate");
 

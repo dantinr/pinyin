@@ -64,7 +64,8 @@ int wmain(int argc, wchar_t* argv[]) {
         check(base.lookup("yin'hang").front().text == "银行", "phrase-level hang reading failed");
         check(base.lookup("nühai").front().text == "女孩", "umlaut normalization failed");
         check(base.lookup("LÜSE").front().text == "绿色", "uppercase umlaut normalization failed");
-        check(base.lookup("niha").empty(), "prototype unexpectedly returned a partial match");
+        check(base.lookup("niha").front().text == "你好" && base.lookup("niha").front().completed,
+              "unfinished final syllable did not offer a completed word");
         check(base.lookup("zzzz").empty(), "unmatched query should be empty");
         check(base.lookup("xian", {}, 1).size() == 1, "candidate limit failed");
         check(base.lookup("nihao", {}, 0).empty(), "zero limit failed");

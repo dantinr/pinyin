@@ -106,6 +106,9 @@ Candidate ranked(const Entry& entry, const UserDictionary& users) {
 bool preferred(const Candidate& a, const Candidate& b) {
     // Preserve full-pinyin choices when an input can also be read as initials.
     if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
+    // Exact stored readings precede completions even if the latter were learned.
+    // Synthesized sentences use their word scores and a completion penalty.
+    if (!a.synthesized && !b.synthesized && a.completed != b.completed) return !a.completed;
     // A confirmed personal word is useful immediately, even if its base weight
     // is low. Frequency breaks ties among learned words and among other words.
     if (!!a.selections != !!b.selections) return !!a.selections;
@@ -256,6 +259,7 @@ std::vector<Candidate> Lexicon::lookup(const std::string& input, const UserDicti
         auto candidate = ranked(entries_[match.id], users);
         candidate.input_end = match.end;
         candidate.abbreviations = match.abbreviations;
+        candidate.completed = match.completed;
         const auto previous = unique.find(candidate.text);
         if (previous == unique.end() || preferred(candidate, previous->second) ||
             (!preferred(previous->second, candidate) && candidate.pronunciation < previous->second.pronunciation))
@@ -284,6 +288,19 @@ void Lexicon::match_prefixes(std::size_t node, std::size_t offset, const std::st
         const auto& edges = nodes_[current.node].next;
         for (auto it = edges.lower_bound(std::string(1, query[current.offset]));
              it != edges.end() && it->first.front() == query[current.offset]; ++it) {
+            const auto remaining = query.size() - current.offset;
+            const auto& syllable = it->first;
+            // A single letter or zh/ch/sh remains an existing initial, not a
+            // second completion route with artificially better precision.
+            const bool digraph = remaining == 2 && syllable.size() > 2 && syllable[1] == 'h' &&
+                (syllable[0] == 'z' || syllable[0] == 'c' || syllable[0] == 's');
+            if (remaining > 1 && remaining < syllable.size() && !digraph &&
+                syllable.compare(0, remaining, query, current.offset, remaining) == 0) {
+                // Only terminal entries of this one edge: never descend into
+                // untyped syllables, or complete a syllable before the tail.
+                for (const auto id : nodes_[it->second].entries)
+                    result.push_back({id, query.size(), current.abbreviations, true});
+            }
             for (const auto length : spelling_lengths(it->first, query, current.offset)) {
                 if (!length) continue;
                 auto next = current.offset + length;
@@ -311,6 +328,7 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
         auto candidate = ranked(entries_[match.id], users);
         candidate.input_end = end;
         candidate.abbreviations = match.abbreviations;
+        candidate.completed = match.completed;
         const auto key = std::make_pair(candidate.text, end);
         const auto previous = unique.find(key);
         if (previous == unique.end() || preferred(candidate, previous->second) ||

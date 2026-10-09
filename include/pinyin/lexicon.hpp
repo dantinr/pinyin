@@ -23,6 +23,7 @@ struct Candidate : Entry {
     std::size_t input_end = 0;
     std::size_t abbreviations = 0; // Syllables matched by an initial instead of full spelling.
     bool synthesized = false; // A complete candidate assembled from multiple words.
+    bool completed = false; // The final typed syllable is a prefix of its full reading.
 };
 
 // A user record is a word and its pronunciation, never a keystroke history.
@@ -42,8 +43,9 @@ public:
     std::vector<Candidate> lookup(const std::string& input,
                                   const UserDictionary& users = {},
                                   std::size_t limit = 10) const;
-    // Offline sentence decoding with a bounded beam. Full spellings precede
-    // abbreviations; equally abbreviated whole words precede synthesized sentences.
+    // The last syllable can be completed; no following syllable is predicted.
+    // Offline sentence decoding uses a bounded beam. Fewer abbreviations win;
+    // equally abbreviated whole words precede synthesized sentences.
     std::vector<Candidate> decode(const std::string& input,
                                  const UserDictionary& users = {},
                                  std::size_t limit = 5) const;
@@ -56,6 +58,7 @@ public:
 private:
     struct Match {
         std::size_t id, end, abbreviations;
+        bool completed = false;
     };
     struct Node {
         std::map<std::string, std::size_t> next;
