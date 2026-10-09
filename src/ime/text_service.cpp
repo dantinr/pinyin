@@ -95,12 +95,13 @@ public:
 };
 
 class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink,
-    public ITfThreadMgrEventSink, public ITfCompositionSink, public ITfTextEditSink,
+    public ITfThreadMgrEventSink, public ITfThreadFocusSink, public ITfCompositionSink, public ITfTextEditSink,
     public ITfTextLayoutSink, public ITfDisplayAttributeProvider, private ModuleObject {
     std::atomic<ULONG> refs_{1};
     ComPtr<ITfThreadMgr> manager_;
     TfClientId client_ = TF_CLIENTID_NULL;
     DWORD thread_cookie_ = TF_INVALID_COOKIE;
+    DWORD focus_cookie_ = TF_INVALID_COOKIE;
     DWORD text_cookie_ = TF_INVALID_COOKIE;
     DWORD layout_cookie_ = TF_INVALID_COOKIE;
     ComPtr<ITfContext> observed_;
@@ -118,6 +119,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     bool editing_ = false;
     bool own_edit_ = false;
     bool key_sink_ = false;
+    bool ui_suspended_ = false;
     std::uint64_t generation_ = 0;
 
     IUnknown* identity() { return static_cast<ITfTextInputProcessorEx*>(this); }
@@ -135,7 +137,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         element_id_ = TF_INVALID_UIELEMENTID; element_.Reset();
     }
     void discard_state() noexcept {
-        ++generation_; input_.clear(); composition_.Reset(); composing_.Reset(); close_ui();
+        ++generation_; input_.clear(); composition_.Reset(); composing_.Reset(); ui_suspended_ = false; close_ui();
     }
     HRESULT finish(TfEditCookie cookie, const std::optional<std::wstring>& replacement) {
         if (!composition_) { discard_state(); return S_OK; }
@@ -161,6 +163,9 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         discard_state(); return hr;
     }
     void finish_later() {
+        // Queued layout/UI read sessions can run before the terminating write
+        // session. They must not resurrect a popup after focus loss/deactivation.
+        ui_suspended_ = true;
         close_ui();
         if (!composition_ || !composing_) { discard_state(); return; }
         const auto generation = generation_;
@@ -198,7 +203,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         return S_OK;
     }
     HRESULT update_ui(TfEditCookie cookie) {
-        if (!composition_ || input_.empty() || !composing_) { close_ui(); return S_OK; }
+        if (!manager_ || ui_suspended_ || !composition_ || input_.empty() || !composing_) { close_ui(); return S_OK; }
         ComPtr<ITfDocumentMgr> document; composing_->GetDocumentMgr(&document);
         if (ui_manager_) {
             if (!element_) {
@@ -222,7 +227,9 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             if (element_ && !element_->allowed()) { window_.hide(); element_->set_visible(false); return S_OK; }
         }
         ComPtr<ITfContextView> view; ComPtr<ITfRange> range;
-        if (FAILED(composing_->GetActiveView(&view)) || FAILED(composition_->GetRange(&range))) return S_OK;
+        if (FAILED(composing_->GetActiveView(&view)) || FAILED(composition_->GetRange(&range))) {
+            window_.hide(); if (element_) element_->set_visible(false); return S_OK;
+        }
         RECT caret{}; BOOL clipped = FALSE;
         // Query the composition range: zero-length caret ranges are unsupported by some editors.
         const auto hr = view->GetTextExt(cookie, range.Get(), &caret, &clipped);
@@ -268,7 +275,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             if (FAILED(hr)) return hr;
             hr = composer->StartComposition(cookie, range.Get(), this, &composition_);
             if (FAILED(hr) || !composition_) return FAILED(hr) ? hr : E_FAIL;
-            composing_ = context; ++generation_;
+            composing_ = context; ui_suspended_ = false; ++generation_;
         } else {
             auto hr = composition_->GetRange(&range);
             if (FAILED(hr)) return hr;
@@ -334,6 +341,7 @@ public:
             *result = static_cast<ITfTextInputProcessorEx*>(this);
         else if (iid == IID_ITfKeyEventSink) *result = static_cast<ITfKeyEventSink*>(this);
         else if (iid == IID_ITfThreadMgrEventSink) *result = static_cast<ITfThreadMgrEventSink*>(this);
+        else if (iid == IID_ITfThreadFocusSink) *result = static_cast<ITfThreadFocusSink*>(this);
         else if (iid == IID_ITfCompositionSink) *result = static_cast<ITfCompositionSink*>(this);
         else if (iid == IID_ITfTextEditSink) *result = static_cast<ITfTextEditSink*>(this);
         else if (iid == IID_ITfTextLayoutSink) *result = static_cast<ITfTextLayoutSink*>(this);
@@ -360,6 +368,8 @@ public:
             ComPtr<ITfSource> source; hr = manager_.As(&source);
             if (SUCCEEDED(hr)) hr = source->AdviseSink(IID_ITfThreadMgrEventSink, static_cast<ITfThreadMgrEventSink*>(this), &thread_cookie_);
             if (FAILED(hr)) { Deactivate(); return hr; }
+            hr = source->AdviseSink(IID_ITfThreadFocusSink, static_cast<ITfThreadFocusSink*>(this), &focus_cookie_);
+            if (FAILED(hr)) { Deactivate(); return hr; }
             manager_.As(&ui_manager_);
             ComPtr<ITfCategoryMgr> categories;
             if (SUCCEEDED(CoCreateInstance(CLSID_TF_CategoryMgr, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&categories))))
@@ -376,16 +386,21 @@ public:
             if (manager_) {
                 ComPtr<ITfSource> source;
                 if (thread_cookie_ != TF_INVALID_COOKIE && SUCCEEDED(manager_.As(&source))) source->UnadviseSink(thread_cookie_);
+                if (focus_cookie_ != TF_INVALID_COOKIE && SUCCEEDED(manager_.As(&source))) source->UnadviseSink(focus_cookie_);
                 ComPtr<ITfKeystrokeMgr> keys;
                 if (key_sink_ && SUCCEEDED(manager_.As(&keys))) keys->UnadviseKeyEventSink(client_);
             }
-            thread_cookie_ = TF_INVALID_COOKIE; key_sink_ = false; shift_alone_ = false;
+            thread_cookie_ = focus_cookie_ = TF_INVALID_COOKIE; key_sink_ = false; shift_alone_ = false;
             manager_.Reset(); ui_manager_.Reset(); client_ = TF_CLIENTID_NULL;
             return S_OK;
         });
     }
     HRESULT STDMETHODCALLTYPE OnSetFocus(BOOL foreground) override {
         return protect([&] { if (!foreground) { shift_alone_ = false; finish_later(); } return S_OK; });
+    }
+    HRESULT STDMETHODCALLTYPE OnSetThreadFocus() override { return S_OK; }
+    HRESULT STDMETHODCALLTYPE OnKillThreadFocus() override {
+        return protect([&] { shift_alone_ = false; finish_later(); return S_OK; });
     }
     HRESULT STDMETHODCALLTYPE OnTestKeyDown(ITfContext* context, WPARAM key, LPARAM, BOOL* eaten) override {
         if (!eaten) return E_POINTER; *eaten = FALSE;

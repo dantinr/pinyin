@@ -4,6 +4,26 @@
 #include <iostream>
 
 namespace {
+struct TestWindow {
+    HWND window = CreateWindowExW(WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW, L"STATIC", L"Private Pinyin focus test",
+        WS_POPUP | WS_VISIBLE, 24, 24, 640, 180, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    TestWindow() { if (!window) throw std::runtime_error("cannot create test document window"); }
+    ~TestWindow() { if (window) DestroyWindow(window); }
+};
+struct CandidateWindows { unsigned count = 0; HWND first = nullptr; };
+BOOL CALLBACK collect_candidate(HWND window, LPARAM parameter) {
+    wchar_t name[80]{}; GetClassNameW(window, name, 80);
+    if (std::wstring(name) == L"PrivatePinyin.Candidate.4ea569f1" && IsWindowVisible(window)) {
+        auto& result = *reinterpret_cast<CandidateWindows*>(parameter);
+        ++result.count; result.first = window;
+    }
+    return TRUE;
+}
+CandidateWindows visible_candidates() {
+    CandidateWindows result;
+    EnumThreadWindows(GetCurrentThreadId(), collect_candidate, reinterpret_cast<LPARAM>(&result));
+    return result;
+}
 void choose(pinyin::testing::Harness& ime, const wchar_t* text) {
     using namespace pinyin::testing;
     ComPtr<ITfUIElementMgr> ui; Harness::require(ime.manager.As(&ui), "get UI manager");
@@ -53,6 +73,46 @@ int wmain(int argc, wchar_t* argv[]) {
         }
         { pinyin::UserStore store(user_path); store.save({}); }
         pinyin::set_ime_learning(user_path, false);
+        {
+            TestWindow owner; Harness ime(argv[1]); ime.store->window = owner.window;
+            ComPtr<ITfTextLayoutSink> layout; Harness::require(ime.service.As(&layout), "get layout sink");
+            ComPtr<ITfThreadFocusSink> focus; Harness::require(ime.service.As(&focus), "get thread focus sink");
+            ime.type("nihao");
+            const auto popup = visible_candidates();
+            check(popup.count == 1, "real TSF did not display a native candidate popup");
+            ime.store->defer_locks = true;
+            Harness::require(layout->OnLayoutChange(ime.context.Get(), TF_LC_CHANGE, nullptr), "queue layout refresh");
+            Harness::pump();
+            check(ime.store->pending_locks() > 0, "layout refresh did not wait for the application read lock");
+            Harness::require(focus->OnKillThreadFocus(), "lose UI thread focus");
+            check(!IsWindow(popup.first) && visible_candidates().count == 0,
+                "thread focus loss retained the native popup while waiting for a write lock");
+            Harness::pump();
+            check(ime.compositions() == 1, "delayed write fixture ended the composition before granting its lock");
+            bool reopened = false;
+            ime.store->resume_locks([&] { reopened = reopened || visible_candidates().count != 0; });
+            Harness::pump();
+            check(!reopened && visible_candidates().count == 0 && ime.compositions() == 0 && ime.store->text == L"nihao",
+                "stale layout callback reopened the candidate popup after focus loss");
+            Harness::require(focus->OnSetThreadFocus(), "regain UI thread focus");
+            ime.type("nihao"); check(visible_candidates().count == 1, "new composition did not recreate its popup after focus return");
+            ime.key(VK_SPACE);
+            check(ime.store->text == L"nihao你好" && visible_candidates().count == 0, "commit left a visible candidate popup");
+            ime.type("nihao"); ime.key(VK_ESCAPE);
+            check(visible_candidates().count == 0 && ime.store->text == L"nihao你好", "cancel left a candidate popup");
+            ime.type("nihao"); ime.store->defer_locks = true;
+            Harness::require(layout->OnLayoutChange(ime.context.Get(), TF_LC_CHANGE, nullptr), "queue layout before deactivation");
+            Harness::pump();
+            Harness::require(ime.service->Deactivate(), "deactivate with pending layout");
+            reopened = false;
+            ime.store->resume_locks([&] { reopened = reopened || visible_candidates().count != 0; });
+            Harness::pump();
+            check(!reopened && visible_candidates().count == 0 && ime.compositions() == 0,
+                "pending layout callback recreated a popup after service deactivation");
+            layout.Reset(); focus.Reset(); ime.store->window = nullptr;
+            DestroyWindow(owner.window); owner.window = nullptr;
+            ime.close(); check(ime.unload_result == S_OK, "thread focus/layout subscriptions leaked DLL references");
+        }
         {
             Harness ime(argv[1]);
             check(!ime.key(VK_SPACE), "idle space was swallowed");

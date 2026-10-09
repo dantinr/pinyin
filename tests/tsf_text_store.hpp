@@ -52,6 +52,7 @@ public:
     std::wstring text;
     HWND window = nullptr;
     bool readonly = false;
+    bool defer_locks = false;
     InputScope scope = IS_DEFAULT;
     std::function<void()> changed;
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** result) override {
@@ -76,16 +77,27 @@ public:
     HRESULT STDMETHODCALLTYPE RequestLock(DWORD flags, HRESULT* session) override {
         if (!session) return E_POINTER;
         if (!sink_) { *session = E_UNEXPECTED; return E_UNEXPECTED; }
-        if (lock_) {
+        if (lock_ || defer_locks) {
             if (flags & TS_LF_SYNC) { *session = TS_E_SYNCHRONOUS; return S_OK; }
             queued_.push_back(flags); *session = TS_S_ASYNC; return S_OK;
         }
         lock_ = flags; *session = sink_->OnLockGranted(flags); lock_ = 0;
-        while (!queued_.empty()) {
+        while (!queued_.empty() && !defer_locks) {
             const auto next = queued_.front(); queued_.erase(queued_.begin());
             lock_ = next; sink_->OnLockGranted(next); lock_ = 0;
         }
         if (changed) changed(); return S_OK;
+    }
+    std::size_t pending_locks() const { return queued_.size(); }
+    void resume_locks(const std::function<void()>& after_grant = {}) {
+        if (lock_ || !sink_) throw std::runtime_error("cannot resume text store locks");
+        defer_locks = false;
+        while (!queued_.empty()) {
+            const auto next = queued_.front(); queued_.erase(queued_.begin());
+            lock_ = next; sink_->OnLockGranted(next); lock_ = 0;
+            if (after_grant) after_grant();
+        }
+        if (changed) changed();
     }
     HRESULT STDMETHODCALLTYPE GetStatus(TS_STATUS* status) override {
         if (!status) return E_POINTER; *status = {readonly ? static_cast<DWORD>(TS_SD_READONLY) : 0UL, 0}; return S_OK;

@@ -7,6 +7,9 @@
 namespace pinyin::ime {
 class CandidateWindow {
 public:
+    CandidateWindow() = default;
+    CandidateWindow(const CandidateWindow&) = delete;
+    CandidateWindow& operator=(const CandidateWindow&) = delete;
     ~CandidateWindow();
     void show(const InputSession& input, const RECT& caret, HWND owner,
               std::function<void(std::size_t)> select, const std::wstring& mode);
@@ -14,6 +17,7 @@ public:
     bool visible() const noexcept { return window_ && IsWindowVisible(window_); }
 private:
     HWND window_ = nullptr;
+    bool class_registered_ = false;
     HFONT font_ = nullptr;
     int row_height_ = 28;
     int padding_ = 10;
@@ -24,7 +28,7 @@ private:
     std::vector<std::wstring> rows_;
     std::function<void(std::size_t)> select_;
     static LRESULT CALLBACK procedure(HWND, UINT, WPARAM, LPARAM) noexcept;
-    void paint() noexcept;
+    void paint(HWND window) noexcept;
 };
 
 // Snapshot owned independently from TextService; retained UI objects never reference a dead service.

@@ -31,6 +31,9 @@ int wmain(int argc, wchar_t* argv[]) {
             ComPtr<ITfTextInputProcessorEx> service;
             success(factory->CreateInstance(nullptr, IID_PPV_ARGS(&service)), "cannot create text service");
             ComPtr<ITfKeyEventSink> keys; success(service.As(&keys), "key sink interface missing");
+            ComPtr<ITfThreadFocusSink> focus; success(service.As(&focus), "thread focus sink interface missing");
+            success(focus->OnKillThreadFocus(), "idle thread focus loss failed");
+            success(focus->OnSetThreadFocus(), "idle thread focus regain failed");
             BOOL eaten = TRUE; success(keys->OnTestKeyDown(nullptr, 'A', 0, &eaten), "null-context key test failed");
             check(!eaten, "null-context input swallowed");
             check(keys->OnTestKeyDown(nullptr, 'A', 0, nullptr) == E_POINTER, "null output pointer accepted");

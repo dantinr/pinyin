@@ -6,7 +6,7 @@ namespace pinyin::ime {
 namespace {
 constexpr wchar_t window_class[] = L"PrivatePinyin.Candidate.4ea569f1";
 std::mutex class_mutex;
-unsigned window_count = 0;
+unsigned class_users = 0;
 const wchar_t* hint_text(bool empty) noexcept {
     return empty ? L"继续输入 · Enter 原文 · Esc 取消" : L"空格选词 · 数字 1–9 · PgUp/PgDn";
 }
@@ -16,35 +16,41 @@ struct DpiScope {
 };
 }
 CandidateWindow::~CandidateWindow() {
-    if (window_) {
-        DestroyWindow(window_);
+    hide();
+    if (class_registered_) {
         std::lock_guard<std::mutex> lock(class_mutex);
-        if (--window_count == 0) UnregisterClassW(window_class, module);
+        if (--class_users == 0) UnregisterClassW(window_class, module);
     }
     if (font_) DeleteObject(font_);
 }
 void CandidateWindow::hide() noexcept {
-    if (window_) ShowWindow(window_, SW_HIDE);
     select_ = {};
+    if (window_) {
+        ShowWindow(window_, SW_HIDE);
+        // Release the native popup and its compositor surface when input ends.
+        // A hidden owned popup can otherwise outlive its candidate state.
+        DestroyWindow(window_);
+    }
+    raw_.clear(); rows_.clear(); hint_.clear();
 }
 void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND owner,
                            std::function<void(std::size_t)> select, const std::wstring& mode) {
+    if (input.empty()) { hide(); return; }
     DpiScope dpi_scope;
-    if (!window_) {
+    if (!class_registered_) {
         std::lock_guard<std::mutex> lock(class_mutex);
-        if (!window_count) {
+        if (!class_users) {
             WNDCLASSEXW cls{sizeof(cls)};
             cls.lpfnWndProc = procedure; cls.hInstance = module; cls.lpszClassName = window_class;
             cls.hCursor = LoadCursorW(nullptr, IDC_ARROW);
             if (!RegisterClassExW(&cls)) throw std::runtime_error("candidate window class registration failed");
         }
+        ++class_users; class_registered_ = true;
+    }
+    if (!window_) {
         window_ = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST,
             window_class, L"隐私拼音候选", WS_POPUP | WS_BORDER, 0, 0, 1, 1, owner, nullptr, module, this);
-        if (!window_) {
-            if (!window_count) UnregisterClassW(window_class, module);
-            throw std::runtime_error("candidate window creation failed");
-        }
-        ++window_count;
+        if (!window_) throw std::runtime_error("candidate window creation failed");
     }
     SetWindowLongPtrW(window_, GWLP_HWNDPARENT, reinterpret_cast<LONG_PTR>(owner));
     const auto dpi = owner ? GetDpiForWindow(owner) : GetDpiForWindow(window_);
@@ -85,10 +91,11 @@ void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND ow
     y = std::max(y, static_cast<int>(monitor.rcWork.top));
     SetWindowPos(window_, HWND_TOPMOST, x, y, width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
     InvalidateRect(window_, nullptr, TRUE);
+    UpdateWindow(window_);
 }
-void CandidateWindow::paint() noexcept {
-    PAINTSTRUCT paint{}; HDC dc = BeginPaint(window_, &paint);
-    RECT area{}; GetClientRect(window_, &area);
+void CandidateWindow::paint(HWND window) noexcept {
+    PAINTSTRUCT paint{}; HDC dc = BeginPaint(window, &paint);
+    RECT area{}; GetClientRect(window, &area);
     FillRect(dc, &area, GetSysColorBrush(COLOR_WINDOW));
     const auto previous_font = SelectObject(dc, font_);
     SetBkMode(dc, TRANSPARENT); SetTextColor(dc, GetSysColor(COLOR_WINDOWTEXT));
@@ -104,16 +111,23 @@ void CandidateWindow::paint() noexcept {
     OffsetRect(&row, 0, row_height_);
     SetTextColor(dc, GetSysColor(COLOR_GRAYTEXT));
     DrawTextW(dc, hint_.data(), static_cast<int>(hint_.size()), &row, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
-    SelectObject(dc, previous_font); EndPaint(window_, &paint);
+    SelectObject(dc, previous_font); EndPaint(window, &paint);
 }
 LRESULT CALLBACK CandidateWindow::procedure(HWND window, UINT message, WPARAM w, LPARAM l) noexcept {
     auto self = reinterpret_cast<CandidateWindow*>(GetWindowLongPtrW(window, GWLP_USERDATA));
     if (message == WM_NCCREATE) {
         self = static_cast<CandidateWindow*>(reinterpret_cast<CREATESTRUCTW*>(l)->lpCreateParams);
+        self->window_ = window;
         SetWindowLongPtrW(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
     }
+    if (self && message == WM_NCDESTROY) {
+        // The owner can destroy the popup without calling hide(). Never retain
+        // that HWND: Windows may reuse it for an unrelated window.
+        if (self->window_ == window) { self->window_ = nullptr; self->select_ = {}; }
+        SetWindowLongPtrW(window, GWLP_USERDATA, 0);
+    }
     if (message == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
-    if (self && message == WM_PAINT) { self->paint(); return 0; }
+    if (self && message == WM_PAINT) { self->paint(window); return 0; }
     if (self && message == WM_LBUTTONDOWN) {
         const int y = static_cast<short>(HIWORD(l));
         const int index = (y - self->padding_) / self->row_height_ - 1;
