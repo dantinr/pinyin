@@ -148,6 +148,6 @@ ctest --test-dir build -C Release --output-on-failure
 
 建议后续依次完成：应用兼容性验证、正式词库和句子质量评测、上下文排序、签名安装和升级。
 
-自动英文识别使用本项目人工整理的常见英文词表，在空格或标点确认首词时启动临时英文段；后续字符直接交给应用，不保存句子或按键。小写单音节拼音及存储词库中的全拼匹配（含末尾补全）优先，例如 `you/he/she/can` 仍按中文处理，`Hello/You/I` 等显式大写英文可以触发识别。未收录单词、拼写错误、人名和缩写不保证识别；这不是语言模型。数字选词、鼠标选词、候选导航及已选中文分段优先；可先手动切换中英文纠正歧义。网址/邮箱等特殊输入范围沿用原有规则，密码/PIN 直接输入。
+自动英文识别使用本项目人工整理的常见英文词表，在空格、Enter 或标点确认首词时启动临时英文段；Enter 确认只提交原文，后续空格和字符直接交给应用，不保存句子或按键。小写单音节拼音及存储词库中的全拼匹配（含末尾补全）优先，例如 `you/he/she/can` 仍按中文处理，`Hello/You/I` 等显式大写英文可以触发识别。未收录单词、拼写错误、人名和缩写不保证识别；这不是语言模型。数字选词、鼠标选词、候选导航及已选中文分段优先；可先手动切换中英文纠正歧义。网址/邮箱等特殊输入范围沿用原有规则，密码/PIN 直接输入。
 
 TSF 接口设计参考微软 [Text Service Registration](https://learn.microsoft.com/en-us/windows/win32/tsf/text-service-registration)、[Compositions](https://learn.microsoft.com/en-us/windows/win32/tsf/compositions)、[RequestEditSession](https://learn.microsoft.com/en-us/windows/win32/api/msctf/nf-msctf-itfcontext-requesteditsession)。

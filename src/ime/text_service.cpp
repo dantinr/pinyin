@@ -507,7 +507,8 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         // the same editable composition. Existing Chinese segments keep their behavior.
         if (translated->type == InputKey::letter)
             return !(GetKeyState(VK_SHIFT) & 0x8000) || input_.empty() || input_.literal();
-        if (translated->type == InputKey::space && settings_.automatic_english) return true;
+        // Claim Space only when there is composition to confirm. An idle probe
+        // must agree with OnKeyDown so hosts still translate ordinary spaces.
         if (input_.empty()) return false;
         if (translated->type == InputKey::digit) {
             if (GetKeyState(VK_SHIFT) & 0x8000) return false;
@@ -627,25 +628,29 @@ public:
                 if (input_disabled(target.Get()) || kind == FieldKind::sensitive) return S_FALSE;
                 if (composition_ && !same_object(composing_.Get(), target.Get())) return S_FALSE;
                 auto previous = input_;
-                if (input_.literal() && ((translated && translated->type == InputKey::space) || mark)) {
+                const bool word_confirmation = translated &&
+                    (translated->type == InputKey::space || translated->type == InputKey::enter);
+                const auto suffix = mark ? std::wstring(1, *mark) :
+                    translated && translated->type == InputKey::space ? std::wstring(L" ") : std::wstring{};
+                if (input_.literal() && (word_confirmation || mark)) {
                     const bool english = settings_.automatic_english && kind == FieldKind::normal &&
                         input_.cursor() == input_.raw().size() &&
                         !punctuation_context(target.Get(), cookie, kind).literal_scope &&
                         starts_english(input_.raw(), dictionary_->lexicon(), dictionary_->users());
                     const auto result = input_.handle(InputKey::enter, 0, dictionary_->lexicon(), dictionary_->users());
-                    const auto hr = apply_result(target.Get(), cookie, result, mark ? std::wstring(1, *mark) : L" ");
+                    const auto hr = apply_result(target.Get(), cookie, result, suffix);
                     if (hr == S_OK) { punctuation_.reset(); set_english(english); }
                     else if (FAILED(hr)) input_ = std::move(previous);
                     return hr;
                 }
                 if (settings_.automatic_english && kind == FieldKind::normal && !candidate_navigation_ &&
                     input_.confirmed_text().empty() && input_.cursor() == input_.raw().size() &&
-                    ((translated && translated->type == InputKey::space) || mark) &&
+                    (word_confirmation || mark) &&
                     !punctuation_context(target.Get(), cookie, kind).literal_scope &&
                     starts_english(english_word(target.Get(), cookie), dictionary_->lexicon(), dictionary_->users())) {
                     const auto result = input_.empty() ? InputResult{InputAction::commit, {}, {}} :
                         input_.handle(InputKey::enter, 0, dictionary_->lexicon(), dictionary_->users());
-                    const auto hr = apply_result(target.Get(), cookie, result, mark ? std::wstring(1, *mark) : L" ");
+                    const auto hr = apply_result(target.Get(), cookie, result, suffix);
                     if (hr == S_OK) { punctuation_.reset(); set_english(true); }
                     else if (FAILED(hr)) input_ = std::move(previous);
                     return hr;

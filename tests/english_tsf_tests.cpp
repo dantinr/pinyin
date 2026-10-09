@@ -80,6 +80,39 @@ int wmain(int argc, wchar_t* argv[]) {
                 label(bar.Get()) == L"英" && words(path) == previous, "capitalized word, contraction, or initial English punctuation failed");
             bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "capitalized English leaked DLL references");
         }
+        for (const auto* seed : {"Hello", "hello", "HELLO"}) {
+            Harness ime(argv[1]); auto bar = button(ime); const auto previous = words(path);
+            const auto expected = wide(seed); type_app(ime, seed);
+            ime.store->reject_writes = true;
+            check(!ime.key(VK_RETURN) && ime.store->text == expected && ime.compositions() == 1 && label(bar.Get()) == L"中",
+                "failed English Enter confirmation consumed the word or changed mode");
+            ime.store->reject_writes = false;
+            check(ime.key(VK_RETURN) && ime.store->text == expected && ime.compositions() == 0 && label(bar.Get()) == L"英",
+                "Enter-confirmed English did not enter the same automatic mode as Space confirmation");
+            BOOL eaten = FALSE;
+            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "probe Enter-confirmed English space");
+            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "repeat Enter-confirmed English space probe");
+            check(!eaten && ime.store->text == expected && label(bar.Get()) == L"英",
+                "Enter-confirmed English intercepted a space or wrote during probing");
+            type_app(ime, " world  ");
+            check(ime.store->text == expected + L" world  " && ime.compositions() == 0 && words(path) == previous,
+                "Enter-confirmed English lost subsequent spaces or restarted pinyin");
+            check(!ime.key_up(VK_SPACE) && !ime.key(VK_RETURN) && label(bar.Get()) == L"中",
+                "English sentence boundary swallowed a key or retained automatic English");
+            bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "Enter-confirmed English leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); auto bar = button(ime);
+            BOOL eaten = TRUE;
+            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "probe idle Chinese space");
+            check(!eaten && !ime.key(VK_SPACE) && ime.store->text.empty(), "idle Chinese mode claimed an unhandled space");
+            ime.type("nh"); ime.key(VK_RETURN);
+            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "probe raw-pinyin committed space");
+            check(!eaten && label(bar.Get()) == L"中", "raw-pinyin Enter left Space claimed as candidate selection");
+            type_app(ime, " ");
+            check(ime.store->text == L"nh " && ime.compositions() == 0, "raw-pinyin Enter lost its following space");
+            bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "idle-space handling leaked DLL references");
+        }
         {
             Harness ime(argv[1]); auto bar = button(ime); const auto previous = words(path);
             check(ime.key(VK_SHIFT) && ime.modified_key('H', {VK_SHIFT}) && !ime.key_up(VK_SHIFT) &&
