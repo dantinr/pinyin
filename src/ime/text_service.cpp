@@ -452,7 +452,9 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             return settings_.chinese_punctuation || !input_.empty();
         const auto translated = translate(key);
         if (!translated) return false;
-        if (translated->type == InputKey::letter) return true;
+        // Shifted letters belong to the application's keyboard layout, so it
+        // can apply Shift/CapsLock casing instead of starting lowercase pinyin.
+        if (translated->type == InputKey::letter) return !(GetKeyState(VK_SHIFT) & 0x8000);
         if (input_.empty()) return false;
         if (translated->type == InputKey::digit) {
             if (GetKeyState(VK_SHIFT) & 0x8000) return false;

@@ -353,6 +353,53 @@ int wmain(int argc, wchar_t* argv[]) {
                 "private text field did not commit and learn the selected word");
             ime.close(); check(ime.unload_result == S_OK, "private text context leaked service references");
         }
+        {
+            Harness ime(argv[1]); const auto previous = personal_words(user_path);
+            // Let the application receive shifted letters with its keyboard
+            // layout's casing; holding Shift is not a solo mode-switch gesture.
+            check(ime.key(VK_SHIFT), "Shift press was not handled");
+            std::wstring capitals;
+            for (WPARAM letter = 'A'; letter <= 'Z'; ++letter) {
+                check(!ime.modified_key(letter, {VK_SHIFT}), "Shift+letter was consumed as lowercase pinyin");
+                const std::wstring text(1, static_cast<wchar_t>(letter));
+                ime.store->insert_external(text); Harness::pump(); capitals += text;
+            }
+            check(!ime.key_up(VK_SHIFT) && ime.store->text == capitals && ime.compositions() == 0,
+                "shifted alphabet changed mode or started a composition");
+            check(ime.key('N'), "Shift+letters switched away from Chinese mode"); ime.key(VK_ESCAPE);
+
+            ime.type("niha"); ime.key(VK_SHIFT);
+            check(!ime.modified_key('B', {VK_SHIFT}), "shifted letter inside preedit was swallowed");
+            ime.store->insert_external(L"B"); Harness::pump();
+            check(!ime.key_up(VK_SHIFT) && ime.store->text == capitals + L"nihaB" && ime.compositions() == 0,
+                "application uppercase edit lost raw pinyin or left a stale composition");
+
+            ime.type("nihao"); ime.key(VK_LEFT); ime.key(VK_LEFT); ime.key(VK_SHIFT);
+            check(!ime.modified_key('C', {VK_SHIFT}), "shifted letter at the preedit caret was swallowed");
+            ime.store->insert_external(L"C"); Harness::pump(); ime.key_up(VK_SHIFT);
+            check(ime.store->text == capitals + L"nihaBnihCao" && ime.compositions() == 0,
+                "uppercase edit at the caret lost remaining pinyin");
+
+            ime.type("niha"); choose(ime, L"你"); ime.key(VK_SHIFT);
+            check(!ime.modified_key('D', {VK_SHIFT}), "shifted letter after a selected segment was swallowed");
+            ime.store->insert_external(L"D"); Harness::pump(); ime.key_up(VK_SHIFT);
+            // The caret remains after C, before the preserved "ao" suffix.
+            check(ime.store->text == capitals + L"nihaBnihC你haDao" && ime.compositions() == 0 &&
+                personal_words(user_path) == previous, "uppercase edit lost a segment or learned unconfirmed text");
+
+            check(!ime.modified_key('E', {VK_SHIFT, VK_CAPITAL}) &&
+                !ime.modified_key('F', {VK_SHIFT, VK_CONTROL}) && !ime.modified_key('G', {VK_SHIFT, VK_MENU}),
+                "CapsLock or modifier shortcuts were intercepted");
+            check(ime.key(VK_SHIFT) && ime.key_up(VK_SHIFT) && !ime.key('N'),
+                "solo Shift no longer switched to English mode");
+            ime.key(VK_SHIFT);
+            check(!ime.modified_key('H', {VK_SHIFT}) && !ime.key_up(VK_SHIFT) && !ime.key('N'),
+                "Shift+letter changed English mode");
+            check(ime.key(VK_SHIFT) && ime.key_up(VK_SHIFT) && ime.key('N'),
+                "solo Shift no longer switched back to Chinese mode");
+            ime.key(VK_ESCAPE);
+            ime.close(); check(ime.unload_result == S_OK, "shifted-letter service leaked DLL references");
+        }
         const auto before_private = personal_words(user_path);
         for (const auto scope : {IS_PASSWORD, IS_NUMERIC_PASSWORD, IS_NUMERIC_PIN,
                                  IS_ALPHANUMERIC_PIN, IS_ALPHANUMERIC_PIN_SET}) {
