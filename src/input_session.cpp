@@ -107,4 +107,11 @@ InputResult InputSession::handle(InputKey key, char value, const Lexicon& lexico
     }
     return {empty() ? InputAction::cancel : InputAction::update, {}, {}};
 }
+InputResult InputSession::confirm_remaining(const Lexicon& lexicon, const UserDictionary& users) {
+    while (!empty()) {
+        const auto result = handle(InputKey::space, 0, lexicon, users);
+        if (result.action != InputAction::update) return result;
+    }
+    return {};
+}
 }

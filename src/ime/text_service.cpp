@@ -2,6 +2,7 @@
 #include "candidate_window.hpp"
 #include "pinyin/input_session.hpp"
 #include "pinyin/learning_dictionary.hpp"
+#include "pinyin/punctuation.hpp"
 #include <functional>
 #include <memory>
 #include <optional>
@@ -28,28 +29,59 @@ bool input_disabled(ITfContext* context) {
         compartment_enabled(context, GUID_COMPARTMENT_KEYBOARD_DISABLED) ||
         compartment_enabled(context, GUID_COMPARTMENT_EMPTYCONTEXT);
 }
-bool direct_input(ITfContext* context, TfEditCookie cookie) {
+enum class FieldKind { normal, sensitive, literal };
+FieldKind field_kind(ITfContext* context, TfEditCookie cookie) {
     ComPtr<ITfReadOnlyProperty> property;
     TF_SELECTION selection{}; ULONG fetched = 0;
-    if (FAILED(context->GetSelection(cookie, TF_DEFAULT_SELECTION, 1, &selection, &fetched)) || !fetched) return true;
+    if (FAILED(context->GetSelection(cookie, TF_DEFAULT_SELECTION, 1, &selection, &fetched)) || !fetched) return FieldKind::sensitive;
     ComPtr<ITfRange> range; range.Attach(selection.range);
-    if (FAILED(context->GetAppProperty(GUID_PROP_INPUTSCOPE, &property))) return false;
+    if (FAILED(context->GetAppProperty(GUID_PROP_INPUTSCOPE, &property))) return FieldKind::normal;
     VARIANT value; VariantInit(&value);
-    bool sensitive = false;
+    auto kind = FieldKind::normal;
     if (SUCCEEDED(property->GetValue(cookie, range.Get(), &value)) && value.vt == VT_UNKNOWN && value.punkVal) {
         ComPtr<ITfInputScope> scope;
         if (SUCCEEDED(value.punkVal->QueryInterface(IID_PPV_ARGS(&scope)))) {
             InputScope* scopes = nullptr; UINT count = 0;
             if (SUCCEEDED(scope->GetInputScopes(&scopes, &count))) {
-                for (UINT i = 0; i < count; ++i)
+                for (UINT i = 0; i < count; ++i) {
                     if (scopes[i] == IS_PASSWORD || scopes[i] == IS_NUMERIC_PASSWORD ||
                         scopes[i] == IS_NUMERIC_PIN || scopes[i] == IS_ALPHANUMERIC_PIN || scopes[i] == IS_ALPHANUMERIC_PIN_SET)
-                        sensitive = true;
+                        kind = FieldKind::sensitive;
+                    else if (kind != FieldKind::sensitive &&
+                        (scopes[i] == IS_URL || scopes[i] == IS_EMAIL_USERNAME || scopes[i] == IS_EMAIL_SMTPEMAILADDRESS ||
+                         scopes[i] == IS_EMAILNAME_OR_ADDRESS || scopes[i] == IS_DIGITS || scopes[i] == IS_NUMBER ||
+                         scopes[i] == IS_CURRENCY_AMOUNT || scopes[i] == IS_CURRENCY_AMOUNTANDSYMBOL ||
+                         scopes[i] == IS_TIME_FULLTIME || scopes[i] == IS_DATE_FULLDATE)) kind = FieldKind::literal;
+                }
                 CoTaskMemFree(scopes);
             }
         }
     }
-    VariantClear(&value); return sensitive;
+    VariantClear(&value); return kind;
+}
+bool direct_input(ITfContext* context, TfEditCookie cookie) {
+    return field_kind(context, cookie) == FieldKind::sensitive;
+}
+std::optional<char> punctuation_key(WPARAM key) {
+    const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+    switch (key) {
+    case VK_OEM_COMMA: return shift ? '<' : ',';
+    case VK_OEM_PERIOD: return shift ? '>' : '.';
+    case VK_OEM_1: return shift ? ':' : ';';
+    case VK_OEM_2: return shift ? '?' : '/';
+    case VK_OEM_5: if (!shift) return '\\'; break;
+    case VK_OEM_7: return shift ? '"' : '\'';
+    case VK_OEM_4: return shift ? '{' : '[';
+    case VK_OEM_6: return shift ? '}' : ']';
+    case VK_OEM_MINUS: if (shift) return '_'; break;
+    case '1': if (shift) return '!'; break;
+    case '4': if (shift) return '$'; break;
+    case '6': if (shift) return '^'; break;
+    case '9': if (shift) return '('; break;
+    case '0': if (shift) return ')'; break;
+    default: break;
+    }
+    return {};
 }
 struct Key {
     InputKey type;
@@ -113,6 +145,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     TfGuidAtom attribute_atom_ = TF_INVALID_GUIDATOM;
     std::unique_ptr<LearningDictionary> dictionary_;
     InputSession input_;
+    Punctuation punctuation_;
     CandidateWindow window_;
     bool chinese_ = true;
     bool shift_alone_ = false;
@@ -191,6 +224,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         if (same_object(context, observed_.Get())) return S_OK;
         if (composition_ && !same_object(context, composing_.Get())) finish_later();
         unobserve();
+        punctuation_.reset();
         if (!context) return S_OK;
         ComPtr<ITfSource> source;
         auto hr = context->QueryInterface(IID_PPV_ARGS(&source));
@@ -301,7 +335,51 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         if (FAILED(hr)) return hr;
         return update_ui(cookie);
     }
-    HRESULT apply_result(ITfContext* context, TfEditCookie cookie, const InputResult& result) {
+    HRESULT insert_text(ITfContext* context, TfEditCookie cookie, const std::wstring& text) {
+        ComPtr<ITfInsertAtSelection> insertion; ComPtr<ITfRange> range;
+        auto hr = context->QueryInterface(IID_PPV_ARGS(&insertion));
+        if (FAILED(hr)) return hr;
+        hr = insertion->InsertTextAtSelection(cookie, 0, text.data(), static_cast<LONG>(text.size()), &range);
+        if (FAILED(hr)) return hr;
+        hr = range->Collapse(cookie, TF_ANCHOR_END); if (FAILED(hr)) return hr;
+        TF_SELECTION selection{range.Get(), {TF_AE_NONE, FALSE}};
+        return context->SetSelection(cookie, 1, &selection);
+    }
+    PunctuationContext punctuation_context(ITfContext* context, TfEditCookie cookie, FieldKind kind) {
+        PunctuationContext result; result.preedit = input_.preedit(); result.literal_scope = kind == FieldKind::literal;
+        if (result.literal_scope) return result;
+        ComPtr<ITfRange> range;
+        if (composition_) {
+            if (FAILED(composition_->GetRange(&range))) return result;
+        } else {
+            TF_SELECTION selection{}; ULONG fetched = 0;
+            if (FAILED(context->GetSelection(cookie, TF_DEFAULT_SELECTION, 1, &selection, &fetched)) || !fetched) return result;
+            range.Attach(selection.range);
+        }
+        if (FAILED(range->Collapse(cookie, TF_ANCHOR_START))) return result;
+        // Read only the contiguous ASCII token before the caret, in small
+        // transient chunks. Retain no application context between keys.
+        bool first = true, letters = false, separator = false;
+        for (;;) {
+            LONG shifted = 0; wchar_t buffer[64]{}; ULONG read = 0;
+            if (FAILED(range->ShiftStart(cookie, -64, &shifted, nullptr)) || !shifted ||
+                FAILED(range->GetText(cookie, 0, buffer, 64, &read))) return result;
+            if (first) {
+                for (ULONG i = 0; i < read; ++i) result.before += buffer[i] < 0x80 ? static_cast<char>(buffer[i]) : ' ';
+                first = false;
+            }
+            for (auto i = read; i-- > 0;) {
+                const auto ch = buffer[i];
+                if (ch <= 0x20 || ch >= 0x7f) return result;
+                letters = letters || (ch >= L'a' && ch <= L'z') || (ch >= L'A' && ch <= L'Z');
+                separator = separator || ch == L'.' || ch == L'/' || ch == L'\\';
+                if (ch == L'@' || (letters && separator)) { result.literal_scope = true; return result; }
+            }
+            if (shifted > -64 || FAILED(range->Collapse(cookie, TF_ANCHOR_START))) return result;
+        }
+    }
+    HRESULT apply_result(ITfContext* context, TfEditCookie cookie, const InputResult& result,
+                         const std::wstring& suffix = {}) {
         if (result.action == InputAction::pass) return S_FALSE;
         own_edit_ = true;
         struct EditingScope {
@@ -309,8 +387,13 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             explicit EditingScope(bool& value) : flag(value) { flag = true; }
             ~EditingScope() { flag = false; }
         } editing(editing_);
-        const auto hr = result.action == InputAction::update ? update_composition(context, cookie) :
-            finish(cookie, result.action == InputAction::commit ? wide(result.text) : std::wstring{});
+        HRESULT hr;
+        if (result.action == InputAction::update) hr = update_composition(context, cookie);
+        else if (result.action == InputAction::cancel) hr = finish(cookie, std::wstring{});
+        else {
+            const auto text = wide(result.text) + suffix;
+            hr = composition_ ? finish(cookie, text) : insert_text(context, cookie, text);
+        }
         if (hr == S_OK && result.action == InputAction::commit && !result.pronunciation.empty())
             dictionary_->remember(result);
         return hr;
@@ -322,6 +405,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             (GetKeyState(VK_LWIN) & 0x8000) || (GetKeyState(VK_RWIN) & 0x8000)) return false;
         if (key == VK_SHIFT) return true;
         if (!chinese_ || (GetKeyState(VK_CAPITAL) & 1)) return false;
+        if (const auto mark = punctuation_key(key); mark && (*mark != '\'' || input_.raw().empty())) return true;
         const auto translated = translate(key);
         if (!translated) return false;
         if (translated->type == InputKey::letter) return true;
@@ -412,13 +496,26 @@ public:
             if (!wants_key(context, key)) return S_OK;
             if (key == VK_SHIFT) { shift_alone_ = true; *eaten = TRUE; return S_OK; }
             shift_alone_ = false;
-            const auto translated = translate(key); if (!translated) return S_OK;
+            auto mark = punctuation_key(key);
+            if (mark && *mark == '\'' && !input_.raw().empty()) mark.reset(); // Pinyin separator.
+            const auto translated = translate(key); if (!mark && !translated) return S_OK;
             auto hr = observe(context); if (FAILED(hr)) return hr;
             auto target = ComPtr<ITfContext>(context);
-            hr = request(context, TF_ES_SYNC | TF_ES_READWRITE, [this, target, translated](TfEditCookie cookie) {
-                if (input_disabled(target.Get()) || direct_input(target.Get(), cookie)) return S_FALSE;
+            hr = request(context, TF_ES_SYNC | TF_ES_READWRITE, [this, target, translated, mark](TfEditCookie cookie) {
+                const auto kind = field_kind(target.Get(), cookie);
+                if (input_disabled(target.Get()) || kind == FieldKind::sensitive) return S_FALSE;
                 if (composition_ && !same_object(composing_.Get(), target.Get())) return S_FALSE;
                 auto previous = input_;
+                if (mark) {
+                    const auto punctuation = punctuation_.resolve(*mark, punctuation_context(target.Get(), cookie, kind));
+                    const auto result = input_.empty() ? InputResult{InputAction::commit, {}, {}} :
+                        punctuation.raw ? input_.handle(InputKey::enter, 0, dictionary_->lexicon(), dictionary_->users()) :
+                        input_.confirm_remaining(dictionary_->lexicon(), dictionary_->users());
+                    const auto hr = apply_result(target.Get(), cookie, result, wide(punctuation.text));
+                    if (hr == S_OK) punctuation_.accepted(punctuation);
+                    else if (FAILED(hr)) input_ = std::move(previous);
+                    return hr;
+                }
                 if (input_.empty() && translated->type == InputKey::letter) dictionary_->refresh();
                 const auto result = input_.handle(translated->type, translated->value, dictionary_->lexicon(), dictionary_->users());
                 if (result.action == InputAction::pass) return S_FALSE;
@@ -438,7 +535,7 @@ public:
         if (!eaten) return E_POINTER; *eaten = FALSE;
         return protect([&] {
             if (key == VK_SHIFT && shift_alone_) {
-                shift_alone_ = false; chinese_ = !chinese_; finish_later(); *eaten = TRUE;
+                shift_alone_ = false; chinese_ = !chinese_; punctuation_.reset(); finish_later(); *eaten = TRUE;
             }
             return S_OK;
         });

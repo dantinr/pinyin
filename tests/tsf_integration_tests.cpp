@@ -185,8 +185,9 @@ int wmain(int argc, wchar_t* argv[]) {
             check(ime.compositions() == 0, "focus loss did not end composition");
             check(ime.store->text.size() >= 5 && ime.store->text.substr(ime.store->text.size() - 5) == L"nihao", "focus loss discarded raw text");
             ime.type("nihao");
-            check(!ime.key(VK_OEM_COMMA), "punctuation should pass through");
-            ime.store->insert_external(L","); Harness::pump();
+            check(ime.key(VK_OEM_COMMA), "Chinese punctuation was not handled");
+            check(ime.compositions() == 0, "punctuation left an active composition");
+            ime.type("nihao"); ime.store->insert_external(L"@"); Harness::pump();
             check(ime.compositions() == 0, "external edit left a stale composition");
             const auto before = ime.store->text;
             ime.type("nihao"); ime.key(VK_SPACE);

@@ -52,6 +52,7 @@ public:
     std::wstring text;
     HWND window = nullptr;
     bool readonly = false;
+    bool reject_writes = false; // A failed host edit must not advance IME/learning state.
     bool defer_locks = false;
     InputScope scope = IS_DEFAULT;
     std::function<void()> changed;
@@ -136,6 +137,7 @@ public:
         if (!change || (count && !value)) return E_POINTER;
         if (!writing()) return TS_E_NOLOCK;
         if (readonly) return TS_E_READONLY;
+        if (reject_writes) return E_FAIL;
         if (!valid(start, end)) return TS_E_INVALIDPOS;
         text.replace(start, end - start, value ? value : L"", count);
         *change = {start, end, start + static_cast<LONG>(count)};
@@ -331,6 +333,21 @@ public:
         BOOL eaten = FALSE; require(keys->OnTestKeyUp(context.Get(), value, 0, &eaten), "test key up");
         if (eaten) require(keys->OnKeyUp(context.Get(), value, 0, &eaten), "handle key up");
         if (drain_messages) pump(); return !!eaten;
+    }
+    bool modified_key(WPARAM value, std::initializer_list<int> modifiers) {
+        struct KeyboardState {
+            BYTE original[256]{};
+            KeyboardState(std::initializer_list<int> modifiers) {
+                BYTE state[256]{};
+                if (!GetKeyboardState(original)) throw std::runtime_error("cannot read test modifier state");
+                for (const auto modifier : modifiers) state[modifier] = modifier == VK_CAPITAL ? 1 : 0x80;
+                if (!SetKeyboardState(state)) throw std::runtime_error("cannot set test modifier state");
+            }
+            ~KeyboardState() { SetKeyboardState(original); }
+        };
+        bool handled;
+        { KeyboardState state(modifiers); handled = key(value, false); }
+        pump(); return handled;
     }
     static void pump() {
         MSG message{};
