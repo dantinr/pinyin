@@ -22,7 +22,7 @@ function Read-PinyinPackage([string]$Root) {
             throw "Missing or modified package file: $($file.path)"
         }
     }
-    foreach ($required in @('private_pinyin_ime.dll', 'private_pinyin.exe', 'private_pinyin_demo.exe',
+    foreach ($required in @('private_pinyin_ime.dll', 'private_pinyin.exe', 'private_pinyin_demo.exe', 'private_pinyin_settings.exe',
                            'data/base.tsv', 'vc_redist.x64.exe', 'scripts/register-ime.ps1', 'scripts/unregister-ime.ps1',
                            'scripts/install.ps1', 'scripts/uninstall.ps1', 'scripts/package-common.ps1', 'install.cmd', 'uninstall.cmd')) {
         if (-not $seen.Contains([IO.Path]::GetFullPath((Join-Path $rootPath $required)))) {

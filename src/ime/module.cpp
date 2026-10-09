@@ -45,7 +45,8 @@ HRESULT registry_value(const std::wstring& key, const wchar_t* name, const std::
     RegCloseKey(handle); return HRESULT_FROM_WIN32(error);
 }
 constexpr const GUID* categories[] = {
-    &GUID_TFCAT_TIP_KEYBOARD, &GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER, &GUID_TFCAT_TIPCAP_UIELEMENTENABLED
+    &GUID_TFCAT_TIP_KEYBOARD, &GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER, &GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
+    &GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT
 };
 HRESULT unregister_server() {
     HRESULT result = S_OK;

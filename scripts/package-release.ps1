@@ -103,6 +103,7 @@ try {
         'private_pinyin_ime.dll' = (Join-Path $runtimeDir 'private_pinyin_ime.dll')
         'private_pinyin.exe' = (Join-Path $runtimeDir 'private_pinyin.exe')
         'private_pinyin_demo.exe' = (Join-Path $runtimeDir 'private_pinyin_demo.exe')
+        'private_pinyin_settings.exe' = (Join-Path $runtimeDir 'private_pinyin_settings.exe')
         'data/base.tsv' = (Join-Path $repo 'data/base.tsv')
         'data/README.md' = (Join-Path $repo 'data/README.md')
         'scripts/register-ime.ps1' = (Join-Path $repo 'scripts/register-ime.ps1')
@@ -121,7 +122,7 @@ try {
         Copy-Item -LiteralPath $entry.Value -Destination $target
         [ordered]@{ path = $entry.Key; sha256 = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() }
     }
-    foreach ($binary in @('private_pinyin_ime.dll', 'private_pinyin.exe', 'private_pinyin_demo.exe')) { Assert-PackX64 (Join-Path $stage $binary) }
+    foreach ($binary in @('private_pinyin_ime.dll', 'private_pinyin.exe', 'private_pinyin_demo.exe', 'private_pinyin_settings.exe')) { Assert-PackX64 (Join-Path $stage $binary) }
     $manifest = [ordered]@{
         format = 1; version = $version; architecture = 'x64'; sourceCommit = $sourceCommit
         sourceDirty = $sourceDirty; runtimeVersion = $runtimeVersion; files = @($files)

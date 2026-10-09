@@ -1,0 +1,5 @@
+#pragma once
+#define IDD_SETTINGS 101
+#define IDC_LEARNING 1001
+#define IDC_PUNCTUATION 1002
+#define IDC_OPEN_DIRECTORY 1003

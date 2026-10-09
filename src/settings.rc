@@ -1,0 +1,18 @@
+#pragma code_page(65001)
+#include <windows.h>
+#include "settings_resource.h"
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+IDD_SETTINGS DIALOGEX 0, 0, 330, 196
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "隐私拼音 · 设置"
+FONT 10, "Microsoft YaHei UI"
+BEGIN
+    LTEXT "所有设置与学习词语均保存在本机，无需联网。", -1, 16, 14, 298, 16
+    CONTROL "开启本地学习", IDC_LEARNING, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 39, 292, 16
+    LTEXT "记住已确认的词语和选择次数。关闭后保留已有词库。", -1, 30, 58, 284, 22
+    CONTROL "使用中文标点", IDC_PUNCTUATION, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 83, 292, 16
+    LTEXT "关闭后输出英文符号；按标点仍可确认当前候选。", -1, 30, 102, 284, 22
+    LTEXT "修改自动保存，切回应用后生效。Shift 或点击“中 / 英”切换输入模式。", -1, 16, 130, 298, 26
+    PUSHBUTTON "打开个人词库目录", IDC_OPEN_DIRECTORY, 16, 166, 126, 22
+    DEFPUSHBUTTON "关闭", IDOK, 254, 166, 60, 22
+END

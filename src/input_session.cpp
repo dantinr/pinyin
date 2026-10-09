@@ -36,6 +36,16 @@ void InputSession::refresh(const Lexicon& lexicon, const UserDictionary& users) 
     try { candidates_ = lexicon.lookup_composition(raw_, users); }
     catch (const std::invalid_argument&) {} // An unfinished apostrophe is a valid editing state.
 }
+void InputSession::refresh_candidates(const Lexicon& lexicon, const UserDictionary& users) {
+    const auto previous = selected_ < candidates_.size() ? candidates_[selected_] : Candidate{};
+    refresh(lexicon, users);
+    for (std::size_t i = 0; i < candidates_.size(); ++i) {
+        const auto& word = candidates_[i];
+        if (word.text == previous.text && word.pronunciation == previous.pronunciation && word.input_end == previous.input_end) {
+            selected_ = i; break;
+        }
+    }
+}
 InputResult InputSession::select(std::size_t index, const Lexicon& lexicon, const UserDictionary& users) {
     if (index >= candidates_.size()) return {};
     const auto word = candidates_[index];

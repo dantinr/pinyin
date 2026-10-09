@@ -1,5 +1,7 @@
 #include "common.hpp"
 #include "candidate_window.hpp"
+#include "language_bar.hpp"
+#include "../settings_actions.hpp"
 #include "pinyin/input_session.hpp"
 #include "pinyin/learning_dictionary.hpp"
 #include "pinyin/punctuation.hpp"
@@ -144,6 +146,10 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     DWORD element_id_ = TF_INVALID_UIELEMENTID;
     TfGuidAtom attribute_atom_ = TF_INVALID_GUIDATOM;
     std::unique_ptr<LearningDictionary> dictionary_;
+    std::filesystem::path user_path_;
+    ImeSettings settings_;
+    ComPtr<ITfLangBarItemMgr> bar_manager_;
+    ComPtr<LanguageBar> language_bar_;
     InputSession input_;
     Punctuation punctuation_;
     CandidateWindow window_;
@@ -156,6 +162,39 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     std::uint64_t generation_ = 0;
 
     IUnknown* identity() { return static_cast<ITfTextInputProcessorEx*>(this); }
+    void refresh_settings() {
+        const auto next = read_ime_settings(user_path_);
+        const bool changed = next.learning != settings_.learning || next.chinese_punctuation != settings_.chinese_punctuation;
+        if (dictionary_ && next.learning != settings_.learning) {
+            dictionary_->refresh();
+            input_.refresh_candidates(dictionary_->lexicon(), dictionary_->users());
+        }
+        if (next.chinese_punctuation != settings_.chinese_punctuation) punctuation_.reset();
+        settings_ = next;
+        if (changed && language_bar_) language_bar_->notify();
+    }
+    void toggle_mode() {
+        chinese_ = !chinese_; shift_alone_ = false; punctuation_.reset(); finish_later();
+        if (language_bar_) language_bar_->notify();
+    }
+    HRESULT bar_command(BarCommand command) {
+        if (!manager_) return S_FALSE;
+        switch (command) {
+        case BarCommand::mode: toggle_mode(); return S_OK;
+        case BarCommand::learning:
+            set_ime_learning(user_path_, !read_ime_settings(user_path_).learning); refresh_settings(); return S_OK;
+        case BarCommand::punctuation:
+            set_chinese_punctuation(user_path_, !read_ime_settings(user_path_).chinese_punctuation); refresh_settings(); return S_OK;
+        case BarCommand::settings: {
+            const auto executable = module_path().parent_path() / L"private_pinyin_settings.exe";
+            const auto result = reinterpret_cast<INT_PTR>(ShellExecuteW(nullptr, L"open", executable.c_str(),
+                nullptr, executable.parent_path().c_str(), SW_SHOWNORMAL));
+            return result > 32 ? S_OK : E_FAIL;
+        }
+        case BarCommand::directory: return open_user_directory();
+        }
+        return E_INVALIDARG;
+    }
     HRESULT request(ITfContext* context, DWORD flags, std::function<HRESULT(TfEditCookie)> action) {
         if (!context || client_ == TF_CLIENTID_NULL) return E_UNEXPECTED;
         ComPtr<ITfEditSession> session; session.Attach(new EditSession(identity(), std::move(action)));
@@ -285,6 +324,9 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
                             input_.candidates()[index].pronunciation != word.pronunciation ||
                             input_.candidates()[index].input_end != word.input_end) return S_FALSE;
                         if (input_disabled(context.Get()) || direct_input(context.Get(), write)) return S_FALSE;
+                        refresh_settings();
+                        if (index >= input_.candidates().size() || input_.candidates()[index].text != word.text ||
+                            input_.candidates()[index].pronunciation != word.pronunciation) return S_FALSE;
                         auto previous = input_;
                         const auto result = input_.select(index, dictionary_->lexicon(), dictionary_->users());
                         const auto hr = apply_result(context.Get(), write, result);
@@ -400,12 +442,14 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     }
     bool wants_key(ITfContext* context, WPARAM key) {
         if (!manager_) return false;
+        refresh_settings();
         if (input_disabled(context)) return false;
         if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_MENU) & 0x8000) ||
             (GetKeyState(VK_LWIN) & 0x8000) || (GetKeyState(VK_RWIN) & 0x8000)) return false;
         if (key == VK_SHIFT) return true;
         if (!chinese_ || (GetKeyState(VK_CAPITAL) & 1)) return false;
-        if (const auto mark = punctuation_key(key); mark && (*mark != '\'' || input_.raw().empty())) return true;
+        if (const auto mark = punctuation_key(key); mark && (*mark != '\'' || input_.raw().empty()))
+            return settings_.chinese_punctuation || !input_.empty();
         const auto translated = translate(key);
         if (!translated) return false;
         if (translated->type == InputKey::letter) return true;
@@ -441,10 +485,11 @@ public:
             if (!manager || client == TF_CLIENTID_NULL) return E_INVALIDARG;
             if (manager_) return E_UNEXPECTED;
             if (flags & (TF_TMF_SECUREMODE | TF_TMF_COMLESS | TF_TMF_IMMERSIVEMODE)) return E_NOTIMPL;
-            std::filesystem::path user_path;
-            try { user_path = default_user_path(); } catch (const std::exception&) {}
+            user_path_.clear();
+            try { user_path_ = default_user_path(); } catch (const std::exception&) {}
+            settings_ = read_ime_settings(user_path_);
             dictionary_ = std::make_unique<LearningDictionary>(
-                module_path().parent_path() / L"data" / L"base.tsv", std::move(user_path));
+                module_path().parent_path() / L"data" / L"base.tsv", user_path_);
             manager_ = manager; client_ = client; chinese_ = true;
             ComPtr<ITfKeystrokeMgr> keys; auto hr = manager_.As(&keys);
             if (SUCCEEDED(hr)) hr = keys->AdviseKeyEventSink(client_, this, TRUE);
@@ -455,6 +500,13 @@ public:
             hr = source->AdviseSink(IID_ITfThreadFocusSink, static_cast<ITfThreadFocusSink*>(this), &focus_cookie_);
             if (FAILED(hr)) { Deactivate(); return hr; }
             manager_.As(&ui_manager_);
+            hr = manager_.As(&bar_manager_);
+            if (SUCCEEDED(hr)) {
+                language_bar_.Attach(new LanguageBar([this] { return BarState{chinese_, read_ime_settings(user_path_)}; },
+                    [this](BarCommand command) { return bar_command(command); }));
+                hr = bar_manager_->AddItem(language_bar_.Get());
+            }
+            if (FAILED(hr)) { Deactivate(); return hr; }
             ComPtr<ITfCategoryMgr> categories;
             if (SUCCEEDED(CoCreateInstance(CLSID_TF_CategoryMgr, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&categories))))
                 categories->RegisterGUID(attribute_id, &attribute_atom_);
@@ -467,6 +519,11 @@ public:
         return protect([&] {
             // Never leave TSF subscriptions or candidate windows pointing into an unloaded DLL.
             finish_later(); unobserve();
+            if (language_bar_) {
+                language_bar_->disconnect();
+                if (bar_manager_) bar_manager_->RemoveItem(language_bar_.Get());
+            }
+            language_bar_.Reset(); bar_manager_.Reset();
             if (manager_) {
                 ComPtr<ITfSource> source;
                 if (thread_cookie_ != TF_INVALID_COOKIE && SUCCEEDED(manager_.As(&source))) source->UnadviseSink(thread_cookie_);
@@ -480,9 +537,11 @@ public:
         });
     }
     HRESULT STDMETHODCALLTYPE OnSetFocus(BOOL foreground) override {
-        return protect([&] { if (!foreground) { shift_alone_ = false; finish_later(); } return S_OK; });
+        return protect([&] { if (!foreground) { shift_alone_ = false; finish_later(); } else refresh_settings(); return S_OK; });
     }
-    HRESULT STDMETHODCALLTYPE OnSetThreadFocus() override { return S_OK; }
+    HRESULT STDMETHODCALLTYPE OnSetThreadFocus() override {
+        return protect([&] { refresh_settings(); if (language_bar_) language_bar_->notify(); return S_OK; });
+    }
     HRESULT STDMETHODCALLTYPE OnKillThreadFocus() override {
         return protect([&] { shift_alone_ = false; finish_later(); return S_OK; });
     }
@@ -508,11 +567,14 @@ public:
                 auto previous = input_;
                 if (mark) {
                     const auto punctuation = punctuation_.resolve(*mark, punctuation_context(target.Get(), cookie, kind));
+                    // Disabling Chinese punctuation changes the symbol, not the
+                    // candidate-confirmation or URL/password behavior.
+                    const auto symbol = settings_.chinese_punctuation ? punctuation.text : std::string(1, *mark);
                     const auto result = input_.empty() ? InputResult{InputAction::commit, {}, {}} :
                         punctuation.raw ? input_.handle(InputKey::enter, 0, dictionary_->lexicon(), dictionary_->users()) :
                         input_.confirm_remaining(dictionary_->lexicon(), dictionary_->users());
-                    const auto hr = apply_result(target.Get(), cookie, result, wide(punctuation.text));
-                    if (hr == S_OK) punctuation_.accepted(punctuation);
+                    const auto hr = apply_result(target.Get(), cookie, result, wide(symbol));
+                    if (hr == S_OK && settings_.chinese_punctuation) punctuation_.accepted(punctuation);
                     else if (FAILED(hr)) input_ = std::move(previous);
                     return hr;
                 }
@@ -535,7 +597,7 @@ public:
         if (!eaten) return E_POINTER; *eaten = FALSE;
         return protect([&] {
             if (key == VK_SHIFT && shift_alone_) {
-                shift_alone_ = false; chinese_ = !chinese_; punctuation_.reset(); finish_later(); *eaten = TRUE;
+                toggle_mode(); *eaten = TRUE;
             }
             return S_OK;
         });

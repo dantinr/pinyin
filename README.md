@@ -1,6 +1,12 @@
 # Private Pinyin：Windows 中文拼音输入法开发版
 
+## 使用与隐私
+
+输入法完全工作在离线状态，没有联网功能，没有网络调用、按键/原文日志、遥测或剪贴板访问，没有第三方业务库依赖。运行依赖 Microsoft C++ 运行时和 Windows 系统组件，发布时需要部署匹配的 C++ 运行时。
+
 使用 C++17、Windows SDK 和 TSF 编写，包含词库核心、命令行原型、x64 输入法 DLL 和独立开发测试窗口。当前开发版包含 8,861 条基础词库记录，未签名；系统注册后仍需逐个验证目标应用兼容性。独立测试窗口无需管理员权限或系统注册即可体验实际 TSF 组合文本。
+
+TSF DLL 默认开启本地学习，输入法在全部选字成功上屏后保存确认词语、所选读音和选择次数。以离线使用的便利为目标，不再设拼音输入、整句音节数、词条字数和 16 字自动学习上限。确认的长句、扩展汉字、中英混合自定义词和用较短读音展开的常用短语都可学习。应用标记为隐私的普通文本框（`IS_PRIVATE`）也可正常输入中文并学习；密码及 PIN 框继续直接输入，不做转换或学习。原文提交、取消、失焦未完成组合不会保存为词条。可通过 `--ime-learning off` 关闭，关闭设置会跨应用和重启保留，此后不读取或写入个人词库；分段选字仍可使用。每轮输入会读取当前开关，关闭后停用内存中的个人词语。候选窗口显示“无痕”“本地学习”或“学习暂不可用”。
 
 ## 已实现
 
@@ -21,6 +27,8 @@
 - 候选弹窗在提交、取消、失焦或停用时销毁；线程失焦后禁止延迟布局回调重新显示弹窗，宿主窗口关闭后可安全重建。
 - TSF 候选 UI 元素，让请求 UI-less 模式的应用可以读取候选。
 - 单独按 Shift 切换中英文；空格选中文，Enter 提交拼音原文，Esc 取消。
+- Windows 语言栏 / 任务栏“中 / 英”状态按钮，点击切换、Shift 同步更新；右键切换本地学习和中文标点、打开设置或个人词库目录。
+- 独立图形设置窗口 `private_pinyin_settings.exe`，学习和标点开关自动保存到本机，输入或切回应用时同步刷新；关闭中文标点仍可用英文符号确认候选。
 - 中文标点及标点选词：`nh, → 你好，`；确认当前高亮候选并转换剩余拼音，学习只记录词语和完整读音。中文引号交替开闭，保留拼音单引号分隔、英文模式、小数点及网址/邮箱符号。
 - 应用禁用输入法、只读输入框和密码/PIN InputScope 时跳过输入；普通隐私文本框可正常输入及学习。失焦保留拼音原文并结束组合。
 - 开发注册/卸载脚本，只操作本输入法的 COM、TSF 项。
@@ -46,41 +54,6 @@ ctest --test-dir build -C Release --output-on-failure
 
 对于 Visual Studio 多配置生成器，可执行文件位于 `build\Release\private_pinyin.exe`，构建时自动复制基础词库。其他生成器的可执行文件位置可能不同。
 
-## 打包与 GitHub Releases
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package-release.ps1
-```
-
-输出 ZIP 和 SHA-256 到 `out\releases`；下载用户完整解压后双击 `install.cmd` 即可安装。打包脚本会运行测试、校验文件和解压验证。推送与项目版本一致的 `v版本号` 标签，会自动创建包含安装包的 GitHub Release 草稿。详细步骤见 [发布说明](docs/releases.md)。
-
-```powershell
-.\build\Release\private_pinyin.exe --query nihao
-.\build\Release\private_pinyin.exe --query "xi'an"
-.\build\Release\private_pinyin.exe --sentence wozaibeijingshangban
-.\build\Release\private_pinyin.exe
-.\build\Release\private_pinyin.exe --learn
-```
-
-## 体验 TSF 输入法
-
-```powershell
-.\build\Release\private_pinyin_demo.exe
-```
-
-点击测试窗口白色文档区域，输入 `nihao`，前两个候选应为“你好”“拟好”，按空格选“你好”、按数字 `2` 选“拟好”。后面还会提供“你”等前缀候选。也可以输入 `chongqing` 或 `xi'an`。例如 `ruhe` 可直接选择“如何”，`tingzhi` 可选择“停止”“停滞”“停职”。也可分段选择：先选“停”，组合文本变成“停zhi”，再选“滞”，最终上屏“停滞”；未收录的组合可以同样逐段确认。
-
-分段选择时，Backspace 在剩余拼音开头撤回上一段，Home 恢复全部原拼音以便重新编辑。Esc 取消整个未上屏组合；Enter 提交“已选汉字 + 剩余拼音”，不会学习这个混合结果。
-
-中文模式支持 `，。？！：；、（）【】《》“”‘’`；反斜杠键输入顿号，Shift+- 输入破折号 `——`，Shift+6 输入省略号 `……`。例如输入 `nh` 后按逗号可直接上屏“你好，”，按 Shift+1 则上屏“你好！”。标点先确认高亮候选，再按首选转换剩余拼音；无法转换的部分保留原文，此时整轮输入不学习。学习成功时只保存词语及完整读音，标点不写入词条。
-
-空闲时，单双引号键交替输入开、闭中文引号；有未转换拼音时，未按 Shift 的单引号仍是音节分隔符，例如 `xi'an`。切换中英文模式或文本上下文时重置引号状态。英文模式、CapsLock 及 Ctrl/Alt/Win 快捷键保持原有行为。数字后的句点、冒号、斜杠保留英文形式；已提交英文单词后的句点也保留英文。`https:`、`http:`、`ftp:`、`mailto:`、`www.` 前缀自动提交原文，后续网址、邮箱和路径中的符号保留英文；URL、邮箱、数字、金额、时间和日期 InputScope 使用英文标点，空格仍可显式选中文。
-
-标点判断只临时读取光标或组合开始前的连续 ASCII 片段，不保存或学习应用文本上下文；密码/PIN 框直接输入。输入法只在应用接受上屏后学习。自动化测试覆盖标点上屏、引号/分隔符、数字与网址、快捷键，以及宿主拒绝写入后的恢复。
-
-输入 `wozaibeijingshangban`，空格可整句上屏“我在北京上班”。需要改词时，先选前缀“我”，再选“在”“背景”，最后空格确认剩余“上班”。确认的长句也可直接学习，下次作为完整词条复用。
-
-独立窗口采用专用的 TSF 测试文档，只激活本进程的输入法，便于验证 DLL，不代表记事本、浏览器或 Office 已经通过兼容性测试。测试窗口没有文件保存功能。
 
 ## 系统注册与卸载（开发用）
 
@@ -98,15 +71,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package-releas
 
 卸载脚本只移除本项目注册项，不删除词库或其他输入法。已加载 DLL 的应用退出后才会释放文件，因此更新前应切换输入法并关闭使用旧 DLL 的应用。脚本不自动请求提权、不关闭用户应用。
 
-当前 DLL 面向 x64 桌面应用。暂不支持 32 位应用、AppContainer/安全桌面、触摸键盘和完整语言栏模式图标。正式发布还需要代码签名、稳定安装目录、应用兼容性测试和升级回滚。
+当前 DLL 面向 x64 桌面应用。暂不支持 32 位应用、AppContainer/安全桌面和触摸键盘。正式发布还需要代码签名、稳定安装目录、应用兼容性测试和升级回滚。
 
-## 使用与隐私
+## 状态图标与设置
 
-TSF DLL 默认开启本地学习，输入法在全部选字成功上屏后保存确认词语、所选读音和选择次数。以离线使用的便利为目标，不再设拼音输入、整句音节数、词条字数和 16 字自动学习上限。确认的长句、扩展汉字、中英混合自定义词和用较短读音展开的常用短语都可学习。应用标记为隐私的普通文本框（`IS_PRIVATE`）也可正常输入中文并学习；密码及 PIN 框继续直接输入，不做转换或学习。原文提交、取消、失焦未完成组合不会保存为词条。可通过 `--ime-learning off` 关闭，关闭设置会跨应用和重启保留，此后不读取或写入个人词库；分段选字仍可使用。每轮输入会读取当前开关，关闭后停用内存中的个人词语。候选窗口显示“无痕”“本地学习”或“学习暂不可用”。
+“中 / 英”按钮显示当前应用的输入模式，点击或按 Shift 切换；右键提供本地学习、中文标点、设置和个人词库目录入口。学习和中文标点默认开启，设置跨应用、重启保留；输入模式按当前应用会话切换，新激活的输入法默认中文。图标位置由 Windows 的语言栏 / 任务栏布局决定。
 
-个人词只需确认一次即可优先于同拼音的未使用词，之后选择次数持续参与排序；不再将排序增益截断在 100 次。生成整句时也优先考虑已确认的词。候选列表保留全部匹配的词条和前缀，按每页 9 项翻页，不再截断在前 90 项。长拼音行会随光标横向滚动；过长候选只在弹窗中显示省略号，上屏和学习使用完整内容。
-
-命令行交互默认不读取、创建或写入个人词库。程序没有网络调用、按键/原文日志、遥测或剪贴板访问，没有第三方业务库依赖。运行依赖 Microsoft C++ 运行时和 Windows 系统组件，发布时需要部署匹配的 C++ 运行时。
+也可直接运行安装目录中的 `private_pinyin_settings.exe`，勾选框修改后自动保存。关闭学习保留已有个人词库，但不再使用或新增个人词；关闭中文标点输出英文符号，`nh,` 仍可确认“你好,”。设置生效、存储位置及旧版本注册更新见 [设置说明](docs/settings.md)。
 
 系统输入法的学习开关与命令行交互模式分开设置，无需管理员权限：
 
@@ -171,6 +142,6 @@ TSF DLL 默认开启本地学习，输入法在全部选字成功上屏后保存
 
 整句排名使用人工词权重、分词数量惩罚和本地选择次数，并非训练过的语言模型，不能保证任意句子的语法、同音词或多音字都正确。已选长句可学习成完整词条；未确认的自动候选不保存。`--query` 保留原有完整词条查询，`--sentence` 可独立验证整句结果。整句测试覆盖首选、手动改选、多音词读音约束、用户词复用、512 音节整句、歧义长输入性能和长句重启学习；真实 TSF 测试覆盖长句上屏、隐私文本框、密码/PIN 直接输入及取消不学习。
 
-建议后续依次完成：应用兼容性验证、正式词库和句子质量评测、上下文排序、语言栏模式图标与设置入口、签名安装和升级。
+建议后续依次完成：末尾音节补全、应用兼容性验证、正式词库和句子质量评测、上下文排序、签名安装和升级。
 
-TSF 接口设计参考微软 [Text Service Registration](https://learn.microsoft.com/en-us/windows/win32/tsf/text-service-registration)、[Compositions](https://learn.microsoft.com/en-us/windows/win32/tsf/compositions)、[RequestEditSession](https://learn.microsoft.com/en-us/windows/win32/api/msctf/nf-msctf-itfcontext-requesteditsession)。未引入小狼毫、Rime 或微软 SampleIME 源码。
+TSF 接口设计参考微软 [Text Service Registration](https://learn.microsoft.com/en-us/windows/win32/tsf/text-service-registration)、[Compositions](https://learn.microsoft.com/en-us/windows/win32/tsf/compositions)、[RequestEditSession](https://learn.microsoft.com/en-us/windows/win32/api/msctf/nf-msctf-itfcontext-requesteditsession)。

@@ -21,6 +21,7 @@ public:
     // Confirm the highlighted candidate and the remaining segments before a
     // punctuation key. An unconvertible remainder is preserved without learning.
     InputResult confirm_remaining(const Lexicon& lexicon, const UserDictionary& users = {});
+    void refresh_candidates(const Lexicon& lexicon, const UserDictionary& users = {});
     void clear() noexcept;
     const std::string& raw() const noexcept { return raw_; }
     std::string confirmed_text() const;
