@@ -190,9 +190,12 @@ void validate_text(const std::string& text) {
     }
 }
 
-void Lexicon::load(const std::filesystem::path& path) {
+void Lexicon::load(const std::filesystem::path& path, bool allow_empty) {
     std::ifstream file(path, std::ios::binary);
     if (!file) throw std::runtime_error("cannot open base dictionary");
+    load(file, allow_empty);
+}
+void Lexicon::load(std::istream& file, bool allow_empty) {
     Lexicon loaded;
     std::size_t line_number = 0;
     for (std::string line; std::getline(file, line);) {
@@ -213,7 +216,7 @@ void Lexicon::load(const std::filesystem::path& path) {
         }
     }
     if (file.bad()) throw std::runtime_error("failed while reading base dictionary");
-    if (loaded.size() == 0) throw std::runtime_error("base dictionary has no entries");
+    if (!allow_empty && loaded.size() == 0) throw std::runtime_error("base dictionary has no entries");
     *this = std::move(loaded);
 }
 

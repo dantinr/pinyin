@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
-project(private_pinyin VERSION 0.7.0 LANGUAGES CXX)
+project(private_pinyin VERSION 0.8.0 LANGUAGES CXX)
 if(NOT WIN32)
   message(FATAL_ERROR "This prototype currently targets Windows.")
 endif()
 
-add_library(pinyin_core src/lexicon.cpp src/sentence_decoder.cpp src/user_store.cpp src/input_session.cpp src/learning_dictionary.cpp src/punctuation.cpp src/ime_settings.cpp src/english_input.cpp)
+add_library(pinyin_core src/lexicon.cpp src/sentence_decoder.cpp src/user_store.cpp src/input_session.cpp src/learning_dictionary.cpp src/punctuation.cpp src/ime_settings.cpp src/english_input.cpp src/dictionary_manager.cpp)
 target_include_directories(pinyin_core PUBLIC include)
 target_compile_features(pinyin_core PUBLIC cxx_std_17)
 if(MSVC)
@@ -13,13 +13,17 @@ else()
   target_compile_options(pinyin_core PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-add_executable(private_pinyin src/main.cpp)
+add_executable(private_pinyin src/main.cpp src/dictionary_cli.cpp)
 target_link_libraries(private_pinyin PRIVATE pinyin_core)
 add_custom_command(TARGET private_pinyin POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:private_pinyin>/data"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv"
-    "$<TARGET_FILE_DIR:private_pinyin>/data/base.tsv")
+    "$<TARGET_FILE_DIR:private_pinyin>/data/base.tsv"
+  COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:private_pinyin>/docs"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/agent-dictionaries.md"
+    "$<TARGET_FILE_DIR:private_pinyin>/docs/agent-dictionaries.md")
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   enable_language(RC)
@@ -53,6 +57,9 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(dictionary_manager_tests tests/dictionary_manager_tests.cpp)
+  target_link_libraries(dictionary_manager_tests PRIVATE pinyin_core)
+  add_test(NAME dictionary_manager COMMAND dictionary_manager_tests)
   add_executable(english_input_tests tests/english_input_tests.cpp)
   target_link_libraries(english_input_tests PRIVATE pinyin_core)
   add_test(NAME english_input COMMAND english_input_tests "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv")
@@ -84,6 +91,11 @@ if(BUILD_TESTING)
   target_link_libraries(input_session_tests PRIVATE pinyin_core)
   add_test(NAME input_session COMMAND input_session_tests "${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/base-demo.tsv")
   if(TARGET private_pinyin_ime)
+    add_executable(dictionary_tsf_tests tests/dictionary_tsf_tests.cpp)
+    target_include_directories(dictionary_tsf_tests PRIVATE src/ime tests)
+    target_link_libraries(dictionary_tsf_tests PRIVATE pinyin_core ole32 oleaut32 uuid user32)
+    add_dependencies(dictionary_tsf_tests private_pinyin_ime)
+    add_test(NAME tsf_dictionaries COMMAND dictionary_tsf_tests "$<TARGET_FILE:private_pinyin_ime>")
     add_executable(english_tsf_tests tests/english_tsf_tests.cpp)
     target_include_directories(english_tsf_tests PRIVATE src/ime tests)
     target_link_libraries(english_tsf_tests PRIVATE pinyin_core ole32 oleaut32 uuid user32)
@@ -127,6 +139,8 @@ if(BUILD_TESTING)
   endif()
   find_program(PWSH_EXECUTABLE NAMES pwsh)
   if(PWSH_EXECUTABLE)
+    add_test(NAME dictionary_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/dictionary_cli_tests.ps1" -Executable "$<TARGET_FILE:private_pinyin>")
     add_test(NAME pinyin_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/cli_tests.ps1"
       -Executable "$<TARGET_FILE:private_pinyin>")

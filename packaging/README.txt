@@ -32,6 +32,11 @@
 密码/PIN 框直接输入。没有联网、遥测、云词库或原文按键日志。
 学习开关可通过安装目录中的 private_pinyin.exe --ime-learning on|off|status|clear 设置。
 
+用户自己的 Agent 可运行 private_pinyin.exe lexicon help 管理词库。
+主词库 data/base.tsv 保持只读；主题辅词库存放在
+%LOCALAPPDATA%\PrivatePinyin\dictionaries。新增和启停在下一轮输入生效。
+完整协议、补词规则与命令示例见 docs/agent-dictionaries.md。
+
 安装完成后，下载的 ZIP 和解压目录可以删除。
 安装目录必须保留。每个新版本安装到独立目录，更新不覆盖已加载的旧 DLL。
 升级后重新打开应用以加载新版本；旧版本目录可在应用退出后手动删除。

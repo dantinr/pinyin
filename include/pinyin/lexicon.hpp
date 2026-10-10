@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <iosfwd>
 #include <limits>
 #include <map>
 #include <set>
@@ -38,7 +39,8 @@ class Lexicon {
 public:
     // Strict TSV: text<TAB>pronunciation<TAB>positive weight. BOM/comments supported.
     // Loading is transactional: invalid input leaves the current lexicon intact.
-    void load(const std::filesystem::path& path);
+    void load(const std::filesystem::path& path, bool allow_empty = false);
+    void load(std::istream& input, bool allow_empty = false);
     void add(Entry entry);
     std::vector<Candidate> lookup(const std::string& input,
                                   const UserDictionary& users = {},
@@ -54,6 +56,7 @@ public:
                                              const UserDictionary& users = {},
                                              std::size_t limit = std::numeric_limits<std::size_t>::max()) const;
     std::size_t size() const noexcept { return entries_.size(); }
+    const std::vector<Entry>& entries() const noexcept { return entries_; }
 
 private:
     struct Match {

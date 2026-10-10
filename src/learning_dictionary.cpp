@@ -48,8 +48,9 @@ bool learnable(const InputResult& result) {
 }
 }
 LearningDictionary::LearningDictionary(const std::filesystem::path& base_path, std::filesystem::path user_path)
-    : user_path_(std::move(user_path)) {
-    base_.load(base_path); active_ = base_;
+    : supplementary_(user_path.empty() ? std::filesystem::path{} : user_path.parent_path() / L"dictionaries"),
+      user_path_(std::move(user_path)) {
+    bundled_.load(base_path); base_ = bundled_; active_ = base_;
 }
 Lexicon LearningDictionary::merged(const UserDictionary& users) const {
     auto lexicon = base_;
@@ -57,6 +58,10 @@ Lexicon LearningDictionary::merged(const UserDictionary& users) const {
     return lexicon;
 }
 void LearningDictionary::refresh() {
+    if (supplementary_.refresh()) {
+        base_ = supplementary_.merged(bundled_);
+        active_ = merged(users_);
+    }
     enabled_ = ime_learning_enabled(user_path_);
     if (!enabled_) {
         if (!users_.empty()) active_ = base_;

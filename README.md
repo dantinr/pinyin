@@ -10,6 +10,8 @@ TSF DLL 默认开启本地学习，输入法在全部选字成功上屏后保存
 
 ## 已实现
 
+- 用户自己的 Agent 词库入口：`private_pinyin.exe lexicon`，主词库 + 多个主题辅词库 + 独立个人学习词库；校验、导入、逐词编辑、启停、备份和查询均返回 JSON，下一轮输入刷新。接口和规则见 [Agent 词库说明](docs/agent-dictionaries.md)。
+
 - 按音节建立 Trie，查询连续全拼，例如 `nihao`、`chongqing`。
 - 简拼及全拼混输：`nh / nhao / nih → 你好`、`bj → 北京`；已学整句也可简拼复用，如 `wzbjsb → 我在北京上班`。`zh/ch/sh` 同时支持两字母声母和 `z/c/s` 首字母。
 - 末尾音节补全：`niha → 你好`、`beijin → 北京`，支持简拼混输及整句末尾，例如 `wozaibeijin → 我在北京`；学习保存完整读音。

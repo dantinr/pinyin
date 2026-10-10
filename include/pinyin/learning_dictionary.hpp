@@ -1,6 +1,7 @@
 #pragma once
 #include "pinyin/input_session.hpp"
 #include "pinyin/user_store.hpp"
+#include "pinyin/dictionary_manager.hpp"
 
 namespace pinyin {
 std::filesystem::path default_user_path();
@@ -21,7 +22,8 @@ public:
     bool enabled() const noexcept { return enabled_; }
     bool available() const noexcept { return available_; }
 private:
-    Lexicon base_, active_;
+    Lexicon bundled_, base_, active_;
+    SupplementaryDictionaries supplementary_;
     UserDictionary users_;
     std::filesystem::path user_path_;
     bool enabled_ = false;

@@ -1,6 +1,7 @@
 #include "pinyin/lexicon.hpp"
 #include "pinyin/user_store.hpp"
 #include "pinyin/learning_dictionary.hpp"
+#include "dictionary_cli.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -58,6 +59,7 @@ void usage() {
         "用法：private_pinyin [--dict 文件] [--learn | --no-learn] [--user 文件] [--query 拼音 | --sentence 拼音]\n"
         "命令行交互默认不读取或写入用户词库；--learn 显式开启本地学习。\n"
         "系统输入法默认开启本地学习；设置：--ime-learning on|off|status|clear。\n"
+        "Agent 词库入口：private_pinyin lexicon help；所有 lexicon 子命令返回 JSON。\n"
         "交互：输入拼音查词；输入候选编号确认；/add 拼音 词语；/clear；/help；/quit。\n"
         "多音节自造词请用分隔符，例如：/add yin'si 隐私\n"
         "--query 查询完整词条；--sentence 生成离线整句候选；两者均不读取或保存个人词库。\n"
@@ -86,6 +88,8 @@ void display(const std::vector<pinyin::Candidate>& candidates) {
 int wmain(int argc, wchar_t* argv[]) {
     SetConsoleOutputCP(CP_UTF8);
     try {
+        if (argc > 1 && std::wstring(argv[1]) == L"lexicon")
+            return run_dictionary_cli(argc - 1, argv + 1, executable_directory() / L"data" / L"base.tsv");
         auto dictionary = executable_directory() / L"data" / L"base.tsv";
         std::filesystem::path user_path;
         std::string query;
