@@ -1,11 +1,18 @@
 #include "candidate_window.hpp"
 #include <algorithm>
-#include <mutex>
 
 namespace pinyin::ime {
 namespace {
 constexpr wchar_t window_class[] = L"PrivatePinyin.Candidate.4ea569f1";
-std::mutex class_mutex;
+// The host may preload an older VC runtime whose std::mutex implementation
+// cannot lock objects initialized by a newer toolset. Use the Windows ABI.
+SRWLOCK class_lock = SRWLOCK_INIT;
+struct ClassLock {
+    ClassLock() noexcept { AcquireSRWLockExclusive(&class_lock); }
+    ~ClassLock() { ReleaseSRWLockExclusive(&class_lock); }
+    ClassLock(const ClassLock&) = delete;
+    ClassLock& operator=(const ClassLock&) = delete;
+};
 unsigned class_users = 0;
 const wchar_t* hint_text(bool empty) noexcept {
     return empty ? L"继续输入 · Enter 原文 · Esc 取消" : L"空格选词 · 数字 1–9 · PgUp/PgDn";
@@ -18,7 +25,7 @@ struct DpiScope {
 CandidateWindow::~CandidateWindow() {
     hide();
     if (class_registered_) {
-        std::lock_guard<std::mutex> lock(class_mutex);
+        ClassLock lock;
         if (--class_users == 0) UnregisterClassW(window_class, module);
     }
     if (font_) DeleteObject(font_);
@@ -38,7 +45,7 @@ void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND ow
     if (input.empty()) { hide(); return; }
     DpiScope dpi_scope;
     if (!class_registered_) {
-        std::lock_guard<std::mutex> lock(class_mutex);
+        ClassLock lock;
         if (!class_users) {
             WNDCLASSEXW cls{sizeof(cls)};
             cls.lpfnWndProc = procedure; cls.hInstance = module; cls.lpszClassName = window_class;
@@ -163,7 +170,10 @@ HRESULT CandidateElement::Show(BOOL show) {
     return protect([&] {
         allowed_ = !!show;
         if (!allowed_) visible_ = false;
-        if (visibility_handler_) visibility_handler_(allowed_);
+        // A synchronous refresh may disconnect this handler or release the UI object.
+        ComPtr<CandidateElement> lifetime(this);
+        auto handler = visibility_handler_;
+        if (handler) handler(allowed_);
         return S_OK;
     });
 }

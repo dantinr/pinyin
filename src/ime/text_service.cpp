@@ -170,7 +170,18 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     bool own_edit_ = false;
     bool key_sink_ = false;
     bool ui_suspended_ = false;
+    bool notifying_ui_ = false;
     std::uint64_t generation_ = 0;
+
+    struct UiNotification {
+        bool& active;
+        explicit UiNotification(bool& value) : active(value) { active = true; }
+        ~UiNotification() { active = false; }
+    };
+    void end_ui(ITfUIElementMgr* manager, DWORD id) noexcept {
+        UiNotification notification(notifying_ui_);
+        manager->EndUIElement(id);
+    }
 
     IUnknown* identity() { return static_cast<ITfTextInputProcessorEx*>(this); }
     void set_english(bool active) {
@@ -225,10 +236,16 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         return FAILED(hr) ? hr : result;
     }
     void close_ui() noexcept {
+        // EndUIElement can synchronously reenter focus/deactivation callbacks.
+        // Detach first so nested cleanup cannot end the same registration twice.
+        auto element = std::move(element_);
+        auto manager = ui_manager_;
+        const auto id = element_id_; element_id_ = TF_INVALID_UIELEMENTID;
+        if (element) { element->set_visibility_handler({}); element->set_visible(false); }
         window_.hide();
-        if (element_) { element_->set_visibility_handler({}); element_->set_visible(false); }
-        if (ui_manager_ && element_id_ != TF_INVALID_UIELEMENTID) ui_manager_->EndUIElement(element_id_);
-        element_id_ = TF_INVALID_UIELEMENTID; element_.Reset();
+        // TSF rejects recursive UI manager calls. The outer Begin/Update call
+        // retains its ID and completes the close after the notification returns.
+        if (manager && id != TF_INVALID_UIELEMENTID && !notifying_ui_) end_ui(manager.Get(), id);
     }
     void discard_state() noexcept {
         ++generation_; input_.clear(); candidate_navigation_ = false;
@@ -301,18 +318,37 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         return S_OK;
     }
     HRESULT update_ui(TfEditCookie cookie) {
+        if (notifying_ui_) return S_OK;
         if (!manager_ || ui_suspended_ || !composition_ || input_.empty() || !composing_) { close_ui(); return S_OK; }
-        ComPtr<ITfDocumentMgr> document; composing_->GetDocumentMgr(&document);
-        if (ui_manager_) {
+        // Application COM calls can end the composition before returning.
+        // Keep their targets alive and stop if the state they describe changed.
+        const auto generation = generation_;
+        auto context = composing_; auto composition = composition_; auto ui = ui_manager_;
+        const auto current = [&] {
+            return manager_ && !ui_suspended_ && generation == generation_ &&
+                context.Get() == composing_.Get() && composition.Get() == composition_.Get() && !input_.empty();
+        };
+        ComPtr<ITfDocumentMgr> document; context->GetDocumentMgr(&document);
+        if (!current()) return S_OK;
+        if (ui) {
             if (!element_) {
-                element_.Attach(new CandidateElement);
-                element_->update(input_, document.Get());
-                BOOL show = TRUE;
-                if (FAILED(ui_manager_->BeginUIElement(element_.Get(), &show, &element_id_))) {
-                    element_.Reset(); element_id_ = TF_INVALID_UIELEMENTID;
+                ComPtr<CandidateElement> created; created.Attach(new CandidateElement);
+                element_ = created;
+                created->update(input_, document.Get());
+                BOOL show = TRUE; DWORD id = TF_INVALID_UIELEMENTID;
+                HRESULT hr;
+                { UiNotification notification(notifying_ui_); hr = ui->BeginUIElement(created.Get(), &show, &id); }
+                if (!current() || element_.Get() != created.Get()) {
+                    created->set_visibility_handler({}); created->set_visible(false);
+                    if (SUCCEEDED(hr) && id != TF_INVALID_UIELEMENTID) end_ui(ui.Get(), id);
+                    return S_OK;
+                }
+                if (FAILED(hr)) {
+                    element_.Reset();
                 } else {
-                    element_->Show(show);
-                    element_->set_visibility_handler([this](bool visible) {
+                    element_id_ = id;
+                    created->Show(show);
+                    created->set_visibility_handler([this](bool visible) {
                         if (!visible) { window_.hide(); return; }
                         if (!composing_) return;
                         const auto generation = generation_; auto target = composing_;
@@ -321,18 +357,34 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
                         });
                     });
                 }
-            } else { element_->update(input_, document.Get()); ui_manager_->UpdateUIElement(element_id_); }
+            } else {
+                auto element = element_;
+                const auto id = element_id_;
+                element->update(input_, document.Get());
+                { UiNotification notification(notifying_ui_); ui->UpdateUIElement(id); }
+                if (!current() || element_.Get() != element.Get()) {
+                    if (element_.Get() == element.Get()) close_ui();
+                    else if (id != TF_INVALID_UIELEMENTID) end_ui(ui.Get(), id);
+                    return S_OK;
+                }
+            }
             if (element_ && !element_->allowed()) { window_.hide(); element_->set_visible(false); return S_OK; }
         }
         ComPtr<ITfContextView> view; ComPtr<ITfRange> range;
-        if (FAILED(composing_->GetActiveView(&view)) || FAILED(composition_->GetRange(&range))) {
+        const auto view_hr = context->GetActiveView(&view);
+        if (!current()) return S_OK;
+        const auto range_hr = composition->GetRange(&range);
+        if (!current()) return S_OK;
+        if (FAILED(view_hr) || !view || FAILED(range_hr) || !range) {
             window_.hide(); if (element_) element_->set_visible(false); return S_OK;
         }
         RECT caret{}; BOOL clipped = FALSE;
         // Query the composition range: zero-length caret ranges are unsupported by some editors.
         const auto hr = view->GetTextExt(cookie, range.Get(), &caret, &clipped);
+        if (!current()) return S_OK;
         if (FAILED(hr) || clipped) { window_.hide(); if (element_) element_->set_visible(false); return S_OK; }
         HWND owner = nullptr; view->GetWnd(&owner);
+        if (!current()) return S_OK;
         if (!owner) owner = GetFocus();
         window_.show(input_, caret, owner, [this](std::size_t index) {
             protect([&] {
