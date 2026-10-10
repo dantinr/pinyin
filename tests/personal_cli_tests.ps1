@@ -19,6 +19,7 @@ function Invoke-PersonalCLI([string[]]$Arguments) {
     $info.StandardOutputEncoding = $encoding
     $info.StandardErrorEncoding = $encoding
     $info.Environment['LOCALAPPDATA'] = Join-Path $testRoot 'local-appdata'
+    $info.Environment['USERPROFILE'] = Join-Path $testRoot 'profile'
     $info.ArgumentList.Add('personal')
     foreach ($argument in $Arguments) { $info.ArgumentList.Add($argument) }
     $process = [Diagnostics.Process]::new()
@@ -34,7 +35,7 @@ function Invoke-PersonalCLI([string[]]$Arguments) {
     } finally { $process.Dispose() }
 }
 try {
-    $user = Join-Path $testRoot 'local-appdata\PrivatePinyin\words.user.tsv'
+    $user = Join-Path $testRoot 'profile\PrivatePinyin\words.user.tsv'
     $source = Join-Path $testRoot '中文 合并.tsv'
     $export = Join-Path $testRoot '中文 导出.tsv'
     $run = Invoke-PersonalCLI @('help')

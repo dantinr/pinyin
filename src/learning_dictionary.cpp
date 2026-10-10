@@ -6,15 +6,6 @@
 #include <stdexcept>
 
 namespace pinyin {
-std::filesystem::path default_user_path() {
-    const auto size = GetEnvironmentVariableW(L"LOCALAPPDATA", nullptr, 0);
-    if (!size) throw std::runtime_error("LOCALAPPDATA is unavailable; specify --user");
-    std::wstring value(size, L'\0');
-    const auto copied = GetEnvironmentVariableW(L"LOCALAPPDATA", value.data(), size);
-    if (!copied || copied >= size) throw std::runtime_error("cannot read LOCALAPPDATA");
-    value.resize(copied);
-    return std::filesystem::path(value) / L"PrivatePinyin" / L"words.user.tsv";
-}
 std::filesystem::path ime_learning_flag(const std::filesystem::path& user_path) {
     auto flag = user_path; flag += L".ime-learning.disabled"; return flag;
 }

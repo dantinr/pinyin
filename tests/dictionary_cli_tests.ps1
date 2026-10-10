@@ -19,6 +19,7 @@ function Invoke-AgentCLI([string[]]$Arguments) {
     $info.StandardOutputEncoding = $encoding
     $info.StandardErrorEncoding = $encoding
     $info.Environment['LOCALAPPDATA'] = Join-Path $testRoot 'local-appdata'
+    $info.Environment['USERPROFILE'] = Join-Path $testRoot 'profile'
     $info.ArgumentList.Add('lexicon')
     foreach ($argument in $Arguments) { $info.ArgumentList.Add($argument) }
     $process = [Diagnostics.Process]::new()
@@ -34,7 +35,7 @@ function Invoke-AgentCLI([string[]]$Arguments) {
     } finally { $process.Dispose() }
 }
 try {
-    $managed = Join-Path $testRoot 'local-appdata\PrivatePinyin\dictionaries'
+    $managed = Join-Path $testRoot 'profile\PrivatePinyin\dictionaries'
     $fixture = Join-Path $PSScriptRoot 'fixtures\base-demo.tsv'
     $run = Invoke-AgentCLI @('list', '--base', $fixture)
     Assert-Check ($run.Code -eq 0 -and $run.Json.schema -eq 1 -and $run.Json.dictionaries.Count -eq 1 -and $run.Json.dictionaries[0].readOnly) 'initial machine-readable list failed'
@@ -86,7 +87,7 @@ try {
     Assert-Check (@($run.Json.candidates | Where-Object text -eq $word).Count -eq 1) 'JSON escaping lost word characters'
     $run = Invoke-AgentCLI @('list', '--base', $fixture)
     Assert-Check ($run.Json.dictionaries.Count -eq 2 -and $run.Json.dictionaries[1].entries -eq 0) 'list mixed independent roots or wrong counts'
-    Assert-Check (-not (Test-Path -LiteralPath (Join-Path $testRoot 'local-appdata\PrivatePinyin\words.user.tsv'))) 'Agent commands accessed the learned user store'
+    Assert-Check (-not (Test-Path -LiteralPath (Join-Path $testRoot 'profile\PrivatePinyin\words.user.tsv'))) 'Agent commands accessed the learned user store'
     $run = Invoke-AgentCLI @('import', '--name', 'computer', '--file', $backup, '--replace')
     Assert-Check ($run.Code -eq 0 -and $run.Json.entries -eq 1) 'explicit restore failed'
     $run = Invoke-AgentCLI @('help')

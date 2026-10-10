@@ -2,9 +2,9 @@
 #include "pinyin/input_session.hpp"
 #include "pinyin/user_store.hpp"
 #include "pinyin/dictionary_manager.hpp"
+#include "pinyin/user_data.hpp"
 
 namespace pinyin {
-std::filesystem::path default_user_path();
 // Local learning is on unless this explicit opt-out marker exists.
 std::filesystem::path ime_learning_flag(const std::filesystem::path& user_path);
 bool ime_learning_enabled(const std::filesystem::path& user_path);

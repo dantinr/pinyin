@@ -7,9 +7,9 @@
 | 文件 | 用途 | 写入者 |
 | --- | --- | --- |
 | 安装目录 `data/base.tsv` | 随版本发布的主词库 | 项目维护者；Agent 接口只读 |
-| `%LOCALAPPDATA%\PrivatePinyin\dictionaries\daily.tsv` | 日常词语辅词库 | 用户或用户的 Agent |
+| `%USERPROFILE%\PrivatePinyin\dictionaries\daily.tsv` | 日常词语辅词库 | 用户或用户的 Agent |
 | 同目录 `computer.tsv / medical.tsv / names.tsv` 等 | 独立主题辅词库 | 用户或用户的 Agent |
-| `%LOCALAPPDATA%\PrivatePinyin\words.user.tsv` | 已确认的词语及选择次数 | 输入法本地学习 |
+| `%USERPROFILE%\PrivatePinyin\words.user.tsv` | 已确认的词语及选择次数 | 输入法本地学习 |
 
 主题文件名使用 1–64 个小写英文字母、数字或连字符，首字符必须是字母。`base / user` 及 Windows 设备名保留。目录只加载直接子文件中的有效名称 `*.tsv`，不递归加载子目录。示例文件名说明分组方式，程序不会自动创建这些主题词库。
 
@@ -58,7 +58,7 @@ $imeTool = "D:\codex_projects\private-pinyin\build\Release\private_pinyin.exe"
 `list` 返回主词库、各辅词库的路径、启用状态、唯一记录数和错误信息。`query` 预览主词库与当前已启用辅词库的候选，不读取个人学习记录，支持全拼、简拼及末尾补全；可用 `--limit` 指定候选数量。单个损坏辅词库通过 `warnings` 报告，其余词库仍可查询。
 
 ```json
-{"schema":1,"ok":true,"command":"upsert","root":"C:\\Users\\用户名\\AppData\\Local\\PrivatePinyin\\dictionaries","name":"computer","entries":1}
+{"schema":1,"ok":true,"command":"upsert","root":"C:\\Users\\用户名\\PrivatePinyin\\dictionaries","name":"computer","entries":1}
 ```
 
 `--root 目录` 可指定独立辅词库目录用于草稿、测试和交换文件；`list/query --base 文件` 可指定主词库进行验证。系统输入法始终读取其安装目录的主词库和默认用户辅词库目录，测试目录不会自动成为正式词库。

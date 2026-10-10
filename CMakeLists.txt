@@ -4,7 +4,7 @@ if(NOT WIN32)
   message(FATAL_ERROR "This prototype currently targets Windows.")
 endif()
 
-add_library(pinyin_core src/lexicon.cpp src/sentence_decoder.cpp src/user_store.cpp src/input_session.cpp src/learning_dictionary.cpp src/punctuation.cpp src/ime_settings.cpp src/english_input.cpp src/dictionary_manager.cpp)
+add_library(pinyin_core src/lexicon.cpp src/sentence_decoder.cpp src/user_store.cpp src/input_session.cpp src/learning_dictionary.cpp src/user_data.cpp src/punctuation.cpp src/ime_settings.cpp src/english_input.cpp src/dictionary_manager.cpp)
 target_include_directories(pinyin_core PUBLIC include)
 target_compile_features(pinyin_core PUBLIC cxx_std_17)
 if(MSVC)
@@ -26,7 +26,10 @@ add_custom_command(TARGET private_pinyin POST_BUILD
     "$<TARGET_FILE_DIR:private_pinyin>/docs/agent-dictionaries.md"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_CURRENT_SOURCE_DIR}/docs/personal-dictionaries.md"
-    "$<TARGET_FILE_DIR:private_pinyin>/docs/personal-dictionaries.md")
+    "$<TARGET_FILE_DIR:private_pinyin>/docs/personal-dictionaries.md"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/user-data.md"
+    "$<TARGET_FILE_DIR:private_pinyin>/docs/user-data.md")
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   enable_language(RC)
@@ -60,6 +63,9 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(user_data_tests tests/user_data_tests.cpp)
+  target_link_libraries(user_data_tests PRIVATE pinyin_core)
+  add_test(NAME shared_user_data COMMAND user_data_tests)
   add_executable(personal_dictionary_tests tests/personal_dictionary_tests.cpp)
   target_link_libraries(personal_dictionary_tests PRIVATE pinyin_core)
   add_test(NAME personal_dictionary COMMAND personal_dictionary_tests)

@@ -10,8 +10,8 @@
 
 点击“合并词库…”，在文件窗口底部选择对应的“文件类型”：
 
-- **个人词库（选择次数）**：将另一份个人词库合并到 `%LOCALAPPDATA%\PrivatePinyin\words.user.tsv`。同词同读音的选择次数取较大值，不相加；不同读音保留。重复导入相同文件不改变词库，也不产生额外备份。
-- **普通词库（排序权重）**：将普通三列 TSV 合并到 `%LOCALAPPDATA%\PrivatePinyin\dictionaries\imported.tsv` 辅词库。同词同读音取较大权重，不修改主词库；辅词库不依赖本地学习开关。其他主题辅词库仍可通过 [Agent CLI](agent-dictionaries.md) 分别管理。若 `imported` 先前被 Agent 停用，合并保留停用状态，并在结果中提示。
+- **个人词库（选择次数）**：将另一份个人词库合并到 `%USERPROFILE%\PrivatePinyin\words.user.tsv`。同词同读音的选择次数取较大值，不相加；不同读音保留。重复导入相同文件不改变词库，也不产生额外备份。
+- **普通词库（排序权重）**：将普通三列 TSV 合并到 `%USERPROFILE%\PrivatePinyin\dictionaries\imported.tsv` 辅词库。同词同读音取较大权重，不修改主词库；辅词库不依赖本地学习开关。其他主题辅词库仍可通过 [Agent CLI](agent-dictionaries.md) 分别管理。若 `imported` 先前被 Agent 停用，合并保留停用状态，并在结果中提示。
 
 个人词库合并有实际变更且原文件已存在时，先把原文件完整备份到同目录 `backups` 文件夹，名称包含时间与唯一编号。结果窗口和 CLI 返回此次备份路径。备份失败、格式错误、写入锁超时或文件替换失败时不覆盖现有词库。备份也是个人词库，可再次选择合并；合并用于补充，不用于撤销或降低现有选择次数。
 

@@ -51,7 +51,7 @@ int run_dictionary_cli(int argc, wchar_t* argv[], const std::filesystem::path& b
         if (command == "help" || command == "--help") {
             std::cout << "{\"schema\":1,\"ok\":true,\"command\":\"help\",\"commands\":["
                 "\"list\",\"validate\",\"import\",\"upsert\",\"remove\",\"enable\",\"disable\",\"export\",\"query\"],"
-                "\"documentation\":\"docs/agent-dictionaries.md\",\"defaultRoot\":\"%LOCALAPPDATA%/PrivatePinyin/dictionaries\"}\n";
+                "\"documentation\":\"docs/agent-dictionaries.md\",\"defaultRoot\":\"%USERPROFILE%/PrivatePinyin/dictionaries\"}\n";
             return 0;
         }
         std::map<std::wstring, std::wstring> options;
@@ -156,7 +156,7 @@ int run_personal_cli(int argc, wchar_t* argv[]) {
             if (argc > 2) throw std::runtime_error("personal help does not accept options");
             std::cout << "{\"schema\":1,\"ok\":true,\"command\":\"help\",\"commands\":[\"validate\",\"export\",\"merge\"],"
                 "\"documentation\":\"docs/personal-dictionaries.md\","
-                "\"defaultUser\":\"%LOCALAPPDATA%/PrivatePinyin/words.user.tsv\"}\n";
+                "\"defaultUser\":\"%USERPROFILE%/PrivatePinyin/words.user.tsv\"}\n";
             return 0;
         }
         if (command != "validate" && command != "export" && command != "merge")
