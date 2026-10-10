@@ -2,7 +2,7 @@
 #include <windows.h>
 #include "settings_resource.h"
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
-IDD_SETTINGS DIALOGEX 0, 0, 330, 242
+IDD_SETTINGS DIALOGEX 0, 0, 330, 305
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "隐私拼音 · 设置"
 FONT 10, "Microsoft YaHei UI"
@@ -15,6 +15,9 @@ BEGIN
     CONTROL "自动英文识别（试用）", IDC_AUTOMATIC_ENGLISH, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 16, 128, 292, 16
     LTEXT "hello 后按空格，继续输入英文句子。Shift 返回中文。", -1, 30, 147, 284, 22
     LTEXT "修改自动保存，切回应用后生效。Shift 或点击“中 / 英”切换输入模式。", -1, 16, 176, 298, 26
-    PUSHBUTTON "打开个人词库目录", IDC_OPEN_DIRECTORY, 16, 212, 126, 22
-    DEFPUSHBUTTON "关闭", IDOK, 254, 212, 60, 22
+    PUSHBUTTON "导出个人词库…", IDC_EXPORT_PERSONAL, 16, 211, 142, 22
+    PUSHBUTTON "合并词库…", IDC_MERGE_DICTIONARY, 172, 211, 142, 22
+    LTEXT "合并时选择个人词库或普通词库类型。个人词库修改前自动备份，普通词库加入辅库。", -1, 16, 239, 298, 28
+    PUSHBUTTON "打开个人词库目录", IDC_OPEN_DIRECTORY, 16, 275, 126, 22
+    DEFPUSHBUTTON "关闭", IDOK, 254, 275, 60, 22
 END

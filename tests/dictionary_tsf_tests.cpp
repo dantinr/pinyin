@@ -2,6 +2,8 @@
 #include "test_workspace.hpp"
 #include "pinyin/dictionary_manager.hpp"
 #include "pinyin/learning_dictionary.hpp"
+#include "pinyin/user_store.hpp"
+#include <fstream>
 #include <iostream>
 
 namespace {
@@ -46,6 +48,17 @@ int wmain(int argc, wchar_t* argv[]) {
         check(candidate(ime, L"辅库更新词"), "Agent additions required restarting the application"); ime.key(VK_ESCAPE);
         manager.remove("agent", "辅库测试词", "fu ku ce shi ci"); ime.type("fukuceshici");
         check(!candidate(ime, L"辅库测试词"), "Agent-removed word survived the next composition"); ime.key(VK_ESCAPE);
+        const auto imported = workspace.root / L"personal.tsv";
+        { std::ofstream file(imported, std::ios::binary); file << "个人导入词ABC\the bing ce shi ci\t4\n"; }
+        merge_user_dictionary(user, imported);
+        ime.type("hebingceshici");
+        check(!candidate(ime, L"个人导入词ABC"), "merge turned learning on against the user's setting"); ime.key(VK_ESCAPE);
+        set_ime_learning(user, true); ime.type("hebingceshici");
+        check(candidate(ime, L"个人导入词ABC"), "running TSF did not load a merged personal word in the next composition");
+        check(ime.key(VK_SPACE) && ime.store->text == L"辅库测试词个人导入词ABC" && ime.compositions() == 0,
+            "merged personal candidate did not commit");
+        check(read_user_dictionary(user).at({"he bing ce shi ci", "个人导入词ABC"}) == 5,
+            "merged personal word did not continue learning from the imported count");
         ime.close(); check(ime.unload_result == S_OK, "dictionary reload leaked DLL references");
         CoUninitialize(); std::cout << "PASS: " << checks << " real TSF supplementary dictionary checks\n"; return 0;
     } catch (const std::exception& error) {

@@ -107,6 +107,7 @@ try {
         'data/base.tsv' = (Join-Path $repo 'data/base.tsv')
         'data/README.md' = (Join-Path $repo 'data/README.md')
         'docs/agent-dictionaries.md' = (Join-Path $repo 'docs/agent-dictionaries.md')
+        'docs/personal-dictionaries.md' = (Join-Path $repo 'docs/personal-dictionaries.md')
         'scripts/register-ime.ps1' = (Join-Path $repo 'scripts/register-ime.ps1')
         'scripts/unregister-ime.ps1' = (Join-Path $repo 'scripts/unregister-ime.ps1')
         'scripts/install.ps1' = (Join-Path $repo 'packaging/scripts/install.ps1')

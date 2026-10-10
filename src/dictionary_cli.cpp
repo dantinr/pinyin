@@ -1,5 +1,7 @@
 #include "dictionary_cli.hpp"
 #include "pinyin/dictionary_manager.hpp"
+#include "pinyin/learning_dictionary.hpp"
+#include "pinyin/user_store.hpp"
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
@@ -143,6 +145,61 @@ int run_dictionary_cli(int argc, wchar_t* argv[], const std::filesystem::path& b
         std::cout << result.str() << "}\n"; return 0;
     } catch (const std::exception& error) {
         std::cout << "{\"schema\":1,\"ok\":false,\"command\":" << quoted(command) << ",\"error\":" << quoted(error.what()) << "}\n";
+        return 1;
+    }
+}
+int run_personal_cli(int argc, wchar_t* argv[]) {
+    std::string command;
+    try {
+        command = argc > 1 ? utf8(argv[1]) : "help";
+        if (command == "help" || command == "--help") {
+            if (argc > 2) throw std::runtime_error("personal help does not accept options");
+            std::cout << "{\"schema\":1,\"ok\":true,\"command\":\"help\",\"commands\":[\"validate\",\"export\",\"merge\"],"
+                "\"documentation\":\"docs/personal-dictionaries.md\","
+                "\"defaultUser\":\"%LOCALAPPDATA%/PrivatePinyin/words.user.tsv\"}\n";
+            return 0;
+        }
+        if (command != "validate" && command != "export" && command != "merge")
+            throw std::runtime_error("unknown personal command; use personal help");
+        std::map<std::wstring, std::wstring> options;
+        bool overwrite = false;
+        for (int i = 2; i < argc; ++i) {
+            const std::wstring key(argv[i]);
+            if (key == L"--overwrite") {
+                if (overwrite) throw std::runtime_error("duplicate --overwrite");
+                overwrite = true; continue;
+            }
+            if (key != L"--file" && key != L"--user") throw std::runtime_error("unknown personal option");
+            if (++i >= argc || !*argv[i] || std::wstring(argv[i]).compare(0, 2, L"--") == 0)
+                throw std::runtime_error("missing personal option value");
+            if (!options.emplace(key, argv[i]).second) throw std::runtime_error("duplicate personal option");
+        }
+        if (!options.count(L"--file")) throw std::runtime_error("--file is required");
+        if (overwrite && command != "export") throw std::runtime_error("--overwrite is only supported by export");
+        if (command == "validate" && options.count(L"--user")) throw std::runtime_error("validate does not accept --user");
+        const auto file = std::filesystem::absolute(options.at(L"--file"));
+        std::ostringstream result;
+        result << "{\"schema\":1,\"ok\":true,\"command\":" << quoted(command)
+            << ",\"path\":" << quoted(utf8(file.wstring()));
+        if (command == "validate") {
+            const auto incoming = pinyin::read_personal_dictionary_file(file);
+            result << ",\"records\":" << incoming.records << ",\"entries\":" << incoming.users.size()
+                << ",\"duplicates\":" << incoming.records - incoming.users.size();
+        } else {
+            const auto user = options.count(L"--user") ? std::filesystem::absolute(options.at(L"--user")) : pinyin::default_user_path();
+            result << ",\"user\":" << quoted(utf8(user.wstring()));
+            if (command == "export") result << ",\"entries\":" << pinyin::export_user_dictionary(user, file, overwrite);
+            else {
+                const auto merged = pinyin::merge_user_dictionary(user, file);
+                result << ",\"imported\":" << merged.imported << ",\"added\":" << merged.added
+                    << ",\"updated\":" << merged.updated << ",\"unchanged\":" << merged.unchanged
+                    << ",\"total\":" << merged.total << ",\"backup\":" << quoted(utf8(merged.backup.wstring()));
+            }
+        }
+        std::cout << result.str() << "}\n"; return 0;
+    } catch (const std::exception& error) {
+        std::cout << "{\"schema\":1,\"ok\":false,\"command\":" << quoted(command)
+            << ",\"error\":" << quoted(error.what()) << "}\n";
         return 1;
     }
 }

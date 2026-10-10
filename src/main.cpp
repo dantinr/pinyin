@@ -90,6 +90,8 @@ int wmain(int argc, wchar_t* argv[]) {
     try {
         if (argc > 1 && std::wstring(argv[1]) == L"lexicon")
             return run_dictionary_cli(argc - 1, argv + 1, executable_directory() / L"data" / L"base.tsv");
+        if (argc > 1 && std::wstring(argv[1]) == L"personal")
+            return run_personal_cli(argc - 1, argv + 1);
         auto dictionary = executable_directory() / L"data" / L"base.tsv";
         std::filesystem::path user_path;
         std::string query;

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(private_pinyin VERSION 0.8.0 LANGUAGES CXX)
+project(private_pinyin VERSION 0.9.0 LANGUAGES CXX)
 if(NOT WIN32)
   message(FATAL_ERROR "This prototype currently targets Windows.")
 endif()
@@ -23,7 +23,10 @@ add_custom_command(TARGET private_pinyin POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:private_pinyin>/docs"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_CURRENT_SOURCE_DIR}/docs/agent-dictionaries.md"
-    "$<TARGET_FILE_DIR:private_pinyin>/docs/agent-dictionaries.md")
+    "$<TARGET_FILE_DIR:private_pinyin>/docs/agent-dictionaries.md"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/personal-dictionaries.md"
+    "$<TARGET_FILE_DIR:private_pinyin>/docs/personal-dictionaries.md")
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   enable_language(RC)
@@ -49,7 +52,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   add_dependencies(private_pinyin_demo private_pinyin_ime)
   add_executable(private_pinyin_settings WIN32 src/settings_main.cpp src/settings.rc src/settings.manifest)
   target_compile_definitions(private_pinyin_settings PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
-  target_link_libraries(private_pinyin_settings PRIVATE pinyin_core user32 shell32)
+  target_link_libraries(private_pinyin_settings PRIVATE pinyin_core user32 shell32 comdlg32)
   if(MSVC)
     target_compile_options(private_pinyin_settings PRIVATE /W4 /permissive-)
   endif()
@@ -57,6 +60,9 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(personal_dictionary_tests tests/personal_dictionary_tests.cpp)
+  target_link_libraries(personal_dictionary_tests PRIVATE pinyin_core)
+  add_test(NAME personal_dictionary COMMAND personal_dictionary_tests)
   add_executable(dictionary_manager_tests tests/dictionary_manager_tests.cpp)
   target_link_libraries(dictionary_manager_tests PRIVATE pinyin_core)
   add_test(NAME dictionary_manager COMMAND dictionary_manager_tests)
@@ -139,6 +145,8 @@ if(BUILD_TESTING)
   endif()
   find_program(PWSH_EXECUTABLE NAMES pwsh)
   if(PWSH_EXECUTABLE)
+    add_test(NAME personal_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/personal_cli_tests.ps1" -Executable "$<TARGET_FILE:private_pinyin>")
     add_test(NAME dictionary_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/dictionary_cli_tests.ps1" -Executable "$<TARGET_FILE:private_pinyin>")
     add_test(NAME pinyin_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File

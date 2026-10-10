@@ -1,4 +1,5 @@
 #include "pinyin/user_store.hpp"
+#include "pinyin/dictionary_manager.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -7,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <cwchar>
 #include <sstream>
 #include <stdexcept>
 
@@ -106,7 +108,8 @@ UserDictionary read_user_dictionary(const std::filesystem::path& path) {
     return users;
 }
 
-void UserStore::save(const UserDictionary& users) const {
+namespace {
+std::string serialize(const UserDictionary& users) {
     std::ostringstream contents;
     contents << "# private-pinyin user dictionary v1: text<TAB>pinyin<TAB>selection_count\n";
     for (const auto& item : users) {
@@ -117,12 +120,15 @@ void UserStore::save(const UserDictionary& users) const {
             throw std::runtime_error("invalid user selection count");
         contents << item.first.second << '\t' << item.first.first << '\t' << item.second << '\n';
     }
-    const auto bytes = contents.str();
+    return contents.str();
+}
+void write_atomic(const std::filesystem::path& target, const std::string& bytes, bool overwrite) {
+    std::filesystem::create_directories(target.parent_path());
     static std::atomic<unsigned long> sequence{0};
     std::filesystem::path temporary;
     HANDLE file = INVALID_HANDLE_VALUE;
     for (int attempt = 0; attempt < 16; ++attempt) {
-        temporary = path_;
+        temporary = target;
         temporary += L".tmp." + std::to_wstring(GetCurrentProcessId()) + L"." + std::to_wstring(++sequence);
         file = CreateFileW(temporary.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
                            FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -151,7 +157,8 @@ void UserStore::save(const UserDictionary& users) const {
         // the writer lock; never delete the published file to force an update.
         const auto deadline = GetTickCount64() + 100;
         for (;;) {
-            if (MoveFileExW(temporary.c_str(), path_.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) break;
+            if (MoveFileExW(temporary.c_str(), target.c_str(), MOVEFILE_WRITE_THROUGH |
+                (overwrite ? MOVEFILE_REPLACE_EXISTING : 0))) break;
             const auto error = GetLastError();
             if ((error != ERROR_ACCESS_DENIED && error != ERROR_SHARING_VIOLATION && error != ERROR_LOCK_VIOLATION) ||
                 GetTickCount64() >= deadline) {
@@ -164,6 +171,78 @@ void UserStore::save(const UserDictionary& users) const {
         DeleteFileW(temporary.c_str());
         throw;
     }
+}
+bool same_file(const std::filesystem::path& left, const std::filesystem::path& right) {
+    const auto a = std::filesystem::weakly_canonical(std::filesystem::absolute(left));
+    const auto b = std::filesystem::weakly_canonical(std::filesystem::absolute(right));
+    if (_wcsicmp(a.c_str(), b.c_str()) == 0) return true;
+    std::error_code error;
+    return std::filesystem::equivalent(a, b, error);
+}
+std::filesystem::path backup_file(const std::filesystem::path& user) {
+    const auto directory = user.parent_path() / L"backups";
+    std::filesystem::create_directories(directory);
+    SYSTEMTIME time{}; GetLocalTime(&time);
+    wchar_t timestamp[32]{};
+    swprintf_s(timestamp, L"%04u%02u%02u-%02u%02u%02u", time.wYear, time.wMonth, time.wDay,
+        time.wHour, time.wMinute, time.wSecond);
+    static std::atomic<unsigned long> sequence{0};
+    for (int attempt = 0; attempt < 16; ++attempt) {
+        const auto target = directory / (user.stem().wstring() + L"." + timestamp + L"." +
+            std::to_wstring(GetCurrentProcessId()) + L"." + std::to_wstring(++sequence) + L".tsv");
+        if (CopyFileW(user.c_str(), target.c_str(), TRUE)) return target;
+        if (GetLastError() != ERROR_FILE_EXISTS && GetLastError() != ERROR_ALREADY_EXISTS)
+            throw windows_error("cannot back up personal dictionary; merge was not saved");
+    }
+    throw std::runtime_error("cannot allocate personal dictionary backup");
+}
+}
+
+void UserStore::save(const UserDictionary& users) const {
+    write_atomic(path_, serialize(users), true);
+}
+
+PersonalDictionaryFile read_personal_dictionary_file(const std::filesystem::path& path) {
+    if (!std::filesystem::is_regular_file(path)) throw std::runtime_error("personal dictionary source file does not exist");
+    const auto file = read_dictionary_file(path);
+    for (const auto& comment : file.comments) {
+        if (comment.find("private-pinyin supplementary dictionary") != std::string::npos ||
+            comment.find("Private Pinyin independently curated starter lexicon") != std::string::npos ||
+            comment.find("<TAB>positive weight") != std::string::npos)
+            throw std::runtime_error("this file contains sorting weights; import it as a supplementary dictionary instead");
+    }
+    PersonalDictionaryFile result; result.records = file.records;
+    for (const auto& word : file.lexicon.entries())
+        result.users.emplace(UserKey{word.pronunciation, word.text}, word.weight);
+    return result;
+}
+
+std::size_t export_user_dictionary(const std::filesystem::path& user,
+    const std::filesystem::path& target, bool overwrite) {
+    if (same_file(user, target)) throw std::runtime_error("export destination must differ from the active personal dictionary");
+    const auto users = read_user_dictionary(user);
+    write_atomic(std::filesystem::absolute(target), serialize(users), overwrite);
+    return users.size();
+}
+
+UserMergeResult merge_user_dictionary(const std::filesystem::path& user, const std::filesystem::path& source) {
+    const auto incoming = read_personal_dictionary_file(source);
+    UserStore store(user, 1000);
+    auto users = store.load();
+    UserMergeResult result; result.imported = incoming.users.size();
+    for (const auto& word : incoming.users) {
+        const auto inserted = users.emplace(word);
+        if (inserted.second) ++result.added;
+        else if (inserted.first->second < word.second) {
+            inserted.first->second = word.second; ++result.updated;
+        } else ++result.unchanged;
+    }
+    result.total = users.size();
+    if (result.added || result.updated) {
+        if (std::filesystem::exists(store.path())) result.backup = backup_file(store.path());
+        store.save(users);
+    }
+    return result;
 }
 
 } // namespace pinyin
