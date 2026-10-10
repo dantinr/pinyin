@@ -34,7 +34,7 @@ int main() {
         check(!ime_learning_enabled({}), "missing user path enabled local learning");
         LearningDictionary dictionary(base, path);
         dictionary.refresh();
-        check(dictionary.enabled() && dictionary.available() && dictionary.users().empty() && !std::filesystem::exists(path),
+        check(dictionary.enabled() && dictionary.available() && dictionary.users().empty() && !std::filesystem::exists(path.parent_path()),
             "default local learning failed or invented word records");
         const InputResult confirmed{InputAction::commit, "如何", "ru he"};
         InputSession input; type(input, dictionary, "ruhe");
@@ -92,6 +92,48 @@ int main() {
         check(failures == 0 && merged.at({"ru he", "入何"}) == 8 && merged.at({"ru he", "入和"}) == 8 &&
             merged.at({"ru he", "如何"}) == 2, "concurrent learning lost an application's updates");
         dictionary.refresh(); check(dictionary.users() == merged, "next composition did not reload another application's words");
+        // Another application can still hold its write transaction after the
+        // complete dictionary has been published by atomic replacement.
+        const auto shared_path = workspace.root / L"shared" / L"words.user.tsv";
+        LearningDictionary observer(base, shared_path); observer.refresh();
+        {
+            UserStore writer(shared_path);
+            UserDictionary published{{{"bian ji", "编缉"}, 1}};
+            writer.save(published);
+            observer.refresh();
+            auto candidates = observer.lexicon().lookup_composition("bianji", observer.users());
+            check(observer.available() && !candidates.empty() && candidates.front().text == "编缉",
+                "another application's write lock hid an already published learned word");
+            LearningDictionary newcomer(base, shared_path); newcomer.refresh();
+            check(newcomer.available() && newcomer.users() == published,
+                "a newly activated application could not read a published dictionary during a write transaction");
+            published[{"ce shi", "测试"}] = 1; writer.save(published);
+            observer.refresh();
+            check(observer.users() == published, "a running application missed the next atomic dictionary replacement");
+
+            std::atomic<unsigned> reader_errors{0};
+            std::string reader_error, writer_error;
+            std::thread reader([&] {
+                for (int i = 0; i < 80; ++i) {
+                    try {
+                        const auto snapshot = read_user_dictionary(shared_path);
+                        if (snapshot.size() != 2 || snapshot.at({"bian ji", "编缉"}) != 1 ||
+                            !snapshot.at({"ce shi", "测试"})) {
+                            ++reader_errors; reader_error = "incomplete snapshot";
+                        }
+                    } catch (const std::exception& error) { ++reader_errors; reader_error = error.what(); }
+                }
+            });
+            unsigned writer_errors = 0;
+            for (int i = 0; i < 40; ++i) {
+                try { ++published[{"ce shi", "测试"}]; writer.save(published); }
+                catch (const std::exception& error) { ++writer_errors; writer_error = error.what(); }
+            }
+            reader.join();
+            const auto failure = "concurrent snapshot reads/publication failed: reader=" + reader_error +
+                "; writer=" + writer_error;
+            check(reader_errors == 0 && writer_errors == 0, failure.c_str());
+        }
         set_ime_learning(path, false); dictionary.refresh();
         check(!dictionary.enabled() && dictionary.users().empty() && dictionary.lexicon().lookup("ruhe").empty(),
             "disabling learning kept personal words in the active lexicon");
@@ -113,6 +155,7 @@ int main() {
         check(!dictionary.remember(confirmed) && read(path) == corrupt, "learning replaced corrupt personal data");
         { UserStore store(path); store.save({}); }
         dictionary.refresh();
+        check(dictionary.available(), "a successful reload did not restore learning availability");
         check(dictionary.remember(confirmed), "learning did not recover after user data repair");
         std::cout << "PASS: " << checks << " local learning/privacy/concurrency checks\n";
         return 0;

@@ -412,6 +412,26 @@ int wmain(int argc, wchar_t* argv[]) {
             ime.close();
             check(ime.unload_result == S_OK, "sensitive context leaked service references");
         }
+        { pinyin::UserStore store(user_path); store.save({}); }
+        {
+            Harness ime(argv[1]); ime.type("bianji"); ime.key(VK_ESCAPE);
+            const pinyin::UserDictionary published{{{"bian ji", "编缉"}, 1}};
+            {
+                // The reader was already running before another app published
+                // the phrase; that app retains its write lock during lookup.
+                pinyin::UserStore other_app(user_path); other_app.save(published);
+                ime.keys->OnSetFocus(TRUE);
+                ime.type("bianji"); ime.key(VK_SPACE);
+                check(ime.store->text == L"编缉" && ime.compositions() == 0,
+                    "running TSF hid another application's published word while its write lock was held");
+                check(pinyin::read_user_dictionary(user_path) == published,
+                    "busy TSF learning overwrote another application's transaction");
+            }
+            ime.type("bianji"); ime.key(VK_SPACE);
+            check(ime.store->text == L"编缉编缉" && personal_words(user_path).at({"bian ji", "编缉"}) == 2,
+                "TSF did not resume learning after the other application's write transaction ended");
+            ime.close(); check(ime.unload_result == S_OK, "shared-learning service leaked DLL references");
+        }
         CoUninitialize(); std::cout << "PASS: " << checks << " real TSF integration checks\n"; return 0;
     } catch (const std::exception& e) {
         std::cerr << "FAIL after " << checks << " checks: " << e.what() << '\n';

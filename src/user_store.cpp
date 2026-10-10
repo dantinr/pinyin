@@ -5,8 +5,8 @@
 #include <windows.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
-#include <fstream>
 #include <sstream>
 #include <stdexcept>
 
@@ -21,6 +21,31 @@ std::uint64_t parse_count(const std::string& value) {
     const auto count = std::stoull(value);
     if (count == 0 || count > 1000000000) throw std::runtime_error("selection count out of range");
     return count;
+}
+std::string read_snapshot(const std::filesystem::path& path) {
+    const auto file = CreateFileW(path.c_str(), GENERIC_READ,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (file == INVALID_HANDLE_VALUE) {
+        const auto error = GetLastError();
+        if (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND) return {};
+        SetLastError(error); throw windows_error("cannot open user dictionary");
+    }
+    struct CloseFile {
+        HANDLE file;
+        ~CloseFile() { CloseHandle(file); }
+    } close{file};
+    // Writers publish a new file instead of changing the open file's contents.
+    // This handle retains its complete version even if its name is replaced.
+    std::string bytes;
+    std::array<char, 8192> buffer{};
+    for (;;) {
+        DWORD read = 0;
+        if (!ReadFile(file, buffer.data(), static_cast<DWORD>(buffer.size()), &read, nullptr))
+            throw windows_error("cannot read user dictionary");
+        if (!read) return bytes;
+        bytes.append(buffer.data(), read);
+    }
 }
 }
 
@@ -49,10 +74,12 @@ UserStore::~UserStore() {
 }
 
 UserDictionary UserStore::load() const {
+    return read_user_dictionary(path_);
+}
+
+UserDictionary read_user_dictionary(const std::filesystem::path& path) {
     UserDictionary users;
-    if (!std::filesystem::exists(path_)) return users;
-    std::ifstream file(path_, std::ios::binary);
-    if (!file) throw std::runtime_error("cannot open user dictionary");
+    std::istringstream file(read_snapshot(path));
     std::size_t number = 0;
     for (std::string line; std::getline(file, line);) {
         ++number;
@@ -119,8 +146,19 @@ void UserStore::save(const UserDictionary& users) const {
             throw windows_error("cannot close user dictionary");
         }
         file = INVALID_HANDLE_VALUE;
-        if (!MoveFileExW(temporary.c_str(), path_.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-            throw windows_error("cannot replace user dictionary");
+        // Windows may briefly reject replacement while another reader closes
+        // the previous file. Keep the complete temporary file and retry under
+        // the writer lock; never delete the published file to force an update.
+        const auto deadline = GetTickCount64() + 100;
+        for (;;) {
+            if (MoveFileExW(temporary.c_str(), path_.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) break;
+            const auto error = GetLastError();
+            if ((error != ERROR_ACCESS_DENIED && error != ERROR_SHARING_VIOLATION && error != ERROR_LOCK_VIOLATION) ||
+                GetTickCount64() >= deadline) {
+                SetLastError(error); throw windows_error("cannot replace user dictionary");
+            }
+            Sleep(5);
+        }
     } catch (...) {
         if (file != INVALID_HANDLE_VALUE) CloseHandle(file);
         DeleteFileW(temporary.c_str());

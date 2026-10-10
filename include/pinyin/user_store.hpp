@@ -4,6 +4,10 @@
 
 namespace pinyin {
 
+// Reads one complete published file without taking the writer transaction lock
+// or creating storage. Atomic replacements can proceed while the file is open.
+UserDictionary read_user_dictionary(const std::filesystem::path& path);
+
 // Holds an exclusive lock for the session to prevent lost updates between processes.
 // Construct only when the user explicitly enables learning.
 class UserStore {

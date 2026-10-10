@@ -68,10 +68,10 @@ void LearningDictionary::refresh() {
         users_.clear(); available_ = true; return;
     }
     try {
-        UserDictionary users;
-        { UserStore store(user_path_); users = store.load(); }
+        auto users = read_user_dictionary(user_path_);
         auto active = merged(users);
         users_ = std::move(users); active_ = std::move(active);
+        available_ = true;
     } catch (const std::exception&) {
         users_.clear(); active_ = base_; available_ = false;
     }
