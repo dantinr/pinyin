@@ -5,6 +5,8 @@
 | 文件或目录 | 用途 |
 | --- | --- |
 | `words.user.tsv` | 已确认的个人词语及选择次数 |
+| `statistics.tsv` | 按日期汇总的中文输入字数、上屏次数和有效输入时间，不含原文 |
+| `vocabulary-growth.tsv` | 个人词库统计起始日期及每日新增字词数，不含词语 |
 | `words.user.tsv.*.disabled` | 本地学习、中文标点、自动英文的关闭标记 |
 | `dictionaries\*.tsv` | 用户或 Agent 管理的辅词库 |
 | `dictionaries\*.tsv.disabled` | 辅词库的停用标记 |

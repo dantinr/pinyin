@@ -1,5 +1,7 @@
 #include "pinyin/user_store.hpp"
 #include "pinyin/dictionary_manager.hpp"
+#include "pinyin/input_statistics.hpp"
+#include "pinyin/vocabulary_growth.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -10,6 +12,7 @@
 #include <atomic>
 #include <cwchar>
 #include <sstream>
+#include <set>
 #include <stdexcept>
 
 namespace pinyin {
@@ -198,8 +201,25 @@ std::filesystem::path backup_file(const std::filesystem::path& user) {
 }
 }
 
-void UserStore::save(const UserDictionary& users) const {
+void UserStore::save(const UserDictionary& users, bool track_growth) const {
+    std::uint64_t added = 0;
+    if (track_growth) {
+        try {
+            std::set<std::string> texts;
+            for (const auto& word : load()) texts.insert(word.first.second);
+            for (const auto& word : users)
+                if (texts.insert(word.first.second).second) ++added;
+        } catch (...) {
+            // An explicit repair may replace an unreadable dictionary; its
+            // previous vocabulary is unknown, so do not invent additions.
+            track_growth = false;
+        }
+    }
     write_atomic(path_, serialize(users), true);
+    if (track_growth) {
+        try { add_vocabulary_growth(vocabulary_growth_path(path_), local_statistics_date(), added); }
+        catch (...) {} // A statistics failure must never break personal learning.
+    }
 }
 
 PersonalDictionaryFile read_personal_dictionary_file(const std::filesystem::path& path) {
@@ -225,7 +245,8 @@ std::size_t export_user_dictionary(const std::filesystem::path& user,
     return users.size();
 }
 
-UserMergeResult merge_user_dictionary(const std::filesystem::path& user, const std::filesystem::path& source) {
+UserMergeResult merge_user_dictionary(const std::filesystem::path& user, const std::filesystem::path& source,
+    bool track_growth) {
     const auto incoming = read_personal_dictionary_file(source);
     UserStore store(user, 1000);
     auto users = store.load();
@@ -240,7 +261,7 @@ UserMergeResult merge_user_dictionary(const std::filesystem::path& user, const s
     result.total = users.size();
     if (result.added || result.updated) {
         if (std::filesystem::exists(store.path())) result.backup = backup_file(store.path());
-        store.save(users);
+        store.save(users, track_growth);
     }
     return result;
 }

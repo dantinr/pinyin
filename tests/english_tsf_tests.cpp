@@ -211,9 +211,10 @@ int wmain(int argc, wchar_t* argv[]) {
         }
         {
             Harness ime(argv[1]); auto bar = button(ime); ime.type("hello"); ime.key(VK_SPACE);
-            check(SUCCEEDED(bar->OnMenuSelect(static_cast<UINT>(BarCommand::automatic_english))) &&
+            set_automatic_english(path, false);
+            check(!ime.key(VK_RETURN) &&
                 !read_ime_settings(path).automatic_english && label(bar.Get()) == L"中",
-                "language bar opt-out did not persist or exit automatic English");
+                "external opt-out did not persist or exit automatic English");
             ime.type("hello"); ime.key(VK_SPACE);
             check(label(bar.Get()) == L"中", "disabled automatic English still changed mode");
             ime.key(VK_ESCAPE); bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "English setting leaked references");

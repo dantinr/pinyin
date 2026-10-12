@@ -109,6 +109,7 @@ try {
         'docs/agent-dictionaries.md' = (Join-Path $repo 'docs/agent-dictionaries.md')
         'docs/personal-dictionaries.md' = (Join-Path $repo 'docs/personal-dictionaries.md')
         'docs/user-data.md' = (Join-Path $repo 'docs/user-data.md')
+        'docs/input-statistics.md' = (Join-Path $repo 'docs/input-statistics.md')
         'scripts/register-ime.ps1' = (Join-Path $repo 'scripts/register-ime.ps1')
         'scripts/unregister-ime.ps1' = (Join-Path $repo 'scripts/unregister-ime.ps1')
         'scripts/install.ps1' = (Join-Path $repo 'packaging/scripts/install.ps1')

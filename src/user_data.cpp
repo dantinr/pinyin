@@ -126,7 +126,7 @@ void migrate_legacy_user_data(const std::filesystem::path& user, const std::file
             if (!previous.empty()) throw std::runtime_error("migration receipt is damaged or conflicts with another source");
             const auto snapshot = state / (key + ".tsv");
             if (!CopyFileW(source.c_str(), snapshot.c_str(), FALSE)) throw std::runtime_error("cannot preserve old dictionary");
-            if (name.empty()) merge_user_dictionary(user, snapshot);
+            if (name.empty()) merge_user_dictionary(user, snapshot, false);
             else {
                 DictionaryManager manager(destination / L"dictionaries");
                 const auto target = manager.root() / (name + ".tsv");

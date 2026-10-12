@@ -24,11 +24,11 @@
    自动英文段显示“英”；Shift、回车、Tab、Esc、方向/定位键或离开输入框后返回拼音。
    设置窗口及右键菜单可关闭自动识别；未收录英文词、人名或拼写错误可能需要手动切换。
    右键可切换本地学习、中文标点，打开设置和个人词库目录。
-   也可直接运行 private_pinyin_settings.exe；修改自动保存，切回应用或下次输入时生效。
+   也可直接运行 private_pinyin_settings.exe，查看输入统计和管理个人词库。
    关闭中文标点后 nh, 仍可上屏“你好,”。学习与标点设置跨应用、重启保留。
 
 默认开启本地学习。词语、读音和选择次数保存在
-%LOCALAPPDATA%\PrivatePinyin\words.user.tsv。
+%USERPROFILE%\PrivatePinyin\words.user.tsv。
 密码/PIN 框直接输入。没有联网、遥测、云词库或原文按键日志。
 学习开关可通过安装目录中的 private_pinyin.exe --ime-learning on|off|status|clear 设置。
 
@@ -39,9 +39,15 @@
 Agent 可使用 private_pinyin.exe personal help 发现导出、校验与合并命令。
 完整规则见 docs/personal-dictionaries.md。
 
+设置面板显示累计与今日中文输入量、输入速度、每日统计和个人词库规模。
+个人词库显示今日新增与累计新增；“词库增长曲线”页显示最近 30 天每日新增。
+统计从安装此功能后开始，只保存日期及汇总数字，不记录输入原文。
+本地文件为 %USERPROFILE%\PrivatePinyin\statistics.tsv；详细口径见 docs/input-statistics.md。
+每日新词汇总另存为同目录的 vocabulary-growth.tsv，不记录词语内容。
+
 用户自己的 Agent 可运行 private_pinyin.exe lexicon help 管理词库。
 主词库 data/base.tsv 保持只读；主题辅词库存放在
-%LOCALAPPDATA%\PrivatePinyin\dictionaries。新增和启停在下一轮输入生效。
+%USERPROFILE%\PrivatePinyin\dictionaries。新增和启停在下一轮输入生效。
 完整协议、补词规则与命令示例见 docs/agent-dictionaries.md。
 
 安装完成后，下载的 ZIP 和解压目录可以删除。

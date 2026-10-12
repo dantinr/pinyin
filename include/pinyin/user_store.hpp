@@ -24,7 +24,7 @@ struct UserMergeResult {
 // Locks, rereads, backs up an existing file, then publishes the merged snapshot.
 // Reimporting the same data is a no-op; counts are never summed.
 UserMergeResult merge_user_dictionary(const std::filesystem::path& user,
-    const std::filesystem::path& source);
+    const std::filesystem::path& source, bool track_growth = true);
 
 // Holds an exclusive lock for the session to prevent lost updates between processes.
 // Construct for a write transaction, not for a read-only lookup.
@@ -36,7 +36,9 @@ public:
     UserStore& operator=(const UserStore&) = delete;
     UserDictionary load() const;
     // Writes a temporary file in the same directory, then atomically replaces the file.
-    void save(const UserDictionary& users) const;
+    // Count distinct newly added texts only after successful publication.
+    // Legacy migration/repair can opt out; historical additions have no dates.
+    void save(const UserDictionary& users, bool track_growth = true) const;
     const std::filesystem::path& path() const noexcept { return path_; }
 private:
     std::filesystem::path path_;

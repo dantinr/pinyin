@@ -6,6 +6,7 @@
 #include "pinyin/learning_dictionary.hpp"
 #include "pinyin/punctuation.hpp"
 #include "pinyin/english_input.hpp"
+#include "pinyin/input_statistics.hpp"
 #include <functional>
 #include <memory>
 #include <optional>
@@ -155,6 +156,8 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     DWORD element_id_ = TF_INVALID_UIELEMENTID;
     TfGuidAtom attribute_atom_ = TF_INVALID_GUIDATOM;
     std::unique_ptr<LearningDictionary> dictionary_;
+    std::unique_ptr<InputStatisticsRecorder> statistics_;
+    InputActivityClock statistics_clock_;
     std::filesystem::path user_path_;
     ImeSettings settings_;
     ComPtr<ITfLangBarItemMgr> bar_manager_;
@@ -216,8 +219,6 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             set_ime_learning(user_path_, !read_ime_settings(user_path_).learning); refresh_settings(); return S_OK;
         case BarCommand::punctuation:
             set_chinese_punctuation(user_path_, !read_ime_settings(user_path_).chinese_punctuation); refresh_settings(); return S_OK;
-        case BarCommand::automatic_english:
-            set_automatic_english(user_path_, !read_ime_settings(user_path_).automatic_english); refresh_settings(); return S_OK;
         case BarCommand::settings: {
             const auto executable = module_path().parent_path() / L"private_pinyin_settings.exe";
             const auto result = reinterpret_cast<INT_PTR>(ShellExecuteW(nullptr, L"open", executable.c_str(),
@@ -249,6 +250,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     }
     void discard_state() noexcept {
         ++generation_; input_.clear(); candidate_navigation_ = false;
+        statistics_clock_.reset();
         composition_.Reset(); composing_.Reset(); ui_suspended_ = false; close_ui();
     }
     HRESULT finish(TfEditCookie cookie, const std::optional<std::wstring>& replacement) {
@@ -276,6 +278,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     }
     void finish_later() {
         set_english(false);
+        statistics_clock_.reset();
         // Queued layout/UI read sessions can run before the terminating write
         // session. They must not resurrect a popup after focus loss/deactivation.
         ui_suspended_ = true;
@@ -302,6 +305,7 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     }
     HRESULT observe(ITfContext* context) {
         if (same_object(context, observed_.Get())) return S_OK;
+        statistics_clock_.reset();
         set_english(false);
         if (composition_ && !same_object(context, composing_.Get())) finish_later();
         unobserve();
@@ -522,6 +526,9 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
     HRESULT apply_result(ITfContext* context, TfEditCookie cookie, const InputResult& result,
                          const std::wstring& suffix = {}) {
         if (result.action == InputAction::pass) return S_FALSE;
+        const auto now = GetTickCount64();
+        auto clock = statistics_clock_;
+        clock.activity(now);
         own_edit_ = true;
         struct EditingScope {
             bool& flag;
@@ -535,8 +542,15 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
             const auto text = wide(result.text) + suffix;
             hr = composition_ ? finish(cookie, text) : insert_text(context, cookie, text);
         }
-        if (hr == S_OK && result.action == InputAction::commit && !result.pronunciation.empty())
+        if (hr == S_OK && result.action == InputAction::update) statistics_clock_ = clock;
+        if (hr == S_OK && result.action == InputAction::commit && !result.pronunciation.empty()) {
+            if (statistics_) {
+                try { statistics_->record(result.text, clock.elapsed_ms(), local_statistics_date()); }
+                catch (...) {} // Numerical statistics must never prevent input.
+            }
+            statistics_clock_.reset(); statistics_clock_.activity(now);
             dictionary_->remember(result);
+        }
         return hr;
     }
     bool wants_key(ITfContext* context, WPARAM key) {
@@ -598,6 +612,7 @@ public:
             user_path_.clear();
             try { user_path_ = default_user_path(); } catch (const std::exception&) {}
             settings_ = read_ime_settings(user_path_);
+            if (!statistics_) statistics_ = std::make_unique<InputStatisticsRecorder>(input_statistics_path(user_path_));
             dictionary_ = std::make_unique<LearningDictionary>(
                 module_path().parent_path() / L"data" / L"base.tsv", user_path_);
             manager_ = manager; client_ = client; chinese_ = true;
@@ -629,6 +644,7 @@ public:
         return protect([&] {
             // Never leave TSF subscriptions or candidate windows pointing into an unloaded DLL.
             finish_later(); unobserve();
+            if (statistics_) statistics_->flush();
             if (language_bar_) {
                 language_bar_->disconnect();
                 if (bar_manager_) bar_manager_->RemoveItem(language_bar_.Get());
