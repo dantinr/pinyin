@@ -210,7 +210,9 @@ void initialize_statistics(HWND window) {
 INT_PTR CALLBACK dialog(HWND window, UINT message, WPARAM wparam, LPARAM lparam) noexcept {
     try {
         switch (message) {
-        case WM_INITDIALOG: initialize_statistics(window); refresh(window); return TRUE;
+        case WM_INITDIALOG:
+            SetDlgItemTextW(window, IDC_VERSION, (L"版本：" + wide(PRIVATE_PINYIN_VERSION)).c_str());
+            initialize_statistics(window); refresh(window); return TRUE;
         case WM_ACTIVATE: if (LOWORD(wparam) != WA_INACTIVE) refresh(window); return FALSE;
         case WM_TIMER: if (wparam == 1) refresh(window); return TRUE;
         case WM_DESTROY: KillTimer(window, 1); return TRUE;

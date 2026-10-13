@@ -8,7 +8,8 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "隐私拼音 · 设置"
 FONT 10, "Microsoft YaHei UI"
 BEGIN
-    LTEXT "统计与词库均保存在本机，无需联网。", -1, 16, 12, 408, 16
+    LTEXT "统计与词库均保存在本机，无需联网。", -1, 16, 12, 286, 16
+    RTEXT "", IDC_VERSION, 308, 12, 116, 16
     GROUPBOX "中文输入统计", -1, 16, 33, 408, 63
     LTEXT "", IDC_STATISTICS_TOTAL, 28, 49, 190, 16
     LTEXT "", IDC_STATISTICS_TODAY, 224, 49, 188, 16

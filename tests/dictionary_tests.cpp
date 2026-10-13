@@ -135,6 +135,68 @@ const Sample samples[] = {
     {"conglong", "葱茏", "cong long"},
     {"baoxiang", "爆香", "bao xiang"},
     {"ruyuanyichang", "如愿以偿", "ru yuan yi chang"},
+    // Computing vocabulary: cover every topic and contextual polyphones.
+    {"jisuanjizuchengyuanli", "计算机组成原理", "ji suan ji zu cheng yuan li"},
+    {"fengnuoyimanjiegou", "冯诺依曼结构", "feng nuo yi man jie gou"},
+    {"huancunhang", "缓存行", "huan cun hang"},
+    {"ruipin", "睿频", "rui pin"},
+    {"gutaiyingpan", "固态硬盘", "gu tai ying pan"},
+    {"yonghutai", "用户态", "yong hu tai"},
+    {"xitongdiaoyong", "系统调用", "xi tong diao yong"},
+    {"jinchengdiaodu", "进程调度", "jin cheng diao du"},
+    {"xianchengzuse", "线程阻塞", "xian cheng zu se"},
+    {"kechongrusuo", "可重入锁", "ke chong ru suo"},
+    {"yin yong ji shu", "引用计数", "yin yong ji shu"},
+    {"wenjianchongmingming", "文件重命名", "wen jian chong ming ming"},
+    {"wangluoyongse", "网络拥塞", "wang luo yong se"},
+    {"zhishutuibi", "指数退避", "zhi shu tui bi"},
+    {"shengmingshibiancheng", "声明式编程", "sheng ming shi bian cheng"},
+    {"hanshuchongzai", "函数重载", "han shu chong zai"},
+    {"duochongjicheng", "多重继承", "duo chong ji cheng"},
+    {"hongheishu", "红黑树", "hong hei shu"},
+    {"bulongguolvqi", "布隆过滤器", "bu long guo lv qi"},
+    {"tanhuanfenxi", "摊还分析", "tan huan fen xi"},
+    {"jishibianyi", "即时编译", "ji shi bian yi"},
+    {"tiaoshifuhao", "调试符号", "tiao shi fu hao"},
+    {"dan hang zhu shi", "单行注释", "dan hang zhu shi"},
+    {"hangfugai", "行覆盖", "hang fu gai"},
+    {"mo hu ce shi", "模糊测试", "mo hu ce shi"},
+    {"jiaohushibianji", "交互式变基", "jiao hu shi bian ji"},
+    {"yuyanfuwuqi", "语言服务器", "yu yan fu wu qi"},
+    {"shejimoshi", "设计模式", "she ji mo shi"},
+    {"xiangyingshibuju", "响应式布局", "xiang ying shi bu ju"},
+    {"nianxingdingwei", "粘性定位", "nian xing ding wei"},
+    {"fuwuduanxuanran", "服务端渲染", "fu wu duan xuan ran"},
+    {"yuanchengguochengdiaoyong", "远程过程调用", "yuan cheng guo cheng diao yong"},
+    {"shujukuguanlixitong", "数据库管理系统", "shu ju ku guan li xi tong"},
+    {"shiwugelijibie", "事务隔离级别", "shi wu ge li ji bie"},
+    {"hangsuo", "行锁", "hang suo"},
+    {"duojihuancun", "多级缓存", "duo ji huan cun"},
+    {"fenbushixitong", "分布式系统", "fen bu shi xi tong"},
+    {"liuliangxuefeng", "流量削峰", "liu liang xue feng"},
+    {"rongqibianpai", "容器编排", "rong qi bian pai"},
+    {"gaojingyuzhi", "告警阈值", "gao jing yu zhi"},
+    {"jinsiquebushu", "金丝雀部署", "jin si que bu shu"},
+    {"xingnengpouxi", "性能剖析", "xing neng pou xi"},
+    {"diouhe", "低耦合", "di ou he"},
+    {"jue se quan xian", "角色权限", "jue se quan xian"},
+    {"miyuejiaohuan", "密钥交换", "mi yue jiao huan"},
+    {"gongyuejiami", "公钥加密", "gong yue jia mi"},
+    {"siyuejiami", "私钥加密", "si yue jia mi"},
+    {"moxingweitiao", "模型微调", "mo xing wei tiao"},
+    {"jian suozengqiangshengcheng", "检索增强生成", "jian suo zeng qiang sheng cheng"},
+    {"shujuxueyuan", "数据血缘", "shu ju xue yuan"},
+    {"guangshanhua", "光栅化", "guang shan hua"},
+    {"zhuoseqi", "着色器", "zhuo se qi"},
+    {"yubianjiwenben", "预编辑文本", "yu bian ji wen ben"},
+    {"maikuantiaozhi", "脉宽调制", "mai kuan tiao zhi"},
+    {"jioujiaoyan", "奇偶校验", "ji ou jiao yan"},
+    {"jsjwl", "计算机网络", "ji suan ji wang luo"},
+    {"sjkglxt", "数据库管理系统", "shu ju ku guan li xi tong"},
+    {"blglq", "布隆过滤器", "bu long guo lv qi"},
+    {"fbsxt", "分布式系统", "fen bu shi xi tong"},
+    {"xtdy", "系统调用", "xi tong diao yong"},
+    {"maikuantzh", "脉宽调制", "mai kuan tiao zhi"},
 };
 const Sample priorities[] = {
     {"nihao", "你好", "ni hao"},
@@ -145,6 +207,75 @@ const Sample priorities[] = {
     {"keyi", "可以", "ke yi"},
     {"zhidao", "知道", "zhi dao"},
     {"zhongqing", "钟情", "zhong qing"},
+};
+const Sample daily_samples[] = {
+    {"jiatingshenghuo", "家庭生活", "jia ting sheng huo"},
+    {"zhinv", "侄女", "zhi nv"},
+    {"zhusuo", "住所", "zhu suo"},
+    {"shoucangpin", "收藏品", "shou cang pin"},
+    {"dianbingcheng", "电饼铛", "dian bing cheng"},
+    {"mabu", "抹布", "ma bu"},
+    {"pengren", "烹饪", "peng ren"},
+    {"guotie", "锅贴", "guo tie"},
+    {"luobo", "萝卜", "luo bo"},
+    {"biqi", "荸荠", "bi qi"},
+    {"niunan", "牛腩", "niu nan"},
+    {"guiyuan", "桂圆", "gui yuan"},
+    {"guofu", "果脯", "guo fu"},
+    {"hongcha", "红茶", "hong cha"},
+    {"ganlanyou", "橄榄油", "gan lan you"},
+    {"maonidayi", "毛呢大衣", "mao ni da yi"},
+    {"niuzaiwaitao", "牛仔外套", "niu zai wai tao"},
+    {"gongzai", "公仔", "gong zai"},
+    {"baozaifan", "煲仔饭", "bao zai fan"},
+    {"yundou", "熨斗", "yun dou"},
+    {"hufu", "护肤", "hu fu"},
+    {"gouwuche", "购物车", "gou wu che"},
+    {"wanggou", "网购", "wang gou"},
+    {"zanqian", "攒钱", "zan qian"},
+    {"lepai", "肋排", "le pai"},
+    {"chailv", "差旅", "chai lv"},
+    {"zhuanhang", "转行", "zhuan hang"},
+    {"longtang", "弄堂", "long tang"},
+    {"zhaji", "闸机", "zha ji"},
+    {"banche", "班车", "ban che"},
+    {"chepaihao", "车牌号", "che pai hao"},
+    {"ruanzuo", "软座", "ruan zuo"},
+    {"xinglie", "行李额", "xing li e"},
+    {"danrenjian", "单人间", "dan ren jian"},
+    {"bujiao", "补觉", "bu jiao"},
+    {"yanjian", "眼睑", "yan jian"},
+    {"chongfeng", "重逢", "chong feng"},
+    {"bise", "鼻塞", "bi se"},
+    {"chufangyao", "处方药", "chu fang yao"},
+    {"duoyun", "多云", "duo yun"},
+    {"jiuyi", "就医", "jiu yi"},
+    {"tiyuyundong", "体育运动", "ti yu yun dong"},
+    {"hugong", "护工", "hu gong"},
+    {"heai", "和蔼", "he ai"},
+    {"tanran", "坦然", "tan ran"},
+    {"mingliao", "明了", "ming liao"},
+    {"chenzhuo", "沉着", "chen zhuo"},
+    {"fengsheng", "丰盛", "feng sheng"},
+    {"diaogang", "调岗", "diao gang"},
+    {"qiyue", "器乐", "qi yue"},
+    {"shengyue", "声乐", "sheng yue"},
+    {"peiyue", "配乐", "pei yue"},
+    {"yichana", "一刹那", "yi cha na"},
+    {"heying", "合影", "he ying"},
+    {"liuwan", "遛弯", "liu wan"},
+    {"huizhen", "会诊", "hui zhen"},
+    {"hunqing", "婚庆", "hun qing"},
+    {"dingfang", "订房", "ding fang"},
+    {"gongjiaoka", "公交卡", "gong jiao ka"},
+    {"buxiu", "补休", "bu xiu"},
+    {"jiaoyufangshi", "教育方式", "jiao yu fang shi"},
+    {"jiaju", "家居", "jia ju"},
+    {"gonggongjiaotong", "公共交通", "gong gong jiao tong"},
+    {"jtsh", "家庭生活", "jia ting sheng huo"},
+    {"jyfs", "教育方式", "jiao yu fang shi"},
+    {"ggjt", "公共交通", "gong gong jiao tong"},
+    {"jj", "家居", "jia ju"},
 };
 }
 
@@ -162,11 +293,21 @@ int wmain(int argc, wchar_t* argv[]) {
         std::set<std::pair<std::string, std::string>> readings;
         std::map<std::string, std::set<std::string>> single_readings;
         std::size_t rows = 0, line_number = 0;
+        std::set<std::string> computing_words;
+        std::set<std::string> daily_words;
+        bool computing_section = false, daily_section = false;
         for (std::string line; std::getline(input, line);) {
             ++line_number;
             if (line_number == 1 && line.compare(0, 3, "\xef\xbb\xbf") == 0) line.erase(0, 3);
             if (!line.empty() && line.back() == '\r') line.pop_back();
-            if (line.empty() || line.front() == '#') continue;
+            if (line.empty()) continue;
+            if (line.front() == '#') {
+                if (line == "# 计算机与编程词汇扩充（2026-10-13）") computing_section = true;
+                if (line == "# 计算机词汇所需补充单字读音") computing_section = false;
+                if (line == "# 日常词汇扩充（2026-10-13）") daily_section = true;
+                if (line == "# 日常词汇所需补充单字读音") daily_section = false;
+                continue;
+            }
             const auto first = line.find('\t'), second = line.find('\t', first + 1);
             const auto text = line.substr(0, first);
             const auto pronunciation = line.substr(first + 1, second - first - 1);
@@ -180,10 +321,14 @@ int wmain(int argc, wchar_t* argv[]) {
             if (!readings.emplace(text, pronunciation).second)
                 throw std::runtime_error("duplicate word/reading" + context);
             if (character_count(text) == 1) single_readings[text].insert(pronunciation);
+            if (computing_section && character_count(text) > 1) computing_words.insert(text);
+            if (daily_section && character_count(text) > 1) daily_words.insert(text);
             ++rows;
         }
         check(!input.bad(), "dictionary audit could not finish reading");
         check(rows == lexicon.size(), "source rows were merged unexpectedly");
+        check(computing_words.size() >= 2000, "computing expansion must contain at least 2000 unique words");
+        check(daily_words.size() >= 5000, "daily expansion must contain at least 5000 unique words");
         // GB2312 level 1 occupies B0A1-D7F9, with full 94-cell rows except
         // the final row. Windows code page 936 preserves this GB2312 range.
         // Decode the coverage baseline locally, without importing a word list.
@@ -226,6 +371,9 @@ int wmain(int argc, wchar_t* argv[]) {
         for (const auto& sample : samples)
             check(contains(lexicon, sample.query, sample.text, sample.pronunciation),
                   std::string("missing expected reading: ") + sample.query + " -> " + sample.text);
+        for (const auto& sample : daily_samples)
+            check(contains(lexicon, sample.query, sample.text, sample.pronunciation),
+                  std::string("missing daily reading: ") + sample.query + " -> " + sample.text);
         for (const auto& sample : priorities) {
             const auto candidates = lexicon.lookup(sample.query);
             check(!candidates.empty() && candidates.front().text == sample.text &&
@@ -242,6 +390,36 @@ int wmain(int argc, wchar_t* argv[]) {
         check(!contains(lexicon, "ju qiang", "倔强", "ju qiang"), "incorrect 倔强 reading");
         check(!contains(lexicon, "can cha", "参差", "can cha"), "incorrect 参差 reading");
         check(!contains(lexicon, "qia er bu she", "锲而不舍", "qia er bu she"), "incorrect 锲而不舍 reading");
+        const Sample incorrect_computing[] = {
+            {"huancunxing", "缓存行", "huan cun xing"},
+            {"xianchengzusai", "线程阻塞", "xian cheng zu sai"},
+            {"diaoshifuhao", "调试符号", "diao shi fu hao"},
+            {"duozhongjicheng", "多重继承", "duo zhong ji cheng"},
+            {"xingsuo", "行锁", "xing suo"},
+            {"jiaosequanxian", "角色权限", "jiao se quan xian"},
+            {"moxingweidiao", "模型微调", "mo xing wei diao"},
+            {"guangzhahua", "光栅化", "guang zha hua"},
+            {"gaojingfazhi", "告警阈值", "gao jing fa zhi"},
+            {"maikuandiaozhi", "脉宽调制", "mai kuan diao zhi"},
+        };
+        for (const auto& sample : incorrect_computing)
+            check(!contains(lexicon, sample.query, sample.text, sample.pronunciation),
+                  std::string("incorrect computing reading: ") + sample.text);
+        const Sample incorrect_daily[] = {
+            {"niuziwaitao", "牛仔外套", "niu zi wai tao"},
+            {"cha lv", "差旅", "cha lv"},
+            {"bu jue", "补觉", "bu jue"},
+            {"zhuanxing", "转行", "zhuan xing"},
+            {"qile", "器乐", "qi le"},
+            {"fengcheng", "丰盛", "feng cheng"},
+            {"dian bing dang", "电饼铛", "dian bing dang"},
+            {"mo bu", "抹布", "mo bu"},
+            {"cuan qian", "攒钱", "cuan qian"},
+            {"yi sha na", "一刹那", "yi sha na"},
+        };
+        for (const auto& sample : incorrect_daily)
+            check(!contains(lexicon, sample.query, sample.text, sample.pronunciation),
+                  std::string("incorrect daily reading: ") + sample.text);
         pinyin::InputSession composition;
         for (const char letter : std::string("tingzhi")) composition.handle(pinyin::InputKey::letter, letter, lexicon);
         const auto stop = std::find_if(composition.candidates().begin(), composition.candidates().end(), [](const auto& word) { return word.text == "停"; });

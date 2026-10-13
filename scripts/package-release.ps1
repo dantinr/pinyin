@@ -110,6 +110,7 @@ try {
         'docs/personal-dictionaries.md' = (Join-Path $repo 'docs/personal-dictionaries.md')
         'docs/user-data.md' = (Join-Path $repo 'docs/user-data.md')
         'docs/input-statistics.md' = (Join-Path $repo 'docs/input-statistics.md')
+        'docs/settings.md' = (Join-Path $repo 'docs/settings.md')
         'scripts/register-ime.ps1' = (Join-Path $repo 'scripts/register-ime.ps1')
         'scripts/unregister-ime.ps1' = (Join-Path $repo 'scripts/unregister-ime.ps1')
         'scripts/install.ps1' = (Join-Path $repo 'packaging/scripts/install.ps1')
@@ -118,6 +119,7 @@ try {
         'install.cmd' = (Join-Path $repo 'packaging/install.cmd')
         'uninstall.cmd' = (Join-Path $repo 'packaging/uninstall.cmd')
         'README.txt' = (Join-Path $repo 'packaging/README.txt')
+        'RELEASE_NOTES.md' = (Join-Path $repo 'packaging/RELEASE_NOTES.md')
         'vc_redist.x64.exe' = $redist.FullName
     }
     $files = foreach ($entry in $sources.GetEnumerator()) {
