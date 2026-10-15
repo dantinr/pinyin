@@ -33,6 +33,7 @@ void type_app(Harness& ime, const std::string& text) {
         case ' ': handled = ime.key(VK_SPACE); break;
         case ',': handled = ime.key(VK_OEM_COMMA); break;
         case '.': handled = ime.key(VK_OEM_PERIOD); break;
+        case '-': handled = ime.key(VK_OEM_MINUS); break;
         case '\'': handled = ime.key(VK_OEM_7); break;
         case '?': handled = ime.modified_key(VK_OEM_2, {VK_SHIFT}); break;
         case '!': handled = ime.modified_key('1', {VK_SHIFT}); break;
@@ -48,6 +49,39 @@ int wmain(int argc, wchar_t* argv[]) {
     try {
         check(argc == 2 && SUCCEEDED(initialized), "test setup failed");
         TestWorkspace workspace; const auto path = default_user_path();
+        for (const auto automatic : {true, false}) {
+            set_automatic_english(path, automatic);
+            for (const auto chinese_punctuation : {true, false}) {
+                set_chinese_punctuation(path, chinese_punctuation);
+                for (const auto& prefix : {"user", "User", "qwerty", "can"}) {
+                    Harness ime(argv[1]); const auto previous = words(path);
+                    type_app(ime, prefix);
+                    BOOL eaten = FALSE;
+                    Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_OEM_MINUS, 0, &eaten), "probe hyphen");
+                    Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_OEM_MINUS, 0, &eaten), "repeat hyphen probe");
+                    check(eaten && ime.store->text == wide(prefix) && ime.compositions() == 1,
+                        "hyphen probing passed through or changed the pending English word");
+                    check(ime.key(VK_OEM_MINUS) && ime.store->text == wide(std::string(prefix) + '-') && ime.compositions() == 0,
+                        "hyphen did not atomically commit the preceding English word in order");
+                    type_app(ime, "agent"); ime.key(VK_RETURN);
+                    check(ime.store->text == wide(std::string(prefix) + "-agent") && ime.compositions() == 0 && words(path) == previous,
+                        "hyphenated English was reordered, converted to Chinese, or learned");
+                    ime.close(); check(ime.unload_result == S_OK, "hyphenated English leaked DLL references");
+                }
+            }
+        }
+        set_automatic_english(path, true); set_chinese_punctuation(path, true);
+        {
+            Harness ime(argv[1]); auto bar = button(ime); const auto previous = words(path);
+            ime.type("user"); ime.store->reject_writes = true;
+            check(!ime.key(VK_OEM_MINUS) && ime.store->text == L"user" && ime.compositions() == 1 && label(bar.Get()) == L"中" &&
+                words(path) == previous, "rejected hyphen commit consumed the word or changed English mode");
+            ime.store->reject_writes = false;
+            type_app(ime, "--agent-");
+            check(ime.store->text == L"user--agent-" && ime.compositions() == 0 && words(path) == previous,
+                "consecutive or trailing hyphens moved after a rejected commit");
+            bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "rejected hyphen commit leaked DLL references");
+        }
         {
             Harness ime(argv[1]); auto bar = button(ime);
             ime.type("hello");

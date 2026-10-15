@@ -77,7 +77,7 @@ std::optional<char> punctuation_key(WPARAM key) {
     case VK_OEM_7: return shift ? '"' : '\'';
     case VK_OEM_4: return shift ? '{' : '[';
     case VK_OEM_6: return shift ? '}' : ']';
-    case VK_OEM_MINUS: if (shift) return '_'; break;
+    case VK_OEM_MINUS: return shift ? '_' : '-';
     case '1': if (shift) return '!'; break;
     case '4': if (shift) return '$'; break;
     case '6': if (shift) return '^'; break;

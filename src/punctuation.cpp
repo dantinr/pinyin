@@ -20,14 +20,14 @@ bool url_token(const std::string& token) {
 }
 }
 bool Punctuation::supports(char ascii) noexcept {
-    return std::string_view(",.?!:;\\\"'()[]{}<>_^$/").find(ascii) != std::string_view::npos;
+    return std::string_view(",.?!:;\\\"'()[]{}<>_^$/-").find(ascii) != std::string_view::npos;
 }
 PunctuationResult Punctuation::resolve(char ascii, const PunctuationContext& context) const {
     const auto token = ascii_token(context.before);
     const auto raw = ascii_token(context.preedit);
     const bool url_start = (ascii == ':' && (raw == "http" || raw == "https" || raw == "ftp" || raw == "mailto")) ||
         (ascii == '.' && raw == "www");
-    const bool literal = context.literal_scope || url_token(token) || url_start;
+    const bool literal = ascii == '-' || context.literal_scope || url_token(token) || url_start;
     const bool number = !token.empty() && token.back() >= '0' && token.back() <= '9' && context.preedit.empty() &&
         (ascii == '.' || ascii == ':' || ascii == '/');
     // An English word submitted with Enter also keeps its following period.

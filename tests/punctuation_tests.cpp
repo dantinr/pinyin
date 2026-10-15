@@ -25,6 +25,8 @@ int wmain(int argc, wchar_t* argv[]) {
             check(Punctuation::supports(pair.first) && punctuation.resolve(pair.first).text == pair.second,
                 "Chinese punctuation mapping failed");
         check(!Punctuation::supports('a') && !Punctuation::supports('0'), "ordinary input classified as punctuation");
+        check(Punctuation::supports('-') && punctuation.resolve('-', {{}, "can", false}).text == "-" &&
+            punctuation.resolve('-', {{}, "can", false}).raw, "hyphen converted pending English to a Chinese candidate");
         check(punctuation.resolve('"').text == "“" && punctuation.resolve('"').text == "“", "query advanced quote state");
         punctuation.accepted(punctuation.resolve('"'));
         check(punctuation.resolve('"').text == "”", "double quote did not close");
