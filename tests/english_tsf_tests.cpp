@@ -10,6 +10,18 @@ using namespace pinyin::testing;
 int checks = 0;
 void check(bool condition, const char* message) { ++checks; if (!condition) throw std::runtime_error(message); }
 UserDictionary words(const std::filesystem::path& path) { UserStore store(path); return store.load(); }
+BOOL probe_key(Harness& ime, WPARAM key) {
+    BYTE previous[256]{}, neutral[256]{};
+    if (!GetKeyboardState(previous)) throw std::runtime_error("cannot read probe keyboard state");
+    struct Restore {
+        BYTE* previous;
+        ~Restore() { SetKeyboardState(previous); }
+    } restore{previous};
+    if (!SetKeyboardState(neutral)) throw std::runtime_error("cannot isolate probe keyboard state");
+    BOOL eaten = FALSE;
+    Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), key, 0, &eaten), "probe key with isolated modifiers");
+    return eaten;
+}
 ComPtr<ITfLangBarItemButton> button(Harness& ime) {
     ComPtr<ITfLangBarItemMgr> manager; ComPtr<ITfLangBarItem> item;
     Harness::require(ime.manager.As(&manager), "get language bar manager");
@@ -57,8 +69,8 @@ int wmain(int argc, wchar_t* argv[]) {
                     Harness ime(argv[1]); const auto previous = words(path);
                     type_app(ime, prefix);
                     BOOL eaten = FALSE;
-                    Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_OEM_MINUS, 0, &eaten), "probe hyphen");
-                    Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_OEM_MINUS, 0, &eaten), "repeat hyphen probe");
+                    eaten = probe_key(ime, VK_OEM_MINUS);
+                    eaten = probe_key(ime, VK_OEM_MINUS);
                     check(eaten && ime.store->text == wide(prefix) && ime.compositions() == 1,
                         "hyphen probing passed through or changed the pending English word");
                     check(ime.key(VK_OEM_MINUS) && ime.store->text == wide(std::string(prefix) + '-') && ime.compositions() == 0,
@@ -88,8 +100,8 @@ int wmain(int argc, wchar_t* argv[]) {
             check(ime.store->text == L"hello" && ime.compositions() == 1 && label(bar.Get()) == L"中",
                 "English was confirmed before its delimiter");
             BOOL eaten = FALSE;
-            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "probe English space");
-            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "repeat English space probe");
+            eaten = probe_key(ime, VK_SPACE);
+            eaten = probe_key(ime, VK_SPACE);
             check(label(bar.Get()) == L"中" && ime.store->text == L"hello", "key probing changed English state or text");
             check(ime.key(VK_SPACE) && ime.store->text == L"hello " && ime.compositions() == 0 && label(bar.Get()) == L"英",
                 "English space selected Chinese or lost its space");
@@ -97,7 +109,7 @@ int wmain(int argc, wchar_t* argv[]) {
             type_app(ime, "world, how are you? I'm fine.  2026!");
             check(ime.store->text == L"hello world, how are you? I'm fine.  2026!" && ime.compositions() == 0 && words(path).empty(),
                 "English sentence lost spaces, case, punctuation, digits, or learned application text");
-            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_RETURN, 0, &eaten), "probe English Return");
+            eaten = probe_key(ime, VK_RETURN);
             check(eaten && label(bar.Get()) == L"英", "Return probing ended the English segment");
             check(!ime.key(VK_RETURN) && label(bar.Get()) == L"中", "English Return was swallowed or did not restore Chinese");
             ime.store->insert_external(L"\n"); ime.type("nh"); ime.key(VK_SPACE);
@@ -124,8 +136,8 @@ int wmain(int argc, wchar_t* argv[]) {
             check(ime.key(VK_RETURN) && ime.store->text == expected && ime.compositions() == 0 && label(bar.Get()) == L"英",
                 "Enter-confirmed English did not enter the same automatic mode as Space confirmation");
             BOOL eaten = FALSE;
-            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "probe Enter-confirmed English space");
-            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "repeat Enter-confirmed English space probe");
+            eaten = probe_key(ime, VK_SPACE);
+            eaten = probe_key(ime, VK_SPACE);
             check(!eaten && ime.store->text == expected && label(bar.Get()) == L"英",
                 "Enter-confirmed English intercepted a space or wrote during probing");
             type_app(ime, " world  ");
@@ -138,10 +150,10 @@ int wmain(int argc, wchar_t* argv[]) {
         {
             Harness ime(argv[1]); auto bar = button(ime);
             BOOL eaten = TRUE;
-            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "probe idle Chinese space");
+            eaten = probe_key(ime, VK_SPACE);
             check(!eaten && !ime.key(VK_SPACE) && ime.store->text.empty(), "idle Chinese mode claimed an unhandled space");
             ime.type("nh"); ime.key(VK_RETURN);
-            Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), VK_SPACE, 0, &eaten), "probe raw-pinyin committed space");
+            eaten = probe_key(ime, VK_SPACE);
             check(!eaten && label(bar.Get()) == L"中", "raw-pinyin Enter left Space claimed as candidate selection");
             type_app(ime, " ");
             check(ime.store->text == L"nh " && ime.compositions() == 0, "raw-pinyin Enter lost its following space");

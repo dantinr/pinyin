@@ -29,6 +29,8 @@
 *.user.tsv*
 
 # Editor and Windows temporary files
+__pycache__/
+*.pyc
 *.swp
 *.swo
 *~

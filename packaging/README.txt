@@ -29,7 +29,12 @@
 
 默认开启本地学习。词语、读音和选择次数保存在
 %USERPROFILE%\PrivatePinyin\words.user.tsv。
-密码/PIN 框直接输入。没有联网、遥测、云词库或原文按键日志。
+密码/PIN 框直接输入。默认离线，无遥测或原文按键日志。个人词库云同步需手动开启。
+设置窗口点击“云同步…”，填写自己的同步服务地址和可选令牌，勾选启用并保存。
+首次立即同步，此后每 10 分钟后台双向合并，按同步日期保留词条记录；登录后自动恢复。
+换设备填写相同地址和令牌即可恢复词库。“立即同步”可手动触发，取消勾选并保存可停止。
+地址需支持词库同步读写，普通网页或仅下载链接不能上传。部署示例见 tools/sync_server.py，说明见 docs/cloud-sync.md。
+只上传个人词语、读音与选择次数，不上传输入统计、按键、基础词库或辅词库。
 学习开关可通过安装目录中的 private_pinyin.exe --ime-learning on|off|status|clear 设置。
 
 设置窗口提供“导出个人词库…”和“合并词库…”。导出为 UTF-8 TSV，保留选择次数。
@@ -62,6 +67,7 @@ Agent 可使用 private_pinyin.exe personal help 发现导出、校验与合并�
 private_pinyin_demo.exe 是无需系统注册的测试窗口；运行前需已安装随包的 VC++ 运行库。
 private_pinyin.exe 是词库查询和本地学习管理工具。
 private_pinyin_settings.exe 是无需管理员权限的图形设置窗口。
+private_pinyin_sync.exe 仅在开启云同步后后台运行，不阻塞输入；令牌由 Windows 当前用户加密保存。
 data\README.md 说明基础词库的来源和覆盖范围。
 manifest.json 记录版本、来源提交、运行库版本和文件 SHA-256，用于完整性检查。
 

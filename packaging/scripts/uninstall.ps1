@@ -26,6 +26,9 @@ try {
     }
     if (-not $registered) { Write-Output 'Private Pinyin is not registered.'; exit 0 }
     if (-not (Test-PinyinAdministrator)) { exit (Invoke-PinyinElevated $PSCommandPath) }
+    $syncWorker = Join-Path $installed 'private_pinyin_sync.exe'
+    $syncProcess = Start-Process -FilePath $syncWorker -ArgumentList '--disable' -WindowStyle Hidden -PassThru -Wait
+    if ($syncProcess.ExitCode -ne 0) { throw 'Could not disable personal dictionary sync. Disable it in settings before uninstalling.' }
     & (Join-Path $installed 'scripts/unregister-ime.ps1') -DllPath $registered
     Write-Output 'Personal words and the shared VC++ runtime were kept.'
     Write-Output "After closing applications, you can delete this version's directory: $installed"

@@ -104,6 +104,7 @@ try {
         'private_pinyin.exe' = (Join-Path $runtimeDir 'private_pinyin.exe')
         'private_pinyin_demo.exe' = (Join-Path $runtimeDir 'private_pinyin_demo.exe')
         'private_pinyin_settings.exe' = (Join-Path $runtimeDir 'private_pinyin_settings.exe')
+        'private_pinyin_sync.exe' = (Join-Path $runtimeDir 'private_pinyin_sync.exe')
         'data/base.tsv' = (Join-Path $repo 'data/base.tsv')
         'data/README.md' = (Join-Path $repo 'data/README.md')
         'docs/agent-dictionaries.md' = (Join-Path $repo 'docs/agent-dictionaries.md')
@@ -111,6 +112,8 @@ try {
         'docs/user-data.md' = (Join-Path $repo 'docs/user-data.md')
         'docs/input-statistics.md' = (Join-Path $repo 'docs/input-statistics.md')
         'docs/settings.md' = (Join-Path $repo 'docs/settings.md')
+        'docs/cloud-sync.md' = (Join-Path $repo 'docs/cloud-sync.md')
+        'tools/sync_server.py' = (Join-Path $repo 'tools/sync_server.py')
         'scripts/register-ime.ps1' = (Join-Path $repo 'scripts/register-ime.ps1')
         'scripts/unregister-ime.ps1' = (Join-Path $repo 'scripts/unregister-ime.ps1')
         'scripts/install.ps1' = (Join-Path $repo 'packaging/scripts/install.ps1')
@@ -128,7 +131,7 @@ try {
         Copy-Item -LiteralPath $entry.Value -Destination $target
         [ordered]@{ path = $entry.Key; sha256 = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() }
     }
-    foreach ($binary in @('private_pinyin_ime.dll', 'private_pinyin.exe', 'private_pinyin_demo.exe', 'private_pinyin_settings.exe')) { Assert-PackX64 (Join-Path $stage $binary) }
+    foreach ($binary in @('private_pinyin_ime.dll', 'private_pinyin.exe', 'private_pinyin_demo.exe', 'private_pinyin_settings.exe', 'private_pinyin_sync.exe')) { Assert-PackX64 (Join-Path $stage $binary) }
     $manifest = [ordered]@{
         format = 1; version = $version; architecture = 'x64'; sourceCommit = $sourceCommit
         sourceDirty = $sourceDirty; runtimeVersion = $runtimeVersion; files = @($files)

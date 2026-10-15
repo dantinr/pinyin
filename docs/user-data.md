@@ -11,6 +11,9 @@
 | `dictionaries\*.tsv` | 用户或 Agent 管理的辅词库 |
 | `dictionaries\*.tsv.disabled` | 辅词库的停用标记 |
 | `backups` | 个人词库合并前的备份 |
+| `words.user.tsv.sync.settings` | 云同步开关、地址和由 Windows 当前用户加密保存的令牌 |
+| `words.user.tsv.sync.status` | 最近同步尝试、最近成功时间和结果，不含词条 |
+| `words.user.tsv.sync.request` | 请求后台程序立即同步的本地标记 |
 | `migration` | 旧文件的迁移快照、完成记录和错误记录 |
 
 旧版默认目录为 `%LOCALAPPDATA%\PrivatePinyin`。Windows 的 MSIX AppData 虚拟化可能让同一逻辑路径对应不同内容：普通应用访问共享原件，而商店应用访问 `%LOCALAPPDATA%\Packages\包族名称\LocalCache\Local\PrivatePinyin` 中的私有副本。因此，文件查看器中有记录，也不代表另一个应用里的旧版输入法能读到它。当前默认目录位于 AppData 之外。[微软的虚拟化说明](https://learn.microsoft.com/en-us/windows/msix/desktop/flexible-virtualization)解释了私有副本的读取优先级与用户目录其他位置的行为。

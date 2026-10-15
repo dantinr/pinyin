@@ -18,6 +18,12 @@ endif()
 
 add_executable(private_pinyin src/main.cpp src/dictionary_cli.cpp)
 target_link_libraries(private_pinyin PRIVATE pinyin_core)
+add_library(pinyin_sync src/dictionary_sync.cpp src/sync_http.cpp src/sync_settings.cpp)
+target_compile_definitions(pinyin_sync PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
+target_link_libraries(pinyin_sync PUBLIC pinyin_core PRIVATE winhttp crypt32 advapi32)
+if(MSVC)
+  target_compile_options(pinyin_sync PRIVATE /W4 /permissive-)
+endif()
 add_custom_command(TARGET private_pinyin POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:private_pinyin>/data"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -35,7 +41,14 @@ add_custom_command(TARGET private_pinyin POST_BUILD
     "$<TARGET_FILE_DIR:private_pinyin>/docs/user-data.md"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_CURRENT_SOURCE_DIR}/docs/input-statistics.md"
-    "$<TARGET_FILE_DIR:private_pinyin>/docs/input-statistics.md")
+    "$<TARGET_FILE_DIR:private_pinyin>/docs/input-statistics.md"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/cloud-sync.md"
+    "$<TARGET_FILE_DIR:private_pinyin>/docs/cloud-sync.md"
+  COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:private_pinyin>/tools"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/tools/sync_server.py"
+    "$<TARGET_FILE_DIR:private_pinyin>/tools/sync_server.py")
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   enable_language(RC)
@@ -60,9 +73,13 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   target_link_libraries(private_pinyin_demo PRIVATE pinyin_core ole32 oleaut32 uuid user32 gdi32)
   add_dependencies(private_pinyin_demo private_pinyin_ime)
   add_executable(private_pinyin_settings WIN32 src/settings_main.cpp src/settings_growth_chart.cpp src/settings.rc src/settings.manifest)
+  add_executable(private_pinyin_sync WIN32 src/sync_main.cpp)
+  target_compile_definitions(private_pinyin_sync PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
+  target_link_libraries(private_pinyin_sync PRIVATE pinyin_sync shell32)
+  add_dependencies(private_pinyin_settings private_pinyin_sync)
   target_compile_definitions(private_pinyin_settings PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00
     PRIVATE_PINYIN_VERSION="${PROJECT_VERSION}")
-  target_link_libraries(private_pinyin_settings PRIVATE pinyin_core user32 gdi32 shell32 comdlg32 comctl32)
+  target_link_libraries(private_pinyin_settings PRIVATE pinyin_sync user32 gdi32 shell32 comdlg32 comctl32)
   if(MSVC)
     target_compile_options(private_pinyin_settings PRIVATE /W4 /permissive-)
   endif()
@@ -70,6 +87,21 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(dictionary_sync_tests tests/dictionary_sync_tests.cpp)
+  target_link_libraries(dictionary_sync_tests PRIVATE pinyin_sync)
+  add_test(NAME dictionary_sync COMMAND dictionary_sync_tests)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    add_executable(sync_http_tests tests/sync_http_tests.cpp)
+    target_link_libraries(sync_http_tests PRIVATE pinyin_sync)
+    find_package(Python3 COMPONENTS Interpreter QUIET)
+    if(Python3_Interpreter_FOUND)
+      add_test(NAME dictionary_sync_http COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/sync_integration_tests.py"
+        "$<TARGET_FILE:sync_http_tests>" "$<TARGET_FILE:private_pinyin_sync>"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/sync_server.py")
+      set_tests_properties(dictionary_sync_http PROPERTIES TIMEOUT 120)
+    endif()
+  endif()
   add_executable(vocabulary_growth_tests tests/vocabulary_growth_tests.cpp)
   target_link_libraries(vocabulary_growth_tests PRIVATE pinyin_core)
   add_test(NAME vocabulary_growth COMMAND vocabulary_growth_tests)
@@ -188,6 +220,12 @@ if(BUILD_TESTING)
   endif()
   find_program(PWSH_EXECUTABLE NAMES pwsh)
   if(PWSH_EXECUTABLE)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      add_test(NAME sync_settings_ui COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/sync_settings_ui_tests.ps1"
+        -Executable "$<TARGET_FILE:private_pinyin_settings>" -Screenshot "${CMAKE_CURRENT_BINARY_DIR}/sync-settings-preview.png")
+      set_tests_properties(sync_settings_ui PROPERTIES TIMEOUT 45)
+    endif()
     add_test(NAME personal_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/personal_cli_tests.ps1" -Executable "$<TARGET_FILE:private_pinyin>")
     add_test(NAME dictionary_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File

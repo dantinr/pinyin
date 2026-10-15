@@ -3,6 +3,7 @@
 #include "pinyin/user_store.hpp"
 #include "pinyin/input_statistics.hpp"
 #include "pinyin/vocabulary_growth.hpp"
+#include "pinyin/dictionary_sync.hpp"
 #include "settings_growth_chart.hpp"
 #include "settings_actions.hpp"
 #include "settings_resource.h"
@@ -31,6 +32,67 @@ std::wstring wide(const std::string& text) {
     std::wstring value(size, L'\0');
     MultiByteToWideChar(CP_UTF8, 0, text.data(), static_cast<int>(text.size()), value.data(), size);
     return value;
+}
+std::string control_text(HWND window, int identifier) {
+    const auto control = GetDlgItem(window, identifier);
+    std::wstring text(GetWindowTextLengthW(control) + 1, L'\0');
+    text.resize(GetWindowTextW(control, text.data(), static_cast<int>(text.size())));
+    if (text.empty()) return {};
+    const auto length = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, text.data(), static_cast<int>(text.size()), nullptr, 0, nullptr, nullptr);
+    if (!length) throw std::runtime_error("invalid sync setting text");
+    std::string result(length, '\0');
+    WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, text.data(), static_cast<int>(text.size()), result.data(), length, nullptr, nullptr);
+    return result;
+}
+void refresh_sync(HWND window) {
+    try {
+        const auto user = pinyin::default_user_path();
+        const auto settings = pinyin::read_sync_settings(user);
+        const auto status = pinyin::read_sync_status(user);
+        const auto message = !settings.enabled ? L"云同步已关闭，仅在本机保存词库。" :
+            status.message.empty() ? L"等待首次同步…" : wide(status.message);
+        SetDlgItemTextW(window, IDC_SYNC_STATUS, message.c_str());
+        SetDlgItemTextW(window, IDC_SYNC_SUCCESS, (status.success.empty() ? L"最近成功：尚未同步" : L"最近成功：" + wide(status.success)).c_str());
+    } catch (const std::exception& error) {
+        SetDlgItemTextW(window, IDC_SYNC_STATUS, (L"同步设置不可读：" + wide(error.what())).c_str());
+    }
+}
+INT_PTR CALLBACK sync_dialog(HWND window, UINT message, WPARAM wparam, LPARAM) noexcept {
+    try {
+        switch (message) {
+        case WM_INITDIALOG: {
+            const auto user = pinyin::default_user_path();
+            const auto settings = pinyin::read_sync_settings(user);
+            SendDlgItemMessageW(window, IDC_SYNC_URL, EM_SETLIMITTEXT, 8192, 0);
+            SendDlgItemMessageW(window, IDC_SYNC_TOKEN, EM_SETLIMITTEXT, 8192, 0);
+            CheckDlgButton(window, IDC_SYNC_ENABLED, settings.enabled ? BST_CHECKED : BST_UNCHECKED);
+            SetDlgItemTextW(window, IDC_SYNC_URL, wide(settings.url).c_str());
+            SetDlgItemTextW(window, IDC_SYNC_TOKEN, wide(settings.token).c_str());
+            if (settings.enabled) pinyin::launch_sync_worker(user, true);
+            SetTimer(window, 1, 2000, nullptr); refresh_sync(window); return TRUE;
+        }
+        case WM_TIMER: if (wparam == 1) refresh_sync(window); return TRUE;
+        case WM_DESTROY: KillTimer(window, 1); return TRUE;
+        case WM_COMMAND:
+            switch (LOWORD(wparam)) {
+            case IDC_SYNC_SAVE: case IDC_SYNC_NOW: {
+                const pinyin::SyncSettings settings{IsDlgButtonChecked(window, IDC_SYNC_ENABLED) == BST_CHECKED,
+                    control_text(window, IDC_SYNC_URL), control_text(window, IDC_SYNC_TOKEN)};
+                if (LOWORD(wparam) == IDC_SYNC_NOW && !settings.enabled)
+                    throw std::runtime_error("enable sync before requesting an immediate transfer");
+                const auto user = pinyin::default_user_path();
+                pinyin::save_sync_settings(user, settings);
+                pinyin::launch_sync_worker(user, settings.enabled);
+                refresh_sync(window); return TRUE;
+            }
+            case IDOK: case IDCANCEL: EndDialog(window, 0); return TRUE;
+            }
+            break;
+        }
+    } catch (const std::exception& error) {
+        MessageBoxW(window, (L"同步设置未完成。\n\n" + wide(error.what())).c_str(), L"隐私拼音", MB_OK | MB_ICONERROR);
+    } catch (...) { MessageBoxW(window, L"同步设置未完成。", L"隐私拼音", MB_OK | MB_ICONERROR); }
+    return FALSE;
 }
 bool choose_file(HWND owner, bool save, std::filesystem::path& path, bool& personal) {
     std::array<wchar_t, 32768> filename{};
@@ -231,6 +293,8 @@ INT_PTR CALLBACK dialog(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
         case WM_COMMAND:
             switch (LOWORD(wparam)) {
             case IDC_REFRESH_STATISTICS: refresh(window); return TRUE;
+            case IDC_SYNC_OPEN:
+                DialogBoxParamW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(IDD_SYNC_SETTINGS), window, sync_dialog, 0); return TRUE;
             case IDC_OPEN_DIRECTORY:
                 if (FAILED(pinyin::open_user_directory(window))) throw std::runtime_error("cannot open dictionary directory");
                 return TRUE;
