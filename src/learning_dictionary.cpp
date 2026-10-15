@@ -56,33 +56,38 @@ void LearningDictionary::refresh() {
     enabled_ = ime_learning_enabled(user_path_);
     if (!enabled_) {
         if (!users_.empty()) active_ = base_;
-        users_.clear(); available_ = true; return;
+        users_.clear(); pending_.clear(); available_ = true; return;
     }
     try {
-        auto users = read_user_dictionary(user_path_);
+        UserDictionary users;
+        if (pending_.empty()) users = read_user_dictionary(user_path_);
+        else {
+            UserStore store(user_path_, 100);
+            users = store.load();
+            for (const auto& word : pending_) {
+                auto& count = users[word.first];
+                count += std::min<std::uint64_t>(word.second, 1000000000 - count);
+            }
+            store.save(users);
+            pending_.clear();
+        }
         auto active = merged(users);
         users_ = std::move(users); active_ = std::move(active);
         available_ = true;
     } catch (const std::exception&) {
-        users_.clear(); active_ = base_; available_ = false;
+        available_ = false;
     }
 }
 bool LearningDictionary::remember(const InputResult& result) noexcept {
     try {
-        if (!ime_learning_enabled(user_path_) || !learnable(result)) return false;
-        // Re-read under the same lock used to save: never overwrite another app's
-        // additions with this service's older in-memory snapshot.
-        UserDictionary users;
-        {
-            UserStore store(user_path_, 100);
-            users = store.load();
-            Candidate word; word.text = result.text; word.pronunciation = result.pronunciation;
-            learn(users, word);
-            store.save(users);
-        }
-        auto active = merged(users);
-        users_ = std::move(users); active_ = std::move(active); available_ = true;
-        return true;
+        if (!ime_learning_enabled(user_path_)) { refresh(); return false; }
+        if (!learnable(result)) return false;
+        Candidate word; word.text = result.text; word.pronunciation = result.pronunciation;
+        learn(pending_, word);
+        learn(users_, word);
+        refresh();
+        if (!available_) active_ = merged(users_);
+        return available_;
     } catch (const std::exception&) {
         available_ = false; return false; // A dictionary failure must never prevent typing.
     }

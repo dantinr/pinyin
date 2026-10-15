@@ -24,7 +24,7 @@ public:
 private:
     Lexicon bundled_, base_, active_;
     SupplementaryDictionaries supplementary_;
-    UserDictionary users_;
+    UserDictionary users_, pending_;
     std::filesystem::path user_path_;
     bool enabled_ = false;
     bool available_ = true;

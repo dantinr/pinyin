@@ -77,6 +77,57 @@ int main() {
         result = input.handle(InputKey::enter, 0, dictionary.lexicon(), dictionary.users());
         check(!dictionary.remember(result) && read(path) == saved, "raw Enter submission became a custom word");
 
+        {
+            const auto retry_path = workspace.root / L"retry" / L"words.user.tsv";
+            LearningDictionary retry(base, retry_path); retry.refresh();
+            const InputResult embedded{InputAction::commit, "嵌入", "qian ru"};
+            {
+                UserStore held(retry_path);
+                check(!retry.remember(embedded) && !std::filesystem::exists(retry_path),
+                    "busy dictionary was overwritten by a queued word");
+                const auto candidates = retry.lexicon().lookup_composition("qianru", retry.users());
+                check(!candidates.empty() && candidates.front().text == "嵌入",
+                    "a temporary write failure hid a newly confirmed personal word");
+                check(!retry.remember(embedded), "a second queued selection bypassed the writer lock");
+                retry.refresh();
+                check(!retry.available() && retry.users().at({"qian ru", "嵌入"}) == 2,
+                    "retrying while busy lost or duplicated pending selections");
+            }
+            {
+                UserStore other(retry_path);
+                other.save({{{"qian ru", "迁入"}, 3}});
+            }
+            retry.refresh();
+            const auto saved_retry = read_user_dictionary(retry_path);
+            check(retry.available() && saved_retry.at({"qian ru", "嵌入"}) == 2 &&
+                saved_retry.at({"qian ru", "迁入"}) == 3,
+                "pending selections were not merged with another application's additions");
+            retry.refresh();
+            check(read_user_dictionary(retry_path) == saved_retry,
+                "a successful retry was applied more than once");
+            const auto held_file = CreateFileW(retry_path.c_str(), GENERIC_READ, 0, nullptr,
+                OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+            check(held_file != INVALID_HANDLE_VALUE, "cannot hold dictionary read fixture");
+            retry.refresh();
+            const bool retained = !retry.available() && retry.users() == saved_retry &&
+                !retry.lexicon().lookup("qianru", retry.users()).empty();
+            CloseHandle(held_file);
+            check(retained, "a temporary read failure cleared previously loaded personal words");
+            retry.refresh();
+            check(retry.available() && retry.users() == saved_retry,
+                "dictionary did not recover after a temporary read failure");
+            {
+                UserStore held(retry_path);
+                check(!retry.remember(embedded), "privacy fixture unexpectedly saved a queued selection");
+                set_ime_learning(retry_path, false); retry.refresh();
+                check(retry.users().empty() && retry.lexicon().lookup("qianru").empty(),
+                    "disabling learning retained pending personal candidates");
+            }
+            set_ime_learning(retry_path, true); retry.refresh();
+            check(retry.users() == saved_retry && read_user_dictionary(retry_path) == saved_retry,
+                "re-enabling learning saved a selection discarded by the privacy switch");
+        }
+
         // Two independent caches use separate kernel file handles, like two apps.
         std::atomic<unsigned> failures{0};
         auto writer = [&](const char* text) {
@@ -151,7 +202,8 @@ int main() {
         }
         write(path, "如何\tru he\tinvalid\n"); const auto corrupt = read(path);
         dictionary.refresh();
-        check(!dictionary.available() && dictionary.lexicon().lookup("ruhe").empty(), "corrupt user data blocked the base dictionary");
+        check(!dictionary.available() && !dictionary.lexicon().lookup("ruhe").empty(),
+            "corrupt user data cleared previously loaded personal words");
         check(!dictionary.remember(confirmed) && read(path) == corrupt, "learning replaced corrupt personal data");
         { UserStore store(path); store.save({}); }
         dictionary.refresh();

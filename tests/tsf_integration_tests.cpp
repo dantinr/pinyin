@@ -427,8 +427,11 @@ int wmain(int argc, wchar_t* argv[]) {
                 check(pinyin::read_user_dictionary(user_path) == published,
                     "busy TSF learning overwrote another application's transaction");
             }
-            ime.type("bianji"); ime.key(VK_SPACE);
-            check(ime.store->text == L"编缉编缉" && personal_words(user_path).at({"bian ji", "编缉"}) == 2,
+            ime.type("bianji");
+            check(personal_words(user_path).at({"bian ji", "编缉"}) == 2,
+                "TSF did not retry the previous selection when starting the next composition");
+            ime.key(VK_SPACE);
+            check(ime.store->text == L"编缉编缉" && personal_words(user_path).at({"bian ji", "编缉"}) == 3,
                 "TSF did not resume learning after the other application's write transaction ended");
             ime.close(); check(ime.unload_result == S_OK, "shared-learning service leaked DLL references");
         }
