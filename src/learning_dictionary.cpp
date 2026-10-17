@@ -62,18 +62,29 @@ void LearningDictionary::refresh() {
         UserDictionary users;
         if (pending_.empty()) users = read_user_dictionary(user_path_);
         else {
-            UserStore store(user_path_, 100);
-            users = store.load();
-            for (const auto& word : pending_) {
-                auto& count = users[word.first];
-                count += std::min<std::uint64_t>(word.second, 1000000000 - count);
+            const auto include_pending = [&](UserDictionary& snapshot) {
+                for (const auto& word : pending_) {
+                    auto& count = snapshot[word.first];
+                    count += std::min<std::uint64_t>(word.second, 1000000000 - count);
+                }
+            };
+            try {
+                UserStore store(user_path_, 100);
+                users = store.load();
+                include_pending(users);
+                store.save(users);
+                pending_.clear();
+            } catch (const std::exception&) {
+                // Publishing needs the writer lock; reading the last complete
+                // snapshot does not. Keep new words visible even while a local
+                // save is queued behind another application or the sync worker.
+                users = read_user_dictionary(user_path_);
+                include_pending(users);
             }
-            store.save(users);
-            pending_.clear();
         }
         auto active = merged(users);
         users_ = std::move(users); active_ = std::move(active);
-        available_ = true;
+        available_ = pending_.empty();
     } catch (const std::exception&) {
         available_ = false;
     }

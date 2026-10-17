@@ -128,19 +128,52 @@ int main() {
                 "re-enabling learning saved a selection discarded by the privacy switch");
         }
 
+        {
+            // A queued local save must not hide another application's already
+            // published words while that application still owns the write lock.
+            const auto busy_path = workspace.root / L"pending-reader" / L"words.user.tsv";
+            LearningDictionary observer(base, busy_path); observer.refresh();
+            const InputResult local{InputAction::commit, "嵌入", "qian ru"};
+            {
+                UserStore publisher(busy_path);
+                check(!observer.remember(local), "pending reader fixture unexpectedly saved");
+                publisher.save({{{"ming ling", "命令"}, 2}, {{"qian ru", "嵌入"}, 3}});
+                for (int attempt = 0; attempt < 2; ++attempt) {
+                    observer.refresh();
+                    const auto words = observer.lexicon().lookup_composition("mingling", observer.users());
+                    check(!observer.available() && !words.empty() && words.front().text == "命令",
+                        "a queued save hid published personal words behind another application's write lock");
+                    check(observer.users().at({"qian ru", "嵌入"}) == 4 &&
+                        read_user_dictionary(busy_path).at({"qian ru", "嵌入"}) == 3,
+                        "read-only refresh lost, duplicated or persisted pending selections");
+                }
+            }
+            observer.refresh(); observer.refresh();
+            const auto published = read_user_dictionary(busy_path);
+            check(observer.available() && published.at({"qian ru", "嵌入"}) == 4 &&
+                published.at({"ming ling", "命令"}) == 2 && observer.users() == published,
+                "retry failed to persist exactly the pending delta after the lock was released");
+        }
+
         // Two independent caches use separate kernel file handles, like two apps.
         std::atomic<unsigned> failures{0};
-        auto writer = [&](const char* text) {
+        LearningDictionary first_client(base, path), second_client(base, path);
+        auto writer = [&](LearningDictionary& client, const char* text) {
             try {
-                LearningDictionary client(base, path);
                 for (int i = 0; i < 8; ++i)
-                    if (!client.remember({InputAction::commit, text, "ru he"})) ++failures;
+                    client.remember({InputAction::commit, text, "ru he"});
             } catch (...) { ++failures; }
         };
-        std::thread first(writer, "入何"), second(writer, "入和"); first.join(); second.join();
+        std::thread first([&] { writer(first_client, "入何"); });
+        std::thread second([&] { writer(second_client, "入和"); });
+        first.join(); second.join();
+        // A busy write may queue a selection. Once contention ends, the next
+        // input refresh must publish every pending count exactly once.
+        first_client.refresh(); second_client.refresh();
         UserDictionary merged;
         { UserStore store(path); merged = store.load(); }
-        check(failures == 0 && merged.at({"ru he", "入何"}) == 8 && merged.at({"ru he", "入和"}) == 8 &&
+        check(failures == 0 && first_client.available() && second_client.available() &&
+            merged.at({"ru he", "入何"}) == 8 && merged.at({"ru he", "入和"}) == 8 &&
             merged.at({"ru he", "如何"}) == 2, "concurrent learning lost an application's updates");
         dictionary.refresh(); check(dictionary.users() == merged, "next composition did not reload another application's words");
         // Another application can still hold its write transaction after the
