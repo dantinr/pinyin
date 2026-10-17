@@ -39,6 +39,24 @@ std::size_t character_count(const std::string& text) {
 
 struct Sample { const char* query; const char* text; const char* pronunciation; };
 const Sample samples[] = {
+    {"shishi", "试试", "shi shi"},
+    {"ss", "试试", "shi shi"},
+    {"shiyishi", "试一试", "shi yi shi"},
+    {"xiangxiang", "想想", "xiang xiang"},
+    {"dengdeng", "等等", "deng deng"},
+    {"wenwen", "问问", "wen wen"},
+    {"shuoyishuo", "说一说", "shuo yi shuo"},
+    {"tingyiting", "听一听", "ting yi ting"},
+    {"changyichang", "尝一尝", "chang yi chang"},
+    {"chayicha", "查一查", "cha yi cha"},
+    {"bangbangmang", "帮帮忙", "bang bang mang"},
+    {"manmanlai", "慢慢来", "man man lai"},
+    {"shishi", "实时", "shi shi"},
+    {"shishi", "时时", "shi shi"},
+    {"shishi", "时事", "shi shi"},
+    {"shishi", "适时", "shi shi"},
+    {"shishi", "逝世", "shi shi"},
+    {"shishi", "实事", "shi shi"},
     {"mingling", "命令", "ming ling"},
     {"xiexie", "谢谢", "xie xie"},
     {"tianqi", "天气", "tian qi"},
@@ -200,6 +218,7 @@ const Sample samples[] = {
     {"maikuantzh", "脉宽调制", "mai kuan tiao zhi"},
 };
 const Sample priorities[] = {
+    {"shishi", "试试", "shi shi"},
     {"mingling", "命令", "ming ling"},
     {"nihao", "你好", "ni hao"},
     {"shouji", "手机", "shou ji"},
@@ -279,6 +298,115 @@ const Sample daily_samples[] = {
     {"ggjt", "公共交通", "gong gong jiao tong"},
     {"jj", "家居", "jia ju"},
 };
+const Sample common_samples[] = {
+    {"haolei", "好嘞", "hao lei"},
+    {"meicuo", "没错", "mei cuo"},
+    {"nanshuo", "难说", "nan shuo"},
+    {"kebushi", "可不是", "ke bu shi"},
+    {"yuanlairuci", "原来如此", "yuan lai ru ci"},
+    {"huanjuhuashuo", "换句话说", "huan ju hua shuo"},
+    {"huashuohuilai", "话说回来", "hua shuo hui lai"},
+    {"shuoshihua", "说实话", "shuo shi hua"},
+    {"laojia", "劳驾", "lao jia"},
+    {"tanshuaideshuo", "坦率地说", "tan shuai de shuo"},
+    {"yongbuzhao", "用不着", "yong bu zhao"},
+    {"fanbuzhao", "犯不着", "fan bu zhao"},
+    {"bielaiwuyang", "别来无恙", "bie lai wu yang"},
+    {"dabashou", "搭把手", "da ba shou"},
+    {"shishikan", "试试看", "shi shi kan"},
+    {"wenwenkan", "问问看", "wen wen kan"},
+    {"pianpian", "偏偏", "pian pian"},
+    {"qiaqia", "恰恰", "qia qia"},
+    {"bujin", "不仅", "bu jin"},
+    {"youqi", "尤其", "you qi"},
+    {"wulunruhe", "无论如何", "wu lun ru he"},
+    {"jibianruci", "即便如此", "ji bian ru ci"},
+    {"genghekuang", "更何况", "geng he kuang"},
+    {"yucitongshi", "与此同时", "yu ci tong shi"},
+    {"zhaozhaomumu", "朝朝暮暮", "zhao zhao mu mu"},
+    {"gesanchawu", "隔三差五", "ge san cha wu"},
+    {"wosa", "我仨", "wo sa"},
+    {"lingyiban", "另一半", "ling yi ban"},
+    {"baojin", "抱紧", "bao jin"},
+    {"zuanjin", "攥紧", "zuan jin"},
+    {"zhangye", "长叶", "zhang ye"},
+    {"dianjiao", "踮脚", "dian jiao"},
+    {"changyang", "徜徉", "chang yang"},
+    {"quansuo", "蜷缩", "quan suo"},
+    {"chayaoshi", "插钥匙", "cha yao shi"},
+    {"jijin", "系紧", "ji jin"},
+    {"sicun", "思忖", "si cun"},
+    {"wangbuliao", "忘不了", "wang bu liao"},
+    {"qianyishi", "潜意识", "qian yi shi"},
+    {"koutouchan", "口头禅", "kou tou chan"},
+    {"tuotie", "妥帖", "tuo tie"},
+    {"xinshichongchong", "心事重重", "xin shi chong chong"},
+    {"xianxi", "嫌隙", "xian xi"},
+    {"koujue", "口角", "kou jue"},
+    {"ouqi", "怄气", "ou qi"},
+    {"dingdiao", "定调", "ding diao"},
+    {"yandang", "延宕", "yan dang"},
+    {"pianpo", "偏颇", "pian po"},
+    {"hangju", "行距", "hang ju"},
+    {"sidongfeidong", "似懂非懂", "si dong fei dong"},
+    {"paogenwendi", "刨根问底", "pao gen wen di"},
+    {"zuzhang", "组长", "zu zhang"},
+    {"jiaogao", "校稿", "jiao gao"},
+    {"jiediao", "借调", "jie diao"},
+    {"shangsha", "商厦", "shang sha"},
+    {"maolilv", "毛利率", "mao li lv"},
+    {"yuankuan", "援款", "yuan kuan"},
+    {"zhenzai", "赈灾", "zhen zai"},
+    {"mingmabiaojia", "明码标价", "ming ma biao jia"},
+    {"chedadeng", "车大灯", "che da deng"},
+    {"shacheyou", "刹车油", "sha che you"},
+    {"xuezhang", "学长", "xue zhang"},
+    {"diaoke", "调课", "diao ke"},
+    {"kaoyan", "考研", "kao yan"},
+    {"suitangkao", "随堂考", "sui tang kao"},
+    {"zhongdiangong", "钟点工", "zhong dian gong"},
+    {"famen", "发闷", "fa men"},
+    {"mengyan", "梦魇", "meng yan"},
+    {"liuguanshi", "留观室", "liu guan shi"},
+    {"hanpian", "含片", "han pian"},
+    {"ruannuo", "软糯", "ruan nuo"},
+    {"xiuqi", "修葺", "xiu qi"},
+    {"chuman", "除螨", "chu man"},
+    {"peishenyuan", "陪审员", "pei shen yuan"},
+    {"rongqueshouli", "容缺受理", "rong que shou li"},
+    {"qungonggao", "群公告", "qun gong gao"},
+    {"dajiyue", "打击乐", "da ji yue"},
+    {"xianyue", "弦乐", "xian yue"},
+    {"guanyue", "管乐", "guan yue"},
+    {"minyue", "民乐", "min yue"},
+    {"xiyangyue", "西洋乐", "xi yang yue"},
+    {"qingyinyue", "轻音乐", "qing yin yue"},
+    {"liuxingyue", "流行乐", "liu xing yue"},
+    {"gudianyue", "古典乐", "gu dian yue"},
+    {"kancha", "勘查", "kan cha"},
+    {"zizhongxunlian", "自重训练", "zi zhong xun lian"},
+    {"wusong", "雾凇", "wu song"},
+    {"chana", "刹那", "cha na"},
+    {"youhei", "黝黑", "you hei"},
+    {"quhei", "黢黑", "qu hei"},
+    {"xiaoqi", "小憩", "xiao qi"},
+    {"zhelishui", "啫喱水", "zhe li shui"},
+    {"tianzhukui", "天竺葵", "tian zhu kui"},
+    {"zhizihua", "栀子花", "zhi zi hua"},
+    {"buzhanguo", "不粘锅", "bu zhan guo"},
+    {"ciba", "糍粑", "ci ba"},
+    {"roujiamo", "肉夹馍", "rou jia mo"},
+    {"chengzi", "蛏子", "cheng zi"},
+    {"zhuroufu", "猪肉脯", "zhu rou fu"},
+    {"xijiaomanyan", "细嚼慢咽", "xi jiao man yan"},
+    {"faqia", "发卡", "fa qia"},
+    {"buchajia", "补差价", "bu cha jia"},
+    {"hjhs", "换句话说", "huan ju hua shuo"},
+    {"zzmm", "朝朝暮暮", "zhao zhao mu mu"},
+    {"xscc", "心事重重", "xin shi chong chong"},
+    {"rqsl", "容缺受理", "rong que shou li"},
+    {"xjmy", "细嚼慢咽", "xi jiao man yan"},
+};
 }
 
 int wmain(int argc, wchar_t* argv[]) {
@@ -297,7 +425,9 @@ int wmain(int argc, wchar_t* argv[]) {
         std::size_t rows = 0, line_number = 0;
         std::set<std::string> computing_words;
         std::set<std::string> daily_words;
+        std::set<std::string> common_words, earlier_texts;
         bool computing_section = false, daily_section = false;
+        bool common_section = false, common_started = false;
         for (std::string line; std::getline(input, line);) {
             ++line_number;
             if (line_number == 1 && line.compare(0, 3, "\xef\xbb\xbf") == 0) line.erase(0, 3);
@@ -308,6 +438,8 @@ int wmain(int argc, wchar_t* argv[]) {
                 if (line == "# 计算机词汇所需补充单字读音") computing_section = false;
                 if (line == "# 日常词汇扩充（2026-10-13）") daily_section = true;
                 if (line == "# 日常词汇所需补充单字读音") daily_section = false;
+                if (line == "# 常用词汇扩充（2026-10-17）") common_section = common_started = true;
+                if (line == "# 常用词汇所需补充单字读音（2026-10-17）") common_section = false;
                 continue;
             }
             const auto first = line.find('\t'), second = line.find('\t', first + 1);
@@ -325,12 +457,20 @@ int wmain(int argc, wchar_t* argv[]) {
             if (character_count(text) == 1) single_readings[text].insert(pronunciation);
             if (computing_section && character_count(text) > 1) computing_words.insert(text);
             if (daily_section && character_count(text) > 1) daily_words.insert(text);
+            if (!common_started) earlier_texts.insert(text);
+            if (common_section) {
+                if (character_count(text) < 2 || earlier_texts.count(text))
+                    throw std::runtime_error("common expansion must contain new word texts" + context);
+                if (!common_words.insert(text).second)
+                    throw std::runtime_error("duplicate text in common expansion" + context);
+            }
             ++rows;
         }
         check(!input.bad(), "dictionary audit could not finish reading");
         check(rows == lexicon.size(), "source rows were merged unexpectedly");
         check(computing_words.size() >= 2000, "computing expansion must contain at least 2000 unique words");
         check(daily_words.size() >= 5000, "daily expansion must contain at least 5000 unique words");
+        check(common_words.size() >= 5000, "common expansion must contain at least 5000 new unique words");
         // GB2312 level 1 occupies B0A1-D7F9, with full 94-cell rows except
         // the final row. Windows code page 936 preserves this GB2312 range.
         // Decode the coverage baseline locally, without importing a word list.
@@ -376,6 +516,9 @@ int wmain(int argc, wchar_t* argv[]) {
         for (const auto& sample : daily_samples)
             check(contains(lexicon, sample.query, sample.text, sample.pronunciation),
                   std::string("missing daily reading: ") + sample.query + " -> " + sample.text);
+        for (const auto& sample : common_samples)
+            check(contains(lexicon, sample.query, sample.text, sample.pronunciation),
+                  std::string("missing common reading: ") + sample.query + " -> " + sample.text);
         for (const auto& sample : priorities) {
             const auto candidates = lexicon.lookup(sample.query);
             check(!candidates.empty() && candidates.front().text == sample.text &&
@@ -422,6 +565,32 @@ int wmain(int argc, wchar_t* argv[]) {
         for (const auto& sample : incorrect_daily)
             check(!contains(lexicon, sample.query, sample.text, sample.pronunciation),
                   std::string("incorrect daily reading: ") + sample.text);
+        const Sample incorrect_common[] = {
+            {"zuchang", "组长", "zu chang"},
+            {"xuechang", "学长", "xue chang"},
+            {"changye", "长叶", "chang ye"},
+            {"dingtiao", "定调", "ding tiao"},
+            {"jietiao", "借调", "jie tiao"},
+            {"chaochaomumu", "朝朝暮暮", "chao chao mu mu"},
+            {"koujiao", "口角", "kou jiao"},
+            {"yongbuzhe", "用不着", "yong bu zhe"},
+            {"fanbuzhe", "犯不着", "fan bu zhe"},
+            {"xiaogao", "校稿", "xiao gao"},
+            {"dajile", "打击乐", "da ji le"},
+            {"xianle", "弦乐", "xian le"},
+            {"gudianle", "古典乐", "gu dian le"},
+            {"shana", "刹那", "sha na"},
+            {"yueshikong", "钥匙孔", "yue shi kong"},
+            {"baogenwendi", "刨根问底", "bao gen wen di"},
+            {"wangbule", "忘不了", "wang bu le"},
+            {"bunianguo", "不粘锅", "bu nian guo"},
+            {"xinshizhongzhong", "心事重重", "xin shi zhong zhong"},
+            {"shangxia", "商厦", "shang xia"},
+            {"shidongfeidong", "似懂非懂", "shi dong fei dong"},
+        };
+        for (const auto& sample : incorrect_common)
+            check(!contains(lexicon, sample.query, sample.text, sample.pronunciation),
+                  std::string("incorrect common reading: ") + sample.text);
         pinyin::InputSession composition;
         for (const char letter : std::string("tingzhi")) composition.handle(pinyin::InputKey::letter, letter, lexicon);
         const auto stop = std::find_if(composition.candidates().begin(), composition.candidates().end(), [](const auto& word) { return word.text == "停"; });
