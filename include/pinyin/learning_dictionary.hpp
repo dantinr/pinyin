@@ -2,6 +2,7 @@
 #include "pinyin/input_session.hpp"
 #include "pinyin/user_store.hpp"
 #include "pinyin/dictionary_manager.hpp"
+#include "pinyin/main_dictionary.hpp"
 #include "pinyin/user_data.hpp"
 
 namespace pinyin {
@@ -23,6 +24,7 @@ public:
     bool available() const noexcept { return available_; }
 private:
     Lexicon bundled_, base_, active_;
+    MainDictionary main_;
     SupplementaryDictionaries supplementary_;
     UserDictionary users_, pending_;
     std::filesystem::path user_path_;

@@ -1,5 +1,6 @@
 #include "pinyin/ime_settings.hpp"
 #include "pinyin/dictionary_manager.hpp"
+#include "pinyin/main_dictionary.hpp"
 #include "pinyin/user_store.hpp"
 #include "pinyin/input_statistics.hpp"
 #include "pinyin/vocabulary_growth.hpp"
@@ -94,55 +95,55 @@ INT_PTR CALLBACK sync_dialog(HWND window, UINT message, WPARAM wparam, LPARAM) n
     } catch (...) { MessageBoxW(window, L"同步设置未完成。", L"隐私拼音", MB_OK | MB_ICONERROR); }
     return FALSE;
 }
-bool choose_file(HWND owner, bool save, std::filesystem::path& path, bool& personal) {
+bool choose_export_file(HWND owner, std::filesystem::path& path) {
     std::array<wchar_t, 32768> filename{};
-    if (save) wcscpy_s(filename.data(), filename.size(), L"个人词库.tsv");
+    wcscpy_s(filename.data(), filename.size(), L"个人词库.tsv");
     OPENFILENAMEW dialog{}; dialog.lStructSize = sizeof(dialog); dialog.hwndOwner = owner;
     dialog.lpstrFile = filename.data(); dialog.nMaxFile = static_cast<DWORD>(filename.size());
-    dialog.lpstrFilter = save ? L"个人词库 (*.tsv)\0*.tsv\0\0" :
-        L"个人词库（选择次数） (*.tsv)\0*.tsv\0普通词库（排序权重） (*.tsv)\0*.tsv\0\0";
+    dialog.lpstrFilter = L"个人词库 (*.tsv)\0*.tsv\0\0";
     dialog.nFilterIndex = 1; dialog.lpstrDefExt = L"tsv";
-    dialog.lpstrTitle = save ? L"导出个人词库" : L"合并词库 · 请选择对应的文件类型";
-    dialog.Flags = OFN_EXPLORER | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST |
-        (save ? OFN_OVERWRITEPROMPT : OFN_FILEMUSTEXIST);
-    if (!(save ? GetSaveFileNameW(&dialog) : GetOpenFileNameW(&dialog))) {
+    dialog.lpstrTitle = L"导出个人词库";
+    dialog.Flags = OFN_EXPLORER | OFN_NOCHANGEDIR | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
+    if (!GetSaveFileNameW(&dialog)) {
         if (CommDlgExtendedError()) throw std::runtime_error("cannot open file selection dialog");
         return false;
     }
-    path = filename.data(); personal = dialog.nFilterIndex == 1; return true;
+    path = filename.data(); return true;
 }
 void export_personal(HWND window) {
-    std::filesystem::path target; bool personal = true;
-    if (!choose_file(window, true, target, personal)) return;
+    std::filesystem::path target;
+    if (!choose_export_file(window, target)) return;
     const auto count = pinyin::export_user_dictionary(pinyin::default_user_path(), target, true);
     const auto message = L"已导出 " + std::to_wstring(count) + L" 条个人词库记录。\n\n" + target.wstring();
     MessageBoxW(window, message.c_str(), L"隐私拼音", MB_OK | MB_ICONINFORMATION);
 }
 void merge_dictionary(HWND window) {
-    std::filesystem::path source; bool personal = true;
-    if (!choose_file(window, false, source, personal)) return;
-    std::wostringstream message;
-    if (personal) {
-        const auto result = pinyin::merge_user_dictionary(pinyin::default_user_path(), source);
-        message << L"已合并个人词库：新增 " << result.added << L" 条，更新 " << result.updated
-            << L" 条，未变 " << result.unchanged << L" 条。\n共 " << result.total << L" 条记录。";
-        if (!result.backup.empty()) message << L"\n\n原词库备份：\n" << result.backup.wstring();
-        message << L"\n\n开启本地学习时，下一轮拼音输入生效。";
-    } else {
-        const auto inspected = pinyin::read_dictionary_file(source);
-        for (const auto& comment : inspected.comments)
-            if (comment.find("private-pinyin user dictionary") != std::string::npos)
-                throw std::runtime_error("this is a personal dictionary; select the personal dictionary file type");
-        pinyin::DictionaryManager manager(pinyin::default_dictionary_directory());
-        const auto count = manager.import_file("imported", source);
-        message << L"已合并到 imported 辅词库，共 " << count << L" 条记录。\n"
-            L"同词同读音取较大权重，下一轮拼音输入生效。\n\n" <<
-            (manager.root() / L"imported.tsv").wstring();
-        const auto listed = manager.list();
-        for (const auto& item : listed) if (item.name == "imported" && !item.enabled)
-            message << L"\n\n该辅词库当前已停用，请启用后使用。";
+    const auto user = pinyin::default_user_path();
+    const auto count = pinyin::read_user_dictionary(user).size();
+    if (!count) {
+        MessageBoxW(window, L"当前用户词库为空，无需合并。", L"合并到主词库", MB_OK | MB_ICONINFORMATION);
+        return;
     }
-    MessageBoxW(window, message.str().c_str(), L"隐私拼音", MB_OK | MB_ICONINFORMATION);
+    std::wostringstream prompt;
+    prompt << L"将当前用户词库的 " << count << L" 条记录合并到主词库。\n\n来源：\n" << user.wstring()
+        << L"\n\n主词库：\n" << pinyin::main_dictionary_path(user).wstring()
+        << L"\n\n按词语和读音去重，已有词条保留排序权重。\n"
+           L"有新增词条时先备份主词库；用户词库及选择次数保留。\n"
+           L"合并后的词条在关闭本地学习时仍可使用。\n\n是否继续？";
+    if (MessageBoxW(window, prompt.str().c_str(), L"确认合并到主词库",
+        MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) != IDYES) return;
+    std::array<wchar_t, 32768> executable{};
+    const auto length = GetModuleFileNameW(nullptr, executable.data(), static_cast<DWORD>(executable.size()));
+    if (!length || length >= executable.size()) throw std::runtime_error("cannot find installed base dictionary");
+    const auto base = std::filesystem::path(executable.data()).parent_path() / L"data" / L"base.tsv";
+    const auto result = pinyin::merge_user_into_main(base, user);
+    std::wostringstream message;
+    message << L"主词库合并完成：新增 " << result.added << L" 条，已存在 " << result.unchanged
+        << L" 条，共 " << result.total << L" 条记录。\n\n主词库：\n" << result.path.wstring();
+    if (!result.backup.empty()) message << L"\n\n合并前备份：\n" << result.backup.wstring();
+    if (!result.added) message << L"\n\n全部词条已包含，主词库未修改。";
+    message << L"\n\n用户词库已保留。下一轮拼音输入生效，无需重启应用。";
+    MessageBoxW(window, message.str().c_str(), L"合并到主词库", MB_OK | MB_ICONINFORMATION);
 }
 void refresh(HWND window) {
     static std::optional<pinyin::InputStatistics> displayed_input;

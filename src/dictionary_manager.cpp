@@ -1,4 +1,5 @@
 #include "pinyin/dictionary_manager.hpp"
+#include "pinyin/main_dictionary.hpp"
 #include "pinyin/learning_dictionary.hpp"
 #include "pinyin/user_store.hpp"
 #define WIN32_LEAN_AND_MEAN
@@ -42,9 +43,9 @@ std::vector<std::pair<std::string, std::filesystem::path>> scan(const std::files
     std::sort(files.begin(), files.end());
     return files;
 }
-std::string serialize(const DictionaryFile& file) {
-    std::ostringstream output; output << header << '\n';
-    for (const auto& line : file.comments) if (line != header) output << line << '\n';
+std::string serialize(const DictionaryFile& file, const char* marker = header) {
+    std::ostringstream output; output << marker << '\n';
+    for (const auto& line : file.comments) if (line != header && line != marker) output << line << '\n';
     std::map<UserKey, Entry> entries;
     for (const auto& word : file.lexicon.entries()) entries[{word.pronunciation, word.text}] = word;
     for (const auto& item : entries)
@@ -76,8 +77,16 @@ void write_atomic(const std::filesystem::path& path, const std::string& bytes, b
         if (!FlushFileBuffers(file)) throw windows_error("cannot flush dictionary");
         const auto closed = CloseHandle(file); file = INVALID_HANDLE_VALUE;
         if (!closed) throw windows_error("cannot close dictionary");
-        if (!MoveFileExW(temporary.c_str(), path.c_str(), MOVEFILE_WRITE_THROUGH | (replace ? MOVEFILE_REPLACE_EXISTING : 0)))
-            throw windows_error("cannot replace dictionary");
+        const auto deadline = GetTickCount64() + 1000;
+        for (;;) {
+            if (MoveFileExW(temporary.c_str(), path.c_str(), MOVEFILE_WRITE_THROUGH | (replace ? MOVEFILE_REPLACE_EXISTING : 0))) break;
+            const auto error = GetLastError();
+            if ((error != ERROR_ACCESS_DENIED && error != ERROR_SHARING_VIOLATION && error != ERROR_LOCK_VIOLATION) ||
+                GetTickCount64() >= deadline) {
+                SetLastError(error); throw windows_error("cannot replace dictionary");
+            }
+            Sleep(5);
+        }
     } catch (...) {
         if (file != INVALID_HANDLE_VALUE) CloseHandle(file);
         DeleteFileW(temporary.c_str()); throw;
@@ -209,6 +218,87 @@ Lexicon SupplementaryDictionaries::merged(const Lexicon& base) const {
     auto result = base;
     for (const auto& file : files_) if (file.second.enabled)
         for (const auto& word : file.second.lexicon.entries()) result.add(word);
+    return result;
+}
+std::filesystem::path main_dictionary_path(const std::filesystem::path& user_path) {
+    return user_path.empty() ? std::filesystem::path{} : user_path.parent_path() / L"main.tsv";
+}
+MainDictionaryMerge merge_user_into_main(const std::filesystem::path& base_path,
+    const std::filesystem::path& user_path) {
+    if (user_path.empty()) throw std::runtime_error("user dictionary path is unavailable");
+    MainDictionaryMerge result; result.path = main_dictionary_path(std::filesystem::absolute(user_path));
+    ordinary_file(result.path);
+    for (const auto& source : {user_path, base_path}) {
+        std::error_code error;
+        if (std::filesystem::weakly_canonical(source) == std::filesystem::weakly_canonical(result.path) ||
+            std::filesystem::equivalent(source, result.path, error))
+            throw std::runtime_error("main dictionary must differ from its source files");
+    }
+    const auto users = read_user_dictionary(user_path);
+    result.imported = users.size();
+    UserStore lock(result.path, 1000);
+    auto combined = read_dictionary_file(base_path);
+    const bool has_main = std::filesystem::exists(result.path);
+    if (has_main) {
+        const auto current = read_dictionary_file(result.path);
+        for (const auto& word : current.lexicon.entries()) combined.lexicon.add(word);
+        for (const auto& comment : current.comments)
+            if (std::find(combined.comments.begin(), combined.comments.end(), comment) == combined.comments.end())
+                combined.comments.push_back(comment);
+    }
+    std::set<UserKey> known;
+    for (const auto& word : combined.lexicon.entries()) known.emplace(word.pronunciation, word.text);
+    for (const auto& word : users) {
+        if (known.emplace(word.first).second) {
+            combined.lexicon.add({word.first.second, word.first.first, 12000}); ++result.added;
+        } else ++result.unchanged;
+    }
+    result.total = combined.lexicon.size();
+    if (!result.added) return result;
+    const auto backups = result.path.parent_path() / L"backups";
+    std::filesystem::create_directories(backups);
+    SYSTEMTIME time{}; GetLocalTime(&time);
+    wchar_t timestamp[32]{};
+    swprintf_s(timestamp, L"%04u%02u%02u-%02u%02u%02u", time.wYear, time.wMonth, time.wDay,
+        time.wHour, time.wMinute, time.wSecond);
+    static std::atomic<unsigned long> sequence{0};
+    const auto original = has_main ? result.path : base_path;
+    for (int attempt = 0; attempt < 16; ++attempt) {
+        const auto backup = backups / (L"main." + std::wstring(timestamp) + L"." +
+            std::to_wstring(GetCurrentProcessId()) + L"." + std::to_wstring(++sequence) + L".tsv");
+        if (CopyFileW(original.c_str(), backup.c_str(), TRUE)) { result.backup = backup; break; }
+        if (GetLastError() != ERROR_FILE_EXISTS && GetLastError() != ERROR_ALREADY_EXISTS)
+            throw windows_error("cannot back up main dictionary");
+    }
+    if (result.backup.empty()) throw std::runtime_error("cannot allocate main dictionary backup");
+    write_atomic(result.path, serialize(combined,
+        "# private-pinyin main dictionary v1: text<TAB>pinyin<TAB>positive weight"));
+    return result;
+}
+bool MainDictionary::refresh() {
+    if (path_.empty()) return false;
+    try {
+        WIN32_FILE_ATTRIBUTE_DATA attributes{};
+        if (!GetFileAttributesExW(path_.c_str(), GetFileExInfoStandard, &attributes)) {
+            const auto error = GetLastError();
+            if ((error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND) && loaded_) {
+                lexicon_ = Lexicon{}; loaded_ = false; return true;
+            }
+            return false;
+        }
+        if (attributes.dwFileAttributes & (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_DIRECTORY)) return false;
+        const auto modified = (static_cast<std::uint64_t>(attributes.ftLastWriteTime.dwHighDateTime) << 32) |
+            attributes.ftLastWriteTime.dwLowDateTime;
+        const auto bytes = (static_cast<std::uint64_t>(attributes.nFileSizeHigh) << 32) | attributes.nFileSizeLow;
+        if (loaded_ && modified_ == modified && bytes_ == bytes) return false;
+        auto file = read_dictionary_file(path_);
+        lexicon_ = std::move(file.lexicon); modified_ = modified; bytes_ = bytes; loaded_ = true;
+        return true;
+    } catch (const std::exception&) { return false; }
+}
+Lexicon MainDictionary::merged(const Lexicon& base) const {
+    auto result = base;
+    for (const auto& word : lexicon_.entries()) result.add(word);
     return result;
 }
 }

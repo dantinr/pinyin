@@ -38,8 +38,10 @@
 学习开关可通过安装目录中的 private_pinyin.exe --ime-learning on|off|status|clear 设置。
 
 设置窗口提供“导出个人词库…”和“合并词库…”。导出为 UTF-8 TSV，保留选择次数。
-合并时选择个人词库或普通词库文件类型：个人次数取较大值，不重复累加；
-普通权重词库加入 imported 辅词库。修改个人词库前自动备份到同目录 backups。
+“合并词库…”自动读取当前用户词库，显示确认提示后合并到 %USERPROFILE%\PrivatePinyin\main.tsv。
+按词语和读音去重，有新增词条时先备份到同目录 backups；用户词库和选择次数保留。
+下一轮拼音输入生效；关闭本地学习或清空个人词库后，已合并的主词库词条仍可使用。
+导入其他个人词库或普通权重词库可通过 personal / lexicon CLI 操作，见 docs/personal-dictionaries.md。
 下一轮输入刷新；个人词库需开启本地学习后使用。
 Agent 可使用 private_pinyin.exe personal help 发现导出、校验与合并命令。
 完整规则见 docs/personal-dictionaries.md。

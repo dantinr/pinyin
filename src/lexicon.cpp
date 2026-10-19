@@ -106,6 +106,7 @@ Candidate ranked(const Entry& entry, const UserDictionary& users) {
 bool preferred(const Candidate& a, const Candidate& b) {
     // Preserve full-pinyin choices when an input can also be read as initials.
     if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
+    if (a.synthesized != b.synthesized) return !a.synthesized;
     // Exact stored readings precede completions even if the latter were learned.
     // Synthesized sentences use their word scores and a completion penalty.
     if (!a.synthesized && !b.synthesized && a.completed != b.completed) return !a.completed;
@@ -114,6 +115,25 @@ bool preferred(const Candidate& a, const Candidate& b) {
     if (!!a.selections != !!b.selections) return !!a.selections;
     if (a.score != b.score) return a.score > b.score;
     return a.text < b.text;
+}
+std::vector<std::size_t> han_boundaries(const std::string& text) {
+    try { validate_text(text); }
+    catch (const std::invalid_argument&) { return {}; }
+    std::vector<std::size_t> offsets;
+    for (std::size_t offset = 0; offset < text.size();) {
+        offsets.push_back(offset);
+        const auto first = static_cast<unsigned char>(text[offset]);
+        const std::size_t length = first < 0x80 ? 1 : first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
+        std::uint32_t code = first & (length == 1 ? 0x7f : length == 2 ? 0x1f : length == 3 ? 0x0f : 0x07);
+        for (std::size_t part = 1; part < length; ++part)
+            code = (code << 6) | (static_cast<unsigned char>(text[offset + part]) & 0x3f);
+        if (!(code == 0x3007 || (code >= 0x3400 && code <= 0x4dbf) || (code >= 0x4e00 && code <= 0x9fff) ||
+            (code >= 0xf900 && code <= 0xfaff) || (code >= 0x20000 && code <= 0x2fa1f) ||
+            (code >= 0x30000 && code <= 0x323af))) return {};
+        offset += length;
+    }
+    offsets.push_back(text.size());
+    return offsets;
 }
 } // namespace
 
@@ -268,10 +288,53 @@ std::vector<Candidate> Lexicon::lookup(const std::string& input, const UserDicti
             (!preferred(previous->second, candidate) && candidate.pronunciation < previous->second.pronunciation))
             unique[candidate.text] = std::move(candidate);
     }
+    for (auto& candidate : personal_fragments(query, users)) {
+        const auto previous = unique.find(candidate.text);
+        if (previous == unique.end() || preferred(candidate, previous->second))
+            unique[candidate.text] = std::move(candidate);
+    }
     std::vector<Candidate> result;
     for (auto& item : unique) result.push_back(std::move(item.second));
     std::sort(result.begin(), result.end(), preferred);
     if (result.size() > limit) result.resize(limit);
+    return result;
+}
+
+std::vector<Candidate> Lexicon::personal_fragments(const std::string& query, const UserDictionary& users) const {
+    std::vector<Candidate> result;
+    for (const auto& personal : users) {
+        const auto& text = personal.first.second;
+        const auto offsets = han_boundaries(text);
+        if (offsets.size() < 4) continue;
+        std::istringstream reading(personal.first.first);
+        std::vector<std::string> parts;
+        for (std::string part; reading >> part;) parts.push_back(std::move(part));
+        if (parts.size() + 1 != offsets.size()) continue;
+        for (std::size_t start = 0; start + 1 < parts.size(); ++start) {
+            std::size_t consumed = 0;
+            std::string pronunciation;
+            for (auto end = start; end < parts.size(); ++end) {
+                if (query.compare(consumed, parts[end].size(), parts[end]) != 0) break;
+                consumed += parts[end].size();
+                if (!pronunciation.empty()) pronunciation += ' ';
+                pronunciation += parts[end];
+                if (consumed == query.size()) {
+                    if (end == start || end - start + 1 == parts.size()) break;
+                    const auto fragment = text.substr(offsets[start], offsets[end + 1] - offsets[start]);
+                    const auto known = word_readings_.find(fragment);
+                    if (known != word_readings_.end() && !known->second.count(pronunciation)) break;
+                    if (entry_index_.count({pronunciation, fragment})) break;
+                    Candidate candidate;
+                    candidate.text = fragment; candidate.pronunciation = pronunciation;
+                    candidate.weight = 1; candidate.input_end = consumed; candidate.synthesized = true;
+                    candidate.score = std::log1p(static_cast<double>(personal.second));
+                    result.push_back(std::move(candidate));
+                    break;
+                }
+                if (query[consumed] == '\'') ++consumed;
+            }
+        }
+    }
     return result;
 }
 
@@ -337,6 +400,11 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
         if (previous == unique.end() || preferred(candidate, previous->second) ||
             (!preferred(previous->second, candidate) && candidate.pronunciation < previous->second.pronunciation))
             unique[key] = std::move(candidate);
+    }
+    for (auto& candidate : personal_fragments(query, users)) {
+        const auto key = std::make_pair(candidate.text, candidate.input_end);
+        const auto previous = unique.find(key);
+        if (previous == unique.end() || preferred(candidate, previous->second)) unique[key] = std::move(candidate);
     }
     if (limit) {
         for (auto& candidate : decode_normalized(query, users, 5)) {

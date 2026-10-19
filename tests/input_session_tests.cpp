@@ -133,7 +133,7 @@ int wmain(int argc, wchar_t* argv[]) {
         check(input.raw() == "ruhe" && input.cursor() == 0, "Home did not restore all original spelling");
         input.clear(); type(input, segmented, "ruhe"); input.select(index_of(input, "如"), segmented);
         result = input.handle(InputKey::enter, 0, segmented);
-        check(result.text == "如he" && result.pronunciation.empty(), "raw Enter submission became a learnable phrase");
+        check(result.text == "如he" && result.pronunciation.empty() && result.words.empty(), "raw Enter submission became a learnable phrase");
         type(input, segmented, "ruhe"); input.select(index_of(input, "如"), segmented);
         result = input.handle(InputKey::escape, 0, segmented);
         check(result.action == InputAction::cancel && input.empty() && result.pronunciation.empty(), "mixed preedit cancellation retained a word");
@@ -145,6 +145,13 @@ int wmain(int argc, wchar_t* argv[]) {
         input.clear(); type(input, segmented, "chongqinghe");
         input.select(index_of(input, "重庆"), segmented); result = input.select(index_of(input, "何"), segmented);
         check(result.text == "重庆何" && result.pronunciation == "chong qing he", "multi-syllable prefix lost its phrase-level reading");
+        check(result.words.size() == 2 && result.words[0].text == "重庆" && result.words[0].pronunciation == "chong qing" &&
+            result.words[1].text == "何", "commit discarded independently selected words");
+        type(input, segmented, "chongqinghe"); input.select(index_of(input, "重庆"), segmented);
+        input.handle(InputKey::home, 0, segmented);
+        result = input.select(index_of(input, "重庆何"), segmented);
+        check(result.words.size() == 1 && result.words.front().text == "重庆何",
+            "an undone prefix selection survived in the committed words");
         segmented.add({"如何", "ru he", 1});
         type(input, segmented, "ruhe");
         check(input.candidates().front().text == "如何", "whole learned word must precede higher-weight single-character prefixes");

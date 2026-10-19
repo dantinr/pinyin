@@ -19,6 +19,12 @@ std::string InputSession::confirmed_pronunciation() const {
     }
     return pronunciation;
 }
+InputResult InputSession::commit_confirmed() {
+    InputResult result{InputAction::commit, confirmed_text(), confirmed_pronunciation()};
+    for (const auto& segment : segments_) result.words.push_back(segment.word);
+    clear();
+    return result;
+}
 std::size_t InputSession::spelling_size() const noexcept {
     auto size = raw_.size();
     for (const auto& segment : segments_) size += segment.spelling.size();
@@ -57,9 +63,7 @@ InputResult InputSession::select(std::size_t index, const Lexicon& lexicon, cons
         refresh(lexicon, users);
         return {InputAction::update, {}, {}};
     }
-    auto text = confirmed_text(), pronunciation = confirmed_pronunciation();
-    clear();
-    return {InputAction::commit, std::move(text), std::move(pronunciation)};
+    return commit_confirmed();
 }
 InputResult InputSession::handle(InputKey key, char value, const Lexicon& lexicon, const UserDictionary& users) {
     if (key == InputKey::letter) {
@@ -116,8 +120,7 @@ InputResult InputSession::handle(InputKey key, char value, const Lexicon& lexico
         }
         if (!candidates_.empty()) return select(selected_, lexicon, users);
         if (raw_.empty()) {
-            auto text = confirmed_text(), pronunciation = confirmed_pronunciation();
-            clear(); return {InputAction::commit, std::move(text), std::move(pronunciation)};
+            return commit_confirmed();
         }
         [[fallthrough]];
     case InputKey::enter: {

@@ -75,6 +75,7 @@ private:
                                             const UserDictionary& users, std::size_t limit) const;
     void match_prefixes(std::size_t node, std::size_t offset, const std::string& query,
                         std::vector<Match>& result) const;
+    std::vector<Candidate> personal_fragments(const std::string& query, const UserDictionary& users) const;
 };
 
 void learn(UserDictionary& users, const Candidate& candidate);

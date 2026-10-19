@@ -112,6 +112,9 @@ if(BUILD_TESTING)
   target_link_libraries(user_data_tests PRIVATE pinyin_core)
   add_test(NAME shared_user_data COMMAND user_data_tests)
   add_executable(personal_dictionary_tests tests/personal_dictionary_tests.cpp)
+  add_executable(main_dictionary_tests tests/main_dictionary_tests.cpp)
+  target_link_libraries(main_dictionary_tests PRIVATE pinyin_core)
+  add_test(NAME main_dictionary COMMAND main_dictionary_tests)
   target_link_libraries(personal_dictionary_tests PRIVATE pinyin_core)
   add_test(NAME personal_dictionary COMMAND personal_dictionary_tests)
   add_executable(dictionary_manager_tests tests/dictionary_manager_tests.cpp)
@@ -225,6 +228,10 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/sync_settings_ui_tests.ps1"
         -Executable "$<TARGET_FILE:private_pinyin_settings>" -Screenshot "${CMAKE_CURRENT_BINARY_DIR}/sync-settings-preview.png")
       set_tests_properties(sync_settings_ui PROPERTIES TIMEOUT 45)
+      add_test(NAME main_merge_ui COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/main_merge_ui_tests.ps1"
+        -Executable "$<TARGET_FILE:private_pinyin_settings>" -Screenshot "${CMAKE_CURRENT_BINARY_DIR}/main-merge-preview.png")
+      set_tests_properties(main_merge_ui PROPERTIES TIMEOUT 60)
     endif()
     add_test(NAME personal_cli COMMAND "${PWSH_EXECUTABLE}" -NoProfile -File
       "${CMAKE_CURRENT_SOURCE_DIR}/tests/personal_cli_tests.ps1" -Executable "$<TARGET_FILE:private_pinyin>")

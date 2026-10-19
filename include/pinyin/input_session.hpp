@@ -10,6 +10,7 @@ struct InputResult {
     std::string text;
     // Nonempty only for a completely confirmed candidate selection.
     std::string pronunciation;
+    std::vector<Entry> words;
 };
 
 // Platform-independent composition state. No persistence or application text access.
@@ -45,5 +46,6 @@ private:
     void refresh(const Lexicon& lexicon, const UserDictionary& users);
     void undo_segment();
     std::string confirmed_pronunciation() const;
+    InputResult commit_confirmed();
 };
 }

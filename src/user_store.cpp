@@ -227,6 +227,7 @@ PersonalDictionaryFile read_personal_dictionary_file(const std::filesystem::path
     const auto file = read_dictionary_file(path);
     for (const auto& comment : file.comments) {
         if (comment.find("private-pinyin supplementary dictionary") != std::string::npos ||
+            comment.find("private-pinyin main dictionary") != std::string::npos ||
             comment.find("Private Pinyin independently curated starter lexicon") != std::string::npos ||
             comment.find("<TAB>positive weight") != std::string::npos)
             throw std::runtime_error("this file contains sorting weights; import it as a supplementary dictionary instead");

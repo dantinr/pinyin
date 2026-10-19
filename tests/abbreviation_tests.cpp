@@ -124,8 +124,9 @@ int wmain(int argc, wchar_t* argv[]) {
         input.select(index_of(input, "你", 1), learning.lexicon(), learning.users());
         input.select(index_of(input, "好", 1), learning.lexicon(), learning.users());
         result = input.select(index_of(input, "北京", 2), learning.lexicon(), learning.users());
-        check(learning.remember(result) && learning.users().size() == 1 &&
-            learning.users().at({"ni hao bei jing", "你好北京"}) == 1, "short phrase was not learned as full pronunciation");
+        check(learning.remember(result) && learning.users().size() == 2 &&
+            learning.users().at({"ni hao bei jing", "你好北京"}) == 1 && learning.users().at({"bei jing", "北京"}) == 1,
+            "short phrase and selected word were not learned as full pronunciation");
         LearningDictionary restarted(argv[1], user_path); restarted.refresh();
         for (const auto& query : {"nhbj", "nihaobeijing", "nihaobj", "nhaobeijing"}) {
             const auto words = restarted.lexicon().lookup(query, restarted.users());
@@ -134,11 +135,12 @@ int wmain(int argc, wchar_t* argv[]) {
         }
         type(input, restarted.lexicon(), "nhbj", restarted.users());
         result = input.handle(InputKey::space, 0, restarted.lexicon(), restarted.users());
-        check(restarted.remember(result) && restarted.users().size() == 1 &&
-            restarted.users().at({"ni hao bei jing", "你好北京"}) == 2, "short/full selections created separate user records");
+        check(restarted.remember(result) && restarted.users().size() == 2 &&
+            restarted.users().at({"ni hao bei jing", "你好北京"}) == 2 && restarted.users().at({"bei jing", "北京"}) == 1,
+            "short/full selections duplicated records or counted an unselected fragment");
         type(input, restarted.lexicon(), "nh", restarted.users());
         result = input.handle(InputKey::enter, 0, restarted.lexicon(), restarted.users());
-        check(!restarted.remember(result) && restarted.users().size() == 1, "raw short text was persisted");
+        check(!restarted.remember(result) && restarted.users().size() == 2, "raw short text was persisted");
         // Initials alone have many homophones. Confirming the intended segments
         // teaches a full sentence, which then becomes a direct abbreviated word.
         type(input, restarted.lexicon(), "wzbjsb", restarted.users());

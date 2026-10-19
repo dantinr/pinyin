@@ -78,6 +78,95 @@ int main() {
         check(!dictionary.remember(result) && read(path) == saved, "raw Enter submission became a custom word");
 
         {
+            const auto phrase_base = workspace.root / L"phrases.tsv";
+            const auto phrase_path = workspace.root / L"phrases" / L"words.user.tsv";
+            write(phrase_base, "同意\ttong yi\t8000\n后台\thou tai\t8000\n重庆\tchong qing\t8000\n");
+            {
+                UserStore store(phrase_path);
+                store.save({{{"tong yi hou tai", "统一后台"}, 7},
+                    {{"tong yi she zhi", "统一设置"}, 2},
+                    {{"tong yi hou", "统一后台"}, 1},
+                    {{"tong yi hou tai", "统一AB"}, 1},
+                    {{"zhong qing hou tai", "重庆后台"}, 1},
+                    {{"ji ye hou tai", "𠮷野后台"}, 1}});
+            }
+            LearningDictionary phrases(phrase_base, phrase_path); phrases.refresh();
+            InputSession phrase_input; type(phrase_input, phrases, "tongyi");
+            const auto fragment = std::find_if(phrase_input.candidates().begin(), phrase_input.candidates().end(),
+                [](const auto& word) { return word.text == "统一"; });
+            check(fragment != phrase_input.candidates().end(),
+                "a confirmed longer phrase did not recover its missing short word");
+            check(fragment->pronunciation == "tong yi" && fragment->selections == 0 &&
+                std::count_if(phrase_input.candidates().begin(), phrase_input.candidates().end(),
+                    [](const auto& word) { return word.text == "统一"; }) == 1,
+                "phrase fallback fabricated selections, reading or duplicate candidates");
+            check(phrase_input.candidates().front().text == "同意",
+                "an inferred phrase fragment displaced a stored exact word");
+            const auto before_lookup = read(phrase_path);
+            const auto separated = phrases.lexicon().lookup("tong'yi", phrases.users());
+            check(std::any_of(separated.begin(), separated.end(), [](const auto& word) { return word.text == "统一"; }),
+                "explicit syllable boundaries hid a phrase fragment");
+            check(read(phrase_path) == before_lookup && !phrases.users().count({"tong yi", "统一"}),
+                "looking up a phrase fragment wrote invented user records");
+            const UserDictionary unaligned{{{"tong yi hou", "统一后台"}, 1},
+                {{"tong yi hou", "统一A"}, 1}, {{"tong yi hou", "统一😀"}, 1}};
+            const auto invalid_fragments = phrases.lexicon().lookup("tongyi", unaligned);
+            check(std::none_of(invalid_fragments.begin(), invalid_fragments.end(),
+                [](const auto& word) { return word.text == "统一"; }),
+                "mixed text or mismatched syllables produced a guessed fragment reading");
+            const auto middle = phrases.lexicon().lookup("yehou", phrases.users());
+            check(std::any_of(middle.begin(), middle.end(), [](const auto& word) { return word.text == "野后"; }),
+                "phrase fallback only searched the start of a stored phrase");
+            const auto incomplete = phrases.lexicon().lookup("tongy", phrases.users());
+            check(std::none_of(incomplete.begin(), incomplete.end(), [](const auto& word) { return word.text == "统一"; }),
+                "phrase fallback guessed a short word from an unfinished syllable");
+            const auto rare = phrases.lexicon().lookup_composition("jiye", phrases.users());
+            check(std::any_of(rare.begin(), rare.end(), [](const auto& word) { return word.text == "𠮷野"; }),
+                "supplementary-plane Han characters broke phrase alignment");
+            const auto wrong_reading = phrases.lexicon().lookup_composition("zhongqing", phrases.users());
+            check(std::none_of(wrong_reading.begin(), wrong_reading.end(), [](const auto& word) { return word.text == "重庆"; }),
+                "phrase fallback invented a conflicting known pronunciation");
+            result = phrase_input.select(static_cast<std::size_t>(fragment - phrase_input.candidates().begin()),
+                phrases.lexicon(), phrases.users());
+            check(result.text == "统一" && phrases.remember(result), "recovered short word could not be confirmed and learned");
+            LearningDictionary next_app(phrase_base, phrase_path); next_app.refresh();
+            check(next_app.users().at({"tong yi", "统一"}) == 1 &&
+                next_app.lexicon().lookup_composition("tongyi", next_app.users()).front().text == "统一",
+                "confirmed short word was lost after restarting or inherited the full phrase count");
+            set_ime_learning(phrase_path, false); next_app.refresh();
+            const auto disabled = next_app.lexicon().lookup_composition("jiye", next_app.users());
+            check(std::none_of(disabled.begin(), disabled.end(), [](const auto& word) { return word.text == "𠮷野"; }),
+                "disabled learning exposed a personal phrase fragment");
+
+            const auto segments_path = workspace.root / L"segments" / L"words.user.tsv";
+            LearningDictionary segments(phrase_base, segments_path); segments.refresh();
+            auto choices = segments.lexicon(); choices.add({"统一", "tong yi", 1});
+            InputSession segmented;
+            for (const auto letter : std::string("tongyihoutai")) segmented.handle(InputKey::letter, letter, choices);
+            const auto prefix = std::find_if(segmented.candidates().begin(), segmented.candidates().end(),
+                [](const auto& word) { return word.text == "统一"; });
+            check(prefix != segmented.candidates().end(), "missing selected-word fixture");
+            result = segmented.select(static_cast<std::size_t>(prefix - segmented.candidates().begin()), choices);
+            check(result.action == InputAction::update && !segments.remember(result) && !std::filesystem::exists(segments_path),
+                "a selected segment was persisted before the composition committed");
+            result = segmented.handle(InputKey::space, 0, choices);
+            check(result.text == "统一后台" && segments.remember(result), "segmented phrase did not commit");
+            LearningDictionary reloaded(phrase_base, segments_path); reloaded.refresh();
+            check(reloaded.users().at({"tong yi", "统一"}) == 1 &&
+                reloaded.users().at({"hou tai", "后台"}) == 1 &&
+                reloaded.users().at({"tong yi hou tai", "统一后台"}) == 1,
+                "committing a phrase discarded independently confirmed words or counted them twice");
+            const auto before_cancel = read(segments_path);
+            for (const auto letter : std::string("tongyihoutai")) segmented.handle(InputKey::letter, letter, choices);
+            const auto selected = std::find_if(segmented.candidates().begin(), segmented.candidates().end(),
+                [](const auto& word) { return word.text == "统一"; });
+            segmented.select(static_cast<std::size_t>(selected - segmented.candidates().begin()), choices);
+            result = segmented.handle(InputKey::escape, 0, choices);
+            check(!segments.remember(result) && result.words.empty() && read(segments_path) == before_cancel,
+                "cancelling a selected segment changed the personal dictionary");
+        }
+
+        {
             const auto retry_path = workspace.root / L"retry" / L"words.user.tsv";
             LearningDictionary retry(base, retry_path); retry.refresh();
             const InputResult embedded{InputAction::commit, "嵌入", "qian ru"};

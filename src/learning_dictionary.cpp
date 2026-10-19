@@ -39,7 +39,8 @@ bool learnable(const InputResult& result) {
 }
 }
 LearningDictionary::LearningDictionary(const std::filesystem::path& base_path, std::filesystem::path user_path)
-    : supplementary_(user_path.empty() ? std::filesystem::path{} : user_path.parent_path() / L"dictionaries"),
+    : main_(main_dictionary_path(user_path)),
+      supplementary_(user_path.empty() ? std::filesystem::path{} : user_path.parent_path() / L"dictionaries"),
       user_path_(std::move(user_path)) {
     bundled_.load(base_path); base_ = bundled_; active_ = base_;
 }
@@ -49,8 +50,9 @@ Lexicon LearningDictionary::merged(const UserDictionary& users) const {
     return lexicon;
 }
 void LearningDictionary::refresh() {
-    if (supplementary_.refresh()) {
-        base_ = supplementary_.merged(bundled_);
+    const bool main_changed = main_.refresh(), supplementary_changed = supplementary_.refresh();
+    if (main_changed || supplementary_changed) {
+        base_ = supplementary_.merged(main_.merged(bundled_));
         active_ = merged(users_);
     }
     enabled_ = ime_learning_enabled(user_path_);
@@ -93,9 +95,19 @@ bool LearningDictionary::remember(const InputResult& result) noexcept {
     try {
         if (!ime_learning_enabled(user_path_)) { refresh(); return false; }
         if (!learnable(result)) return false;
+        UserDictionary confirmed;
         Candidate word; word.text = result.text; word.pronunciation = result.pronunciation;
-        learn(pending_, word);
-        learn(users_, word);
+        learn(confirmed, word);
+        for (const auto& selected : result.words) {
+            if (selected.pronunciation.find(' ') == std::string::npos) continue;
+            word.text = selected.text; word.pronunciation = selected.pronunciation;
+            learn(confirmed, word);
+        }
+        for (const auto& selected : confirmed) {
+            word.text = selected.first.second; word.pronunciation = selected.first.first;
+            learn(pending_, word);
+            learn(users_, word);
+        }
         refresh();
         if (!available_) active_ = merged(users_);
         return available_;
