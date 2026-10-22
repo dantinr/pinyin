@@ -10,13 +10,14 @@ using namespace pinyin::testing;
 int checks = 0;
 void check(bool condition, const char* message) { ++checks; if (!condition) throw std::runtime_error(message); }
 UserDictionary words(const std::filesystem::path& path) { UserStore store(path); return store.load(); }
-BOOL probe_key(Harness& ime, WPARAM key) {
+BOOL probe_key(Harness& ime, WPARAM key, std::initializer_list<int> modifiers = {}) {
     BYTE previous[256]{}, neutral[256]{};
     if (!GetKeyboardState(previous)) throw std::runtime_error("cannot read probe keyboard state");
     struct Restore {
         BYTE* previous;
         ~Restore() { SetKeyboardState(previous); }
     } restore{previous};
+    for (const auto modifier : modifiers) neutral[modifier] = modifier == VK_CAPITAL ? 1 : 0x80;
     if (!SetKeyboardState(neutral)) throw std::runtime_error("cannot isolate probe keyboard state");
     BOOL eaten = FALSE;
     Harness::require(ime.keys->OnTestKeyDown(ime.context.Get(), key, 0, &eaten), "probe key with isolated modifiers");
@@ -61,6 +62,58 @@ int wmain(int argc, wchar_t* argv[]) {
     try {
         check(argc == 2 && SUCCEEDED(initialized), "test setup failed");
         TestWorkspace workspace; const auto path = default_user_path();
+        for (const auto automatic : {true, false}) {
+            set_automatic_english(path, automatic);
+            for (const auto chinese_punctuation : {true, false}) {
+                set_chinese_punctuation(path, chinese_punctuation);
+                for (const auto* example : {"chatGPT", "openAI", "userID", "aBcD"}) {
+                    for (const auto ending : {VK_RETURN, VK_SPACE, VK_OEM_MINUS}) {
+                        Harness ime(argv[1]); const auto previous = words(path);
+                        type_app(ime, example);
+                        check(ime.store->text == wide(example) && ime.compositions() == 1,
+                            "a mixed-case word was split between the host and the IME");
+                        const auto suffix = ending == VK_SPACE ? L" " : ending == VK_OEM_MINUS ? L"-" : L"";
+                        check(ime.key(ending) && ime.store->text == wide(example) + suffix && ime.compositions() == 0 &&
+                            words(path) == previous, "mixed-case confirmation reordered, converted or learned English");
+                        ime.close(); check(ime.unload_result == S_OK, "mixed-case word leaked DLL references");
+                    }
+                }
+            }
+        }
+        set_automatic_english(path, true); set_chinese_punctuation(path, true);
+        {
+            Harness ime(argv[1]); auto bar = button(ime); const auto previous = words(path);
+            ime.type("chat");
+            check(probe_key(ime, 'G', {VK_SHIFT}) && probe_key(ime, 'G', {VK_SHIFT}) &&
+                ime.store->text == L"chat" && ime.compositions() == 1 && label(bar.Get()) == L"中",
+                "uppercase probing changed text or passed through before its lowercase prefix");
+            ime.store->reject_writes = true;
+            check(!ime.modified_key('G', {VK_SHIFT}) && ime.store->text == L"chat" && ime.compositions() == 1,
+                "rejected uppercase edit consumed or altered the pending word");
+            ime.store->reject_writes = false;
+            ime.key(VK_SHIFT); type_app(ime, "GPT");
+            check(!ime.key_up(VK_SHIFT) && ime.store->text == L"chatGPT" && ime.compositions() == 1 &&
+                ime.key(VK_RETURN) && ime.store->text == L"chatGPT" && words(path) == previous,
+                "held Shift, rollback or uppercase release reordered a mixed-case word");
+            bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "mixed-case rollback leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); const auto previous = words(path); ime.type("chat");
+            check(ime.modified_key('G', {VK_CAPITAL}) && ime.modified_key('P', {VK_CAPITAL}) &&
+                ime.modified_key('T', {VK_CAPITAL}) && ime.store->text == L"chatGPT" &&
+                ime.modified_key(VK_RETURN, {VK_CAPITAL}) && ime.compositions() == 0 && words(path) == previous,
+                "CapsLock suffix escaped its pending lowercase composition");
+            ime.close(); check(ime.unload_result == S_OK, "CapsLock mixed-case word leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); type_app(ime, "chatG");
+            check(ime.modified_key('P', {VK_CAPITAL, VK_SHIFT}) && ime.modified_key('T', {VK_CAPITAL}) &&
+                ime.store->text == L"chatGpT" && ime.key(VK_RETURN),
+                "Shift and CapsLock did not combine correctly inside literal composition");
+            type_app(ime, "chatGPT"); check(ime.key(VK_ESCAPE) && ime.store->text == L"chatGpT" && ime.compositions() == 0,
+                "mixed-case Escape retained an unfinished suffix");
+            ime.close(); check(ime.unload_result == S_OK, "mixed-case cancellation leaked DLL references");
+        }
         for (const auto automatic : {true, false}) {
             set_automatic_english(path, automatic);
             for (const auto chinese_punctuation : {true, false}) {

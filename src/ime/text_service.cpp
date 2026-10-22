@@ -564,15 +564,17 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         // Probe without changing sentence state; the real end key is still
         // passed to the application after OnKeyDown resets automatic English.
         if (automatic_english_ && same_object(context, observed_.Get())) return false;
-        if (!chinese_ || (GetKeyState(VK_CAPITAL) & 1)) return false;
+        if (!chinese_) return false;
+        if ((GetKeyState(VK_CAPITAL) & 1) && !input_.literal() &&
+            !(key >= 'A' && key <= 'Z' && !input_.empty() && input_.confirmed_text().empty())) return false;
         if (const auto mark = punctuation_key(key); mark && (*mark != '\'' || input_.raw().empty()))
             return settings_.chinese_punctuation || !input_.empty();
         const auto translated = translate(key);
         if (!translated) return false;
-        // Keep an initial Shift+letter and the rest of that literal word in
-        // the same editable composition. Existing Chinese segments keep their behavior.
+        // Keep Shift+letters in the same editable composition until a Chinese
+        // segment has been explicitly selected.
         if (translated->type == InputKey::letter)
-            return !(GetKeyState(VK_SHIFT) & 0x8000) || input_.empty() || input_.literal();
+            return !(GetKeyState(VK_SHIFT) & 0x8000) || input_.confirmed_text().empty() || input_.literal();
         // Claim Space only when there is composition to confirm. An idle probe
         // must agree with OnKeyDown so hosts still translate ordinary spaces.
         if (input_.empty()) return false;
@@ -687,7 +689,8 @@ public:
             auto mark = punctuation_key(key);
             if (mark && *mark == '\'' && !input_.raw().empty()) mark.reset(); // Pinyin separator or English contraction.
             auto translated = translate(key); if (!mark && !translated) return S_OK;
-            if (translated && translated->type == InputKey::letter && (GetKeyState(VK_SHIFT) & 0x8000))
+            if (translated && translated->type == InputKey::letter &&
+                ((GetKeyState(VK_SHIFT) & 0x8000) != 0) != ((GetKeyState(VK_CAPITAL) & 1) != 0))
                 translated->value = static_cast<char>(key);
             auto hr = observe(context); if (FAILED(hr)) return hr;
             auto target = ComPtr<ITfContext>(context);

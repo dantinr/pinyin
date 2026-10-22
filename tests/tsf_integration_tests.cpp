@@ -371,22 +371,22 @@ int wmain(int argc, wchar_t* argv[]) {
             check(ime.key('N'), "Shift+letters switched away from Chinese mode"); ime.key(VK_ESCAPE);
 
             ime.type("niha"); ime.key(VK_SHIFT);
-            check(!ime.modified_key('B', {VK_SHIFT}), "shifted letter inside preedit was swallowed");
-            ime.store->insert_external(L"B"); Harness::pump();
-            check(!ime.key_up(VK_SHIFT) && ime.store->text == capitals + L"nihaB" && ime.compositions() == 0,
-                "application uppercase edit lost raw pinyin or left a stale composition");
+            check(ime.modified_key('B', {VK_SHIFT}), "shifted letter escaped an unconfirmed preedit");
+            check(!ime.key_up(VK_SHIFT) && ime.store->text == capitals + L"nihaB" && ime.compositions() == 1 &&
+                ime.key(VK_RETURN) && ime.compositions() == 0,
+                "mixed-case confirmation lost raw spelling or retained a composition");
 
             ime.type("nihao"); ime.key(VK_LEFT); ime.key(VK_LEFT); ime.key(VK_SHIFT);
-            check(!ime.modified_key('C', {VK_SHIFT}), "shifted letter at the preedit caret was swallowed");
-            ime.store->insert_external(L"C"); Harness::pump(); ime.key_up(VK_SHIFT);
-            check(ime.store->text == capitals + L"nihaBnihCao" && ime.compositions() == 0,
-                "uppercase edit at the caret lost remaining pinyin");
+            check(ime.modified_key('C', {VK_SHIFT}), "shifted letter escaped the preedit caret");
+            ime.key_up(VK_SHIFT);
+            check(ime.store->text == capitals + L"nihaBnihCao" && ime.compositions() == 1 &&
+                ime.key(VK_RETURN) && ime.compositions() == 0,
+                "uppercase edit at the caret lost the remaining spelling");
 
             ime.type("niha"); choose(ime, L"你"); ime.key(VK_SHIFT);
             check(!ime.modified_key('D', {VK_SHIFT}), "shifted letter after a selected segment was swallowed");
             ime.store->insert_external(L"D"); Harness::pump(); ime.key_up(VK_SHIFT);
-            // The caret remains after C, before the preserved "ao" suffix.
-            check(ime.store->text == capitals + L"nihaBnihC你haDao" && ime.compositions() == 0 &&
+            check(ime.store->text == capitals + L"nihaBnihCao你haD" && ime.compositions() == 0 &&
                 personal_words(user_path) == previous, "uppercase edit lost a segment or learned unconfirmed text");
 
             check(!ime.modified_key('E', {VK_SHIFT, VK_CAPITAL}) &&

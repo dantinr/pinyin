@@ -69,7 +69,10 @@ InputResult InputSession::handle(InputKey key, char value, const Lexicon& lexico
     if (key == InputKey::letter) {
         const bool uppercase = value >= 'A' && value <= 'Z';
         if (!uppercase && (value < 'a' || value > 'z')) return {};
-        if (uppercase && !empty() && !literal_) return {};
+        if (uppercase && !literal_) {
+            if (!segments_.empty()) return {};
+            literal_ = true;
+        }
         if (empty()) literal_ = uppercase;
         raw_.insert(cursor_++, 1, value); refresh(lexicon, users);
         return {InputAction::update, {}, {}};
