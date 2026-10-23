@@ -6,7 +6,8 @@
 
 | 文件 | 用途 | 写入者 |
 | --- | --- | --- |
-| 安装目录 `data/base.tsv` | 随版本发布的主词库 | 项目维护者；Agent 接口只读 |
+| 安装目录 `data/base.tsv` | 随版本发布的基础词库 | 项目维护者；`lexicon` 接口只读 |
+| `%USERPROFILE%\PrivatePinyin\main.tsv` | 用户确认合并的主词库，输入法与基础词库一起加载 | 设置窗口的“合并词库…”；规则见[个人词库](personal-dictionaries.md) |
 | `%USERPROFILE%\PrivatePinyin\dictionaries\daily.tsv` | 日常词语辅词库 | 用户或用户的 Agent |
 | 同目录 `computer.tsv / medical.tsv / names.tsv` 等 | 独立主题辅词库 | 用户或用户的 Agent |
 | `%USERPROFILE%\PrivatePinyin\words.user.tsv` | 已确认的词语及选择次数 | 输入法本地学习 |
@@ -55,13 +56,13 @@ $imeTool = "D:\codex_projects\private-pinyin\build\Release\private_pinyin.exe"
 
 `validate` 返回原始记录数、规范化后的唯一记录数和重复数，并在格式错误时报告行号。空辅词库合法。`import` 默认合并，同词同读音取最大权重；加 `--replace` 才替换该辅词库全部内容。`export` 不覆盖已存在的目标文件。
 
-`list` 返回主词库、各辅词库的路径、启用状态、唯一记录数和错误信息。`query` 预览主词库与当前已启用辅词库的候选，不读取个人学习记录，支持全拼、简拼及末尾补全；可用 `--limit` 指定候选数量。单个损坏辅词库通过 `warnings` 报告，其余词库仍可查询。
+`list` 返回基础词库（或 `--base` 指定文件）、各辅词库的路径、启用状态、唯一记录数和错误信息。`query` 预览这些词库的候选，不读取个人学习记录，支持全拼、简拼及末尾补全；可用 `--limit` 指定候选数量。单个损坏辅词库通过 `warnings` 报告，其余词库仍可查询。默认不会自动叠加用户 `main.tsv`；需要单独验证该文件时可用 `--base` 指定，因此 CLI 预览范围不等于系统输入法全部候选来源。
 
 ```json
 {"schema":1,"ok":true,"command":"upsert","root":"C:\\Users\\用户名\\PrivatePinyin\\dictionaries","name":"computer","entries":1}
 ```
 
-`--root 目录` 可指定独立辅词库目录用于草稿、测试和交换文件；`list/query --base 文件` 可指定主词库进行验证。系统输入法始终读取其安装目录的主词库和默认用户辅词库目录，测试目录不会自动成为正式词库。
+`--root 目录` 可指定独立辅词库目录用于草稿、测试和交换文件；`list/query --base 文件` 可指定基础文件进行验证。系统输入法读取安装目录的 `data/base.tsv`、用户目录中已有的 `main.tsv` 和默认辅词库目录；本地学习开启时还读取 `words.user.tsv`。测试目录不会自动成为正式词库。
 
 ## 推荐调用顺序
 
