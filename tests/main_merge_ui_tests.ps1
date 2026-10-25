@@ -39,7 +39,7 @@ public static class MainMergeWindow {
     }
 }
 '@
-function Wait-Dialog([uint32]$OwnerId, [string]$Title, [int]$Button = 0) {
+function Wait-Dialog([uint32]$OwnerId, [string]$Title, [int]$Button = 0, [switch]$MessageBox) {
     $deadline = [DateTime]::UtcNow.AddSeconds(12)
     do {
         $window = [MainMergeWindow]::Find($OwnerId, $Title)
@@ -48,7 +48,18 @@ function Wait-Dialog([uint32]$OwnerId, [string]$Title, [int]$Button = 0) {
                 $primary = [MainMergeWindow]::GetDlgItem($window, 1)
                 if ($primary -ne [IntPtr]::Zero) { $primary } else { [MainMergeWindow]::GetDlgItem($window, 2) }
             }
-            if ($ready -ne [IntPtr]::Zero) { return $window }
+            if ($ready -ne [IntPtr]::Zero) {
+                # MessageBox creates its buttons before the body text control.
+                # Wait for the complete message before checking its contents.
+                if ($MessageBox) {
+                    $body = [MainMergeWindow]::GetDlgItem($window, 65535)
+                    if ($body -eq [IntPtr]::Zero -or -not [MainMergeWindow]::Text($body)) {
+                        Start-Sleep -Milliseconds 40
+                        continue
+                    }
+                }
+                return $window
+            }
         }
         Start-Sleep -Milliseconds 40
     } while ([DateTime]::UtcNow -lt $deadline)
@@ -95,7 +106,7 @@ try {
     $null = $process.WaitForInputIdle(10000)
     $main = Wait-Dialog $process.Id '隐私拼音 · 设置'
     Click $main 1006
-    $confirmation = Wait-Dialog $process.Id '确认合并到主词库' 6
+    $confirmation = Wait-Dialog $process.Id '确认合并到主词库' 6 -MessageBox
     $content = [MainMergeWindow]::Content($confirmation)
     if (-not $content.Contains($userFile) -or -not $content.Contains($mainFile) -or
         -not $content.Contains('备份') -or -not $content.Contains('选择次数保留')) {
@@ -119,9 +130,9 @@ try {
     if (Test-Path -LiteralPath $mainFile) { throw 'Cancelling merge created a main dictionary.' }
     if ((Get-FileHash -LiteralPath $userFile).Hash -ne $originalUser) { throw 'Cancelling merge changed user words.' }
     Click $main 1006
-    $confirmation = Wait-Dialog $process.Id '确认合并到主词库' 6
+    $confirmation = Wait-Dialog $process.Id '确认合并到主词库' 6 -MessageBox
     Click $confirmation 6
-    $result = Wait-Dialog $process.Id '合并到主词库'
+    $result = Wait-Dialog $process.Id '合并到主词库' -MessageBox
     if (-not (Test-Path -LiteralPath $mainFile) -or -not ([IO.File]::ReadAllText($mainFile)).Contains("用户合并测试词`tyong hu he bing ce shi ci`t12000")) {
         throw 'Confirmed merge did not copy the current personal word to the main dictionary.'
     }
@@ -131,9 +142,9 @@ try {
     Close-Result $result
     $savedMain = (Get-FileHash -LiteralPath $mainFile).Hash
     Click $main 1006
-    $confirmation = Wait-Dialog $process.Id '确认合并到主词库' 6
+    $confirmation = Wait-Dialog $process.Id '确认合并到主词库' 6 -MessageBox
     Click $confirmation 6
-    $result = Wait-Dialog $process.Id '合并到主词库'
+    $result = Wait-Dialog $process.Id '合并到主词库' -MessageBox
     if (-not ([MainMergeWindow]::Content($result)).Contains('新增 0 条') -or
         (Get-FileHash -LiteralPath $mainFile).Hash -ne $savedMain -or
         @(Get-ChildItem -LiteralPath (Join-Path $userRoot 'backups') -Filter 'main.*.tsv').Count -ne 1) {
