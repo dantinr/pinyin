@@ -344,6 +344,61 @@ int wmain(int argc, wchar_t* argv[]) {
             ime.type("nh"); ime.key(VK_SPACE); check(ime.store->text == L"hello,你好", "literal field lost explicit Chinese selection");
             bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "literal English leaked references");
         }
+        for (const auto automatic : {true, false}) {
+            set_automatic_english(path, automatic);
+            for (const auto scope : {IS_DEFAULT, IS_URL}) {
+                for (const auto ending : {VK_RETURN, VK_SPACE, VK_OEM_MINUS}) {
+                    Harness ime(argv[1], scope); const auto previous = words(path);
+                    type_app(ime, "v2");
+                    check(ime.store->text == L"v2" && ime.compositions() == 1,
+                        "v2 was reordered or split between the pending composition and host text");
+                    type_app(ime, "ray2026");
+                    check(ime.store->text == L"v2ray2026" && ime.compositions() == 1,
+                        "subsequent lowercase letters or digits escaped the alphanumeric composition");
+                    const auto suffix = ending == VK_SPACE ? L" " : ending == VK_OEM_MINUS ? L"-" : L"";
+                    check(ime.key(ending) && ime.store->text == std::wstring(L"v2ray2026") + suffix &&
+                        ime.compositions() == 0 && words(path) == previous,
+                        "alphanumeric confirmation reordered, converted or learned a command");
+                    ime.close(); check(ime.unload_result == S_OK, "alphanumeric input leaked DLL references");
+                }
+            }
+        }
+        {
+            Harness ime(argv[1]); const auto previous = words(path); ime.type("v");
+            check(probe_key(ime, '2') && probe_key(ime, '2') && ime.store->text == L"v" && ime.compositions() == 1,
+                "digit probing passed through or changed the pending prefix");
+            ime.store->reject_writes = true;
+            check(!ime.key('2') && ime.store->text == L"v" && ime.compositions() == 1,
+                "failed alphanumeric update consumed a digit or changed the composition");
+            ime.store->reject_writes = false;
+            check(ime.key('2') && ime.store->text == L"v2", "digit retry lost the lowercase prefix");
+            ime.key(VK_LEFT); check(ime.key('0') && ime.store->text == L"v02", "digit insertion ignored the composition caret");
+            ime.key(VK_DELETE); ime.key(VK_END); type_app(ime, "ray");
+            check(ime.store->text == L"v0ray" && ime.key(VK_ESCAPE) && ime.store->text.empty() &&
+                ime.compositions() == 0 && words(path) == previous,
+                "alphanumeric editing or cancellation left host text behind");
+            ime.close(); check(ime.unload_result == S_OK, "alphanumeric rollback leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); const auto previous = words(path); ime.type("v");
+            check(ime.key(VK_NUMPAD2) && ime.key(VK_NUMPAD0) && ime.store->text == L"v20" &&
+                ime.compositions() == 1 && ime.key(VK_RETURN) && words(path) == previous,
+                "numeric keypad digits escaped the pending lowercase composition");
+            type_app(ime, "nihao0");
+            check(ime.store->text == L"v20nihao0" && ime.key(VK_SPACE) && ime.store->text == L"v20nihao0 " &&
+                words(path) == previous, "zero beside Chinese candidates reordered or learned the raw spelling");
+            ime.type("nh"); check(ime.key('1') && ime.store->text == L"v20nihao0 你好" && ime.compositions() == 0,
+                "digit fallback broke normal Chinese candidate selection");
+            ime.close(); check(ime.unload_result == S_OK, "numeric keypad input leaked DLL references");
+        }
+        {
+            Harness ime(argv[1]); const auto previous = words(path); ime.type("v");
+            check(probe_key(ime, '2', {VK_CAPITAL}) && ime.modified_key('2', {VK_CAPITAL}) &&
+                ime.store->text == L"v2" && ime.compositions() == 1 && ime.modified_key(VK_RETURN, {VK_CAPITAL}) &&
+                ime.compositions() == 0 && words(path) == previous,
+                "CapsLock toggled during composition let a digit escape its lowercase prefix");
+            ime.close(); check(ime.unload_result == S_OK, "CapsLock alphanumeric input leaked DLL references");
+        }
         CoUninitialize(); std::cout << "PASS: " << checks << " real TSF automatic English checks\n"; return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL after " << checks << " checks: " << error.what() << '\n';

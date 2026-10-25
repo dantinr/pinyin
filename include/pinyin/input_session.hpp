@@ -33,7 +33,7 @@ public:
     std::size_t selected() const noexcept { return selected_; }
     std::size_t page() const noexcept { return selected_ / page_size; }
     bool empty() const noexcept { return raw_.empty() && segments_.empty(); }
-    // Uppercase letters without confirmed Chinese segments start editable literal text, without learning.
+    // Uppercase letters or digits without a matching candidate start editable literal text, without learning.
     bool literal() const noexcept { return literal_; }
 private:
     struct Segment { Candidate word; std::string spelling; };

@@ -94,6 +94,7 @@ struct Key {
 std::optional<Key> translate(WPARAM key) {
     if (key >= 'A' && key <= 'Z') return Key{InputKey::letter, static_cast<char>(key - 'A' + 'a')};
     if (key >= '0' && key <= '9') return Key{InputKey::digit, static_cast<char>(key)};
+    if (key >= VK_NUMPAD0 && key <= VK_NUMPAD9) return Key{InputKey::digit, static_cast<char>('0' + key - VK_NUMPAD0)};
     switch (key) {
     case VK_OEM_7: return Key{InputKey::separator};
     case VK_BACK: return Key{InputKey::backspace};
@@ -565,11 +566,12 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         // passed to the application after OnKeyDown resets automatic English.
         if (automatic_english_ && same_object(context, observed_.Get())) return false;
         if (!chinese_) return false;
+        const auto translated = translate(key);
         if ((GetKeyState(VK_CAPITAL) & 1) && !input_.literal() &&
-            !(key >= 'A' && key <= 'Z' && !input_.empty() && input_.confirmed_text().empty())) return false;
+            !(key >= 'A' && key <= 'Z' && !input_.empty() && input_.confirmed_text().empty()) &&
+            !(translated && translated->type == InputKey::digit && !input_.empty())) return false;
         if (const auto mark = punctuation_key(key); mark && (*mark != '\'' || input_.raw().empty()))
             return settings_.chinese_punctuation || !input_.empty();
-        const auto translated = translate(key);
         if (!translated) return false;
         // Keep Shift+letters in the same editable composition until a Chinese
         // segment has been explicitly selected.
@@ -579,10 +581,9 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         // must agree with OnKeyDown so hosts still translate ordinary spaces.
         if (input_.empty()) return false;
         if (translated->type == InputKey::digit) {
-            if (GetKeyState(VK_SHIFT) & 0x8000) return false;
-            if (input_.literal()) return true;
-            if (translated->value == '0') return false;
-            return input_.page() * InputSession::page_size + translated->value - '1' < input_.candidates().size();
+            // Candidate numbers select when available; other digits stay in
+            // the same composition so host insertion cannot reorder them.
+            return !(GetKeyState(VK_SHIFT) & 0x8000);
         }
         if (translated->type == InputKey::separator && (GetKeyState(VK_SHIFT) & 0x8000)) return false;
         return true;

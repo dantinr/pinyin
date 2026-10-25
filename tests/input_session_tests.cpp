@@ -91,7 +91,35 @@ int wmain(int argc, wchar_t* argv[]) {
         input.clear(); type(input, lexicon, "n"); result = input.handle(InputKey::backspace, 0, lexicon);
         check(result.action == InputAction::cancel && input.empty(), "deleting final letter must end composition");
         type(input, lexicon, "nihao");
-        check(input.handle(InputKey::digit, '9', lexicon).action == InputAction::pass, "invalid number must pass through");
+        check(input.handle(InputKey::digit, '9', lexicon).action == InputAction::update &&
+            input.literal() && input.preedit() == "nihao9" && input.candidates().empty(),
+            "unavailable candidate number escaped the pending spelling");
+        result = input.handle(InputKey::space, 0, lexicon);
+        check(result.text == "nihao9 " && result.pronunciation.empty() && result.words.empty(),
+            "unavailable candidate number converted or learned the raw spelling");
+        check(input.handle(InputKey::digit, '2', lexicon).action == InputAction::pass && input.empty(),
+            "idle digits should reach the application directly");
+        for (char digit = '0'; digit <= '9'; ++digit) {
+            type(input, lexicon, "v");
+            check(input.candidates().empty(), "literal-digit fixture unexpectedly has Chinese candidates");
+            check(input.handle(InputKey::digit, digit, lexicon).action == InputAction::update &&
+                input.preedit() == std::string("v") + digit && input.literal(),
+                "digit without a candidate did not remain after its lowercase prefix");
+            result = input.handle(InputKey::enter, 0, lexicon);
+            check(result.text == std::string("v") + digit && result.pronunciation.empty() && result.words.empty(),
+                "alphanumeric confirmation reordered or learned literal text");
+        }
+        type(input, lexicon, "v"); input.handle(InputKey::digit, '2', lexicon);
+        input.handle(InputKey::left, 0, lexicon); input.handle(InputKey::digit, '0', lexicon);
+        input.handle(InputKey::delete_forward, 0, lexicon); input.handle(InputKey::end, 0, lexicon);
+        type(input, lexicon, "ray");
+        check(input.preedit() == "v0ray" && input.literal(), "alphanumeric caret editing lost the original order");
+        result = input.handle(InputKey::escape, 0, lexicon);
+        check(result.action == InputAction::cancel && input.empty() && !input.literal(),
+            "alphanumeric cancellation retained part of the spelling");
+        type(input, lexicon, "nihao"); input.handle(InputKey::digit, '0', lexicon);
+        result = input.handle(InputKey::enter, 0, lexicon);
+        check(result.text == "nihao0" && result.pronunciation.empty(), "zero escaped a composition with Chinese candidates");
         Lexicon empty;
         input.clear(); type(input, empty, std::string(1024, 'a'));
         check(input.handle(InputKey::letter, 'a', empty).action == InputAction::update && input.raw().size() == 1025,
@@ -133,6 +161,16 @@ int wmain(int argc, wchar_t* argv[]) {
         result = input.handle(InputKey::space, 0, segmented);
         check(result.action == InputAction::commit && result.text == "如何" && result.pronunciation == "ru he" && input.empty(),
             "segmented phrase did not commit with the selected pronunciation");
+
+        for (const auto ending : {InputKey::space, InputKey::enter}) {
+            type(input, segmented, "ruhe"); input.select(index_of(input, "如"), segmented);
+            input.handle(InputKey::digit, '0', segmented);
+            check(input.preedit() == "如he0" && input.literal(), "digit fallback discarded an explicitly selected Chinese segment");
+            result = input.handle(ending, 0, segmented);
+            check(result.text == (ending == InputKey::space ? "如he0 " : "如he0") &&
+                result.pronunciation.empty() && result.words.empty(),
+                "literal confirmation dropped or learned a mixed Chinese/alphanumeric composition");
+        }
 
         type(input, segmented, "ru'he"); input.select(index_of(input, "如"), segmented);
         result = input.select(index_of(input, "何"), segmented);

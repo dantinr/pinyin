@@ -111,14 +111,19 @@ InputResult InputSession::handle(InputKey key, char value, const Lexicon& lexico
         if ((page() + 1) * page_size < candidates_.size()) selected_ = (page() + 1) * page_size;
         break;
     case InputKey::digit:
-        if (literal_ && value >= '0' && value <= '9') {
-            raw_.insert(cursor_++, 1, value); refresh(lexicon, users); break;
+        if (value < '0' || value > '9') return {};
+        if (!literal_ && value != '0') {
+            const auto index = page() * page_size + value - '1';
+            if (index < candidates_.size()) return select(index, lexicon, users);
         }
-        if (value >= '1' && value <= '9') return select(page() * page_size + value - '1', lexicon, users);
-        return {};
+        // A digit with no corresponding candidate belongs to the pending text.
+        // Passing it to the host can insert it ahead of the composition (v2 -> 2v).
+        literal_ = true;
+        raw_.insert(cursor_++, 1, value); refresh(lexicon, users);
+        break;
     case InputKey::space:
         if (literal_) {
-            auto text = raw_ + ' '; clear();
+            auto text = preedit() + ' '; clear();
             return {InputAction::commit, std::move(text), {}};
         }
         if (!candidates_.empty()) return select(selected_, lexicon, users);
