@@ -24325,3 +24325,887 @@
 鳅	qiu	4500
 黝	you	4500
 黢	qu	4500
+
+# BEGIN maintained theme dictionaries
+# 主题词库扩充（2026-10-28）；由 tools/merge_theme_dictionaries.py 维护。
+# 动物主题：data/themes/animals.tsv
+小熊猫	xiao xiong mao	6000
+金丝猴	jin si hou	6000
+长臂猿	chang bi yuan	6000
+黑猩猩	hei xing xing	6000
+大猩猩	da xing xing	6000
+狒狒	fei fei	6000
+猕猴	mi hou	6000
+环尾狐猴	huan wei hu hou	6000
+树懒	shu lan	6000
+食蚁兽	shi yi shou	6000
+穿山甲	chuan shan jia	6000
+犰狳	qiu yu	6000
+鸭嘴兽	ya zui shou	6000
+袋鼠	dai shu	6000
+袋熊	dai xiong	6000
+袋獾	dai huan	6000
+树袋熊	shu dai xiong	6000
+考拉	kao la	6000
+蜜袋鼯	mi dai wu	6000
+浣熊	huan xiong	6000
+小浣熊	xiao huan xiong	6000
+水獭	shui ta	6000
+海獭	hai ta	6000
+河狸	he li	6000
+水豚	shui tun	6000
+豪猪	hao zhu	6000
+刺猬	ci wei	6000
+花栗鼠	hua li shu	6000
+土拨鼠	tu bo shu	6000
+旱獭	han ta	6000
+沙鼠	sha shu	6000
+田鼠	tian shu	6000
+鼹鼠	yan shu	6000
+蝙蝠	bian fu	6000
+果蝠	guo fu	6000
+赤狐	chi hu	6000
+北极狐	bei ji hu	6000
+耳廓狐	er kuo hu	6000
+灰狼	hui lang	6000
+郊狼	jiao lang	6000
+鬣狗	lie gou	6000
+非洲狮	fei zhou shi	6000
+孟加拉虎	meng jia la hu	6000
+东北虎	dong bei hu	6000
+华南虎	hua nan hu	6000
+雪豹	xue bao	6000
+猎豹	lie bao	6000
+美洲豹	mei zhou bao	6000
+美洲狮	mei zhou shi	6000
+猞猁	she li	6000
+狞猫	ning mao	6000
+薮猫	sou mao	6000
+棕熊	zong xiong	6000
+黑熊	hei xiong	6000
+北极熊	bei ji xiong	6000
+马来熊	ma lai xiong	6000
+梅花鹿	mei hua lu	6000
+麋鹿	mi lu	6000
+驯鹿	xun lu	6000
+驼鹿	tuo lu	6000
+狍子	pao zi	6000
+羚羊	ling yang	6000
+藏羚羊	zang ling yang	6000
+高鼻羚羊	gao bi ling yang	6000
+牦牛	mao niu	6000
+野牛	ye niu	6000
+羚牛	ling niu	6000
+角马	jiao ma	6000
+白犀牛	bai xi niu	6000
+非洲象	fei zhou xiang	6000
+亚洲象	ya zhou xiang	6000
+单峰驼	dan feng tuo	6000
+双峰驼	shuang feng tuo	6000
+羊驼	yang tuo	6000
+安哥拉兔	an ge la tu	6000
+垂耳兔	chui er tu	6000
+布偶猫	bu ou mao	6000
+缅因猫	mian yin mao	6000
+暹罗猫	xian luo mao	6000
+波斯猫	bo si mao	6000
+中华田园猫	zhong hua tian yuan mao	6000
+中华田园犬	zhong hua tian yuan quan	6000
+金毛寻回犬	jin mao xun hui quan	6000
+拉布拉多犬	la bu la duo quan	6000
+德国牧羊犬	de guo mu yang quan	6000
+边境牧羊犬	bian jing mu yang quan	6000
+哈士奇	ha shi qi	6000
+萨摩耶	sa mo ye	6000
+柯基犬	ke ji quan	6000
+柴犬	chai quan	6000
+秋田犬	qiu tian quan	6000
+白头鹎	bai tou bei	6000
+画眉	hua mei	6000
+百灵鸟	bai ling niao	6000
+黄鹂	huang li	6000
+翠鸟	cui niao	6000
+啄木鸟	zhuo mu niao	6000
+雨燕	yu yan	6000
+杜鹃鸟	du juan niao	6000
+八哥	ba ge	6000
+虎皮鹦鹉	hu pi ying wu	6000
+玄凤鹦鹉	xuan feng ying wu	6000
+金刚鹦鹉	jin gang ying wu	6000
+丹顶鹤	dan ding he	6000
+白鹤	bai he	6000
+朱鹮	zhu huan	6000
+白鹭	bai lu	6000
+苍鹭	cang lu	6000
+鹈鹕	ti hu	6000
+鸬鹚	lu ci	6000
+信天翁	xin tian weng	6000
+海鸥	hai ou	6000
+鸳鸯	yuan yang	6000
+鸿雁	hong yan	6000
+大天鹅	da tian e	6000
+黑天鹅	hei tian e	6000
+火烈鸟	huo lie niao	6000
+孔雀	kong que	6000
+鸵鸟	tuo niao	6000
+鸸鹋	er miao	6000
+帝企鹅	di qi e	6000
+雕鸮	diao xiao	6000
+雪鸮	xue xiao	6000
+金雕	jin diao	6000
+白头海雕	bai tou hai diao	6000
+游隼	you sun	6000
+红隼	hong sun	6000
+秃鹫	tu jiu	6000
+鹌鹑	an chun	6000
+扬子鳄	yang zi e	6000
+尼罗鳄	ni luo e	6000
+湾鳄	wan e	6000
+科莫多巨蜥	ke mo duo ju xi	6000
+变色龙	bian se long	6000
+鬣蜥	lie xi	6000
+壁虎	bi hu	6000
+陆龟	lu gui	6000
+绿海龟	lv hai gui	6000
+玳瑁	dai mao	6000
+鳄龟	e gui	6000
+眼镜蛇	yan jing she	6000
+眼镜王蛇	yan jing wang she	6000
+响尾蛇	xiang wei she	6000
+蟒蛇	mang she	6000
+玉米蛇	yu mi she	6000
+蝮蛇	fu she	6000
+牛蛙	niu wa	6000
+树蛙	shu wa	6000
+箭毒蛙	jian du wa	6000
+蟾蜍	chan chu	6000
+蝾螈	rong yuan	6000
+大鲵	da ni	6000
+娃娃鱼	wa wa yu	6000
+江豚	jiang tun	6000
+白鳍豚	bai qi tun	6000
+虎鲸	hu jing	6000
+蓝鲸	lan jing	6000
+座头鲸	zuo tou jing	6000
+抹香鲸	mo xiang jing	6000
+独角鲸	du jiao jing	6000
+海豹	hai bao	6000
+海狮	hai shi	6000
+海象	hai xiang	6000
+儒艮	ru gen	6000
+海牛	hai niu	6000
+大白鲨	da bai sha	6000
+鲸鲨	jing sha	6000
+锤头鲨	chui tou sha	6000
+蝠鲼	fu fen	6000
+鳐鱼	yao yu	6000
+中华鲟	zhong hua xun	6000
+虹鳟	hong zun	6000
+小丑鱼	xiao chou yu	6000
+孔雀鱼	kong que yu	6000
+神仙鱼	shen xian yu	6000
+斗鱼	dou yu	6000
+海马	hai ma	6000
+海鳗	hai man	6000
+电鳗	dian man	6000
+鹦鹉螺	ying wu luo	6000
+水母	shui mu	6000
+海葵	hai kui	6000
+珊瑚虫	shan hu chong	6000
+海星	hai xing	6000
+海胆	hai dan	6000
+寄居蟹	ji ju xie	6000
+招潮蟹	zhao chao xie	6000
+大闸蟹	da zha xie	6000
+帝王蟹	di wang xie	6000
+皮皮虾	pi pi xia	6000
+七星瓢虫	qi xing piao chong	6000
+独角仙	du jiao xian	6000
+锹甲	qiao jia	6000
+天牛	tian niu	6000
+金龟子	jin gui zi	6000
+屎壳郎	shi ke lang	6000
+蚂蚱	ma zha	6000
+蝈蝈	guo guo	6000
+纺织娘	fang zhi niang	6000
+螳螂	tang lang	6000
+竹节虫	zhu jie chong	6000
+枯叶蝶	ku ye die	6000
+凤蝶	feng die	6000
+蚕蛾	can e	6000
+豆娘	dou niang	6000
+蝉蜕	chan tui	6000
+狼蛛	lang zhu	6000
+捕鸟蛛	bu niao zhu	6000
+跳蛛	tiao zhu	6000
+候鸟	hou niao	6000
+留鸟	liu niao	6000
+迁徙	qian xi	6000
+冬眠	dong mian	6000
+拟态	ni tai	6000
+保护色	bao hu se	6000
+栖息地	qi xi di	6000
+食物链	shi wu lian	6000
+濒危物种	bin wei wu zhong	6000
+生物多样性	sheng wu duo yang xing	6000
+# 植物主题：data/themes/plants.tsv
+月季	yue ji	6000
+蔷薇	qiang wei	6000
+腊梅	la mei	6000
+山茶花	shan cha hua	6000
+杜鹃花	du juan hua	6000
+玉兰	yu lan	6000
+白玉兰	bai yu lan	6000
+紫玉兰	zi yu lan	6000
+木芙蓉	mu fu rong	6000
+金银花	jin yin hua	6000
+凌霄花	ling xiao hua	6000
+铁线莲	tie xian lian	6000
+长春花	chang chun hua	6000
+百日菊	bai ri ju	6000
+万寿菊	wan shou ju	6000
+金盏菊	jin zhan ju	6000
+波斯菊	bo si ju	6000
+雏菊	chu ju	6000
+非洲菊	fei zhou ju	6000
+向日葵	xiang ri kui	6000
+郁金香	yu jin xiang	6000
+风信子	feng xin zi	6000
+水仙花	shui xian hua	6000
+朱顶红	zhu ding hong	6000
+石蒜	shi suan	6000
+彼岸花	bi an hua	6000
+鸢尾	yuan wei	6000
+唐菖蒲	tang chang pu	6000
+剑兰	jian lan	6000
+铃兰	ling lan	6000
+石斛兰	shi hu lan	6000
+文心兰	wen xin lan	6000
+墨兰	mo lan	6000
+蕙兰	hui lan	6000
+建兰	jian lan	6000
+春兰	chun lan	6000
+康乃馨	kang nai xin	6000
+桔梗	jie geng	6000
+洋桔梗	yang jie geng	6000
+满天星	man tian xing	6000
+勿忘我	wu wang wo	6000
+留兰香	liu lan xiang	6000
+鼠尾草	shu wei cao	6000
+矢车菊	shi che ju	6000
+飞燕草	fei yan cao	6000
+金鱼草	jin yu cao	6000
+毛地黄	mao di huang	6000
+含羞草	han xiu cao	6000
+凤仙花	feng xian hua	6000
+大丽花	da li hua	6000
+美人蕉	mei ren jiao	6000
+王莲	wang lian	6000
+菖蒲	chang pu	6000
+香蒲	xiang pu	6000
+芦苇	lu wei	6000
+水杉	shui shan	6000
+红豆杉	hong dou shan	6000
+罗汉松	luo han song	6000
+马尾松	ma wei song	6000
+油松	you song	6000
+黑松	hei song	6000
+雪松	xue song	6000
+五针松	wu zhen song	6000
+落叶松	luo ye song	6000
+云杉	yun shan	6000
+冷杉	leng shan	6000
+香樟	xiang zhang	6000
+榕树	rong shu	6000
+橡树	xiang shu	6000
+栎树	li shu	6000
+枫树	feng shu	6000
+红枫	hong feng	6000
+白桦	bai hua	6000
+白杨	bai yang	6000
+垂柳	chui liu	6000
+榆树	yu shu	6000
+槐树	huai shu	6000
+国槐	guo huai	6000
+合欢	he huan	6000
+梧桐	wu tong	6000
+悬铃木	xuan ling mu	6000
+泡桐	pao tong	6000
+珙桐	gong tong	6000
+乌桕	wu jiu	6000
+无患子	wu huan zi	6000
+栾树	luan shu	6000
+黄栌	huang lu	6000
+女贞	nv zhen	6000
+冬青	dong qing	6000
+黄杨	huang yang	6000
+红叶石楠	hong ye shi nan	6000
+石楠	shi nan	6000
+南天竹	nan tian zhu	6000
+火棘	huo ji	6000
+枸骨	gou gu	6000
+沙棘	sha ji	6000
+胡杨	hu yang	6000
+梭梭	suo suo	6000
+柽柳	cheng liu	6000
+木麻黄	mu ma huang	6000
+桉树	an shu	6000
+棕榈	zong lv	6000
+椰子树	ye zi shu	6000
+槟榔	bing lang	6000
+毛竹	mao zhu	6000
+楠竹	nan zhu	6000
+紫竹	zi zhu	6000
+凤尾竹	feng wei zhu	6000
+佛肚竹	fo du zhu	6000
+滴水观音	di shui guan yin	6000
+白掌	bai zhang	6000
+红掌	hong zhang	6000
+虎尾兰	hu wei lan	6000
+琴叶榕	qin ye rong	6000
+袖珍椰子	xiu zhen ye zi	6000
+龙血树	long xue shu	6000
+巴西木	ba xi mu	6000
+空气凤梨	kong qi feng li	6000
+网纹草	wang wen cao	6000
+孔雀竹芋	kong que zhu yu	6000
+铁线蕨	tie xian jue	6000
+波士顿蕨	bo shi dun jue	6000
+鹿角蕨	lu jiao jue	6000
+鸟巢蕨	niao chao jue	6000
+肾蕨	shen jue	6000
+蟹爪兰	xie zhao lan	6000
+昙花	tan hua	6000
+龙舌兰	long she lan	6000
+生石花	sheng shi hua	6000
+玉树	yu shu	6000
+虹之玉	hong zhi yu	6000
+熊童子	xiong tong zi	6000
+桃美人	tao mei ren	6000
+乙女心	yi nv xin	6000
+观音莲	guan yin lian	6000
+黍子	shu zi	6000
+苜蓿	mu xu	6000
+油茶	you cha	6000
+油桐	you tong	6000
+蓖麻	bi ma	6000
+亚麻	ya ma	6000
+黄麻	huang ma	6000
+剑麻	jian ma	6000
+甘蔗	gan zhe	6000
+菊苣	ju ju	6000
+菊芋	ju yu	6000
+紫苏	zi su	6000
+艾草	ai cao	6000
+益母草	yi mu cao	6000
+车前草	che qian cao	6000
+蒲公英	pu gong ying	6000
+鱼腥草	yu xing cao	6000
+决明子	jue ming zi	6000
+何首乌	he shou wu	6000
+金钱草	jin qian cao	6000
+酢浆草	cu jiang cao	6000
+三叶草	san ye cao	6000
+狗尾草	gou wei cao	6000
+狗牙根	gou ya gen	6000
+马蹄金	ma ti jin	6000
+黑麦草	hei mai cao	6000
+早熟禾	zao shu he	6000
+草本植物	cao ben zhi wu	6000
+木本植物	mu ben zhi wu	6000
+蕨类植物	jue lei zhi wu	6000
+裸子植物	luo zi zhi wu	6000
+被子植物	bei zi zhi wu	6000
+附生植物	fu sheng zhi wu	6000
+水生植物	shui sheng zhi wu	6000
+块茎	kuai jing	6000
+鳞茎	lin jing	6000
+气生根	qi sheng gen	6000
+叶脉	ye mai	6000
+叶柄	ye bing	6000
+花萼	hua e	6000
+花蕊	hua rui	6000
+雄蕊	xiong rui	6000
+雌蕊	ci rui	6000
+花序	hua xu	6000
+球根	qiu gen	6000
+孢子	bao zi	6000
+扦插	qian cha	6000
+压条	ya tiao	6000
+分株	fen zhu	6000
+嫁接	jia jie	6000
+换盆	huan pen	6000
+缓苗	huan miao	6000
+炼苗	lian miao	6000
+摘心	zhai xin	6000
+打顶	da ding	6000
+疏花	shu hua	6000
+疏果	shu guo	6000
+水培	shui pei	6000
+土培	tu pei	6000
+遮阴	zhe yin	6000
+散射光	san she guang	6000
+透气性	tou qi xing	6000
+腐叶土	fu ye tu	6000
+椰糠	ye kang	6000
+# 电影主题：data/themes/movies.tsv
+剧情片	ju qing pian	6000
+喜剧片	xi ju pian	6000
+奇幻片	qi huan pian	6000
+悬疑片	xuan yi pian	6000
+犯罪片	fan zui pian	6000
+历史片	li shi pian	6000
+传记片	zhuan ji pian	6000
+武侠片	wu xia pian	6000
+西部片	xi bu pian	6000
+歌舞片	ge wu pian	6000
+公路片	gong lu pian	6000
+灾难片	zai nan pian	6000
+冒险片	mao xian pian	6000
+动画电影	dong hua dian ying	6000
+默片	mo pian	6000
+长片	chang pian	6000
+艺术电影	yi shu dian ying	6000
+独立电影	du li dian ying	6000
+商业电影	shang ye dian ying	6000
+院线电影	yuan xian dian ying	6000
+网络电影	wang luo dian ying	6000
+合拍片	he pai pian	6000
+重映	chong ying	6000
+首映礼	shou ying li	6000
+点映	dian ying	6000
+路演	lu yan	6000
+排片	pai pian	6000
+排片率	pai pian lv	6000
+上座率	shang zuo lv	6000
+观影人次	guan ying ren ci	6000
+电影票房	dian ying piao fang	6000
+票房纪录	piao fang ji lu	6000
+预售票房	yu shou piao fang	6000
+豆瓣评分	dou ban ping fen	6000
+影评人	ying ping ren	6000
+影迷	ying mi	6000
+剧透	ju tou	6000
+无剧透	wu ju tou	6000
+片尾彩蛋	pian wei cai dan	6000
+片头字幕	pian tou zi mu	6000
+片尾字幕	pian wei zi mu	6000
+演职员表	yan zhi yuan biao	6000
+导演剪辑版	dao yan jian ji ban	6000
+加长版	jia chang ban	6000
+修复版	xiu fu ban	6000
+公映版	gong ying ban	6000
+原声版	yuan sheng ban	6000
+配音版	pei yin ban	6000
+国语配音	guo yu pei yin	6000
+双语字幕	shuang yu zi mu	6000
+杜比全景声	du bi quan jing sheng	6000
+巨幕影厅	ju mu ying ting	6000
+激光放映	ji guang fang ying	6000
+银幕	yin mu	6000
+宽银幕	kuan yin mu	6000
+胶片电影	jiao pian dian ying	6000
+数字电影	shu zi dian ying	6000
+电影节	dian ying jie	6000
+戛纳电影节	ga na dian ying jie	6000
+柏林电影节	bo lin dian ying jie	6000
+威尼斯电影节	wei ni si dian ying jie	6000
+奥斯卡金像奖	ao si ka jin xiang jiang	6000
+金棕榈奖	jin zong lv jiang	6000
+金狮奖	jin shi jiang	6000
+金熊奖	jin xiong jiang	6000
+金鸡奖	jin ji jiang	6000
+百花奖	bai hua jiang	6000
+金像奖	jin xiang jiang	6000
+金马奖	jin ma jiang	6000
+最佳影片	zui jia ying pian	6000
+最佳导演	zui jia dao yan	6000
+最佳男主角	zui jia nan zhu jue	6000
+最佳女主角	zui jia nv zhu jue	6000
+最佳配角	zui jia pei jue	6000
+最佳编剧	zui jia bian ju	6000
+制片人	zhi pian ren	6000
+出品人	chu pin ren	6000
+执行制片	zhi xing zhi pian	6000
+副导演	fu dao yan	6000
+摄影指导	she ying zhi dao	6000
+美术指导	mei shu zhi dao	6000
+动作指导	dong zuo zhi dao	6000
+武术指导	wu shu zhi dao	6000
+视效总监	shi xiao zong jian	6000
+录音师	lu yin shi	6000
+拟音师	ni yin shi	6000
+剪辑师	jian ji shi	6000
+灯光师	deng guang shi	6000
+调色师	tiao se shi	6000
+替身演员	ti shen yan yuan	6000
+特约演员	te yue yan yuan	6000
+群众演员	qun zhong yan yuan	6000
+联合主演	lian he zhu yan	6000
+电影剧本	dian ying ju ben	6000
+分镜脚本	fen jing jiao ben	6000
+故事梗概	gu shi geng gai	6000
+人物小传	ren wu xiao zhuan	6000
+角色弧光	jue se hu guang	6000
+叙事结构	xu shi jie gou	6000
+非线性叙事	fei xian xing xu shi	6000
+倒叙	dao xu	6000
+插叙	cha xu	6000
+蒙太奇	meng tai qi	6000
+主观镜头	zhu guan jing tou	6000
+特写镜头	te xie jing tou	6000
+推轨镜头	tui gui jing tou	6000
+一镜到底	yi jing dao di	6000
+景深	jing shen	6000
+场面调度	chang mian diao du	6000
+轴线	zhou xian	6000
+越轴	yue zhou	6000
+正反打	zheng fan da	6000
+跳切	tiao qie	6000
+交叉剪辑	jiao cha jian ji	6000
+平行剪辑	ping xing jian ji	6000
+叠化	die hua	6000
+淡入淡出	dan ru dan chu	6000
+同期声	tong qi sheng	6000
+环境音	huan jing yin	6000
+电影配乐	dian ying pei yue	6000
+绿幕	lv mu	6000
+蓝幕	lan mu	6000
+实景拍摄	shi jing pai she	6000
+棚内拍摄	peng nei pai she	6000
+动作捕捉	dong zuo bu zhuo	6000
+面部捕捉	mian bu bu zhuo	6000
+定格动画	ding ge dong hua	6000
+逐帧动画	zhu zhen dong hua	6000
+实拍特效	shi pai te xiao	6000
+视觉特效	shi jue te xiao	6000
+后期合成	hou qi he cheng	6000
+数字中间片	shu zi zhong jian pian	6000
+开机仪式	kai ji yi shi	6000
+杀青	sha qing	6000
+补拍	bu pai	6000
+选角	xuan jue	6000
+试镜	shi jing	6000
+围读	wei du	6000
+通告单	tong gao dan	6000
+场记板	chang ji ban	6000
+肖申克的救赎	xiao shen ke de jiu shu	6000
+阿甘正传	a gan zheng zhuan	6000
+霸王别姬	ba wang bie ji	6000
+这个杀手不太冷	zhe ge sha shou bu tai leng	6000
+美丽人生	mei li ren sheng	6000
+辛德勒的名单	xin de le de ming dan	6000
+泰坦尼克号	tai tan ni ke hao	6000
+海上钢琴师	hai shang gang qin shi	6000
+楚门的世界	chu men de shi jie	6000
+十二怒汉	shi er nu han	6000
+教父	jiao fu	6000
+低俗小说	di su xiao shuo	6000
+搏击俱乐部	bo ji ju le bu	6000
+七宗罪	qi zong zui	6000
+沉默的羔羊	chen mo de gao yang	6000
+看不见的客人	kan bu jian de ke ren	6000
+致命魔术	zhi ming mo shu	6000
+记忆碎片	ji yi sui pian	6000
+禁闭岛	jin bi dao	6000
+盗梦空间	dao meng kong jian	6000
+星际穿越	xing ji chuan yue	6000
+信条	xin tiao	6000
+敦刻尔克	dun ke er ke	6000
+奥本海默	ao ben hai mo	6000
+黑客帝国	hei ke di guo	6000
+银翼杀手	yin yi sha shou	6000
+阿凡达	a fan da	6000
+终结者	zhong jie zhe	6000
+异形	yi xing	6000
+普罗米修斯	pu luo mi xiu si	6000
+火星救援	huo xing jiu yuan	6000
+地心引力	di xin yin li	6000
+降临	jiang lin	6000
+沙丘	sha qiu	6000
+星球大战	xing qiu da zhan	6000
+侏罗纪公园	zhu luo ji gong yuan	6000
+侏罗纪世界	zhu luo ji shi jie	6000
+回到未来	hui dao wei lai	6000
+头号玩家	tou hao wan jia	6000
+机器人总动员	ji qi ren zong dong yuan	6000
+千与千寻	qian yu qian xun	6000
+天空之城	tian kong zhi cheng	6000
+哈尔的移动城堡	ha er de yi dong cheng bao	6000
+幽灵公主	you ling gong zhu	6000
+风之谷	feng zhi gu	6000
+魔女宅急便	mo nv zhai ji bian	6000
+悬崖上的金鱼姬	xuan ya shang de jin yu ji	6000
+借东西的小人阿莉埃蒂	jie dong xi de xiao ren a li ai di	6000
+你的名字	ni de ming zi	6000
+天气之子	tian qi zhi zi	6000
+铃芽之旅	ling ya zhi lv	6000
+声之形	sheng zhi xing	6000
+穿越时空的少女	chuan yue shi kong de shao nv	6000
+寻梦环游记	xun meng huan you ji	6000
+头脑特工队	tou nao te gong dui	6000
+飞屋环游记	fei wu huan you ji	6000
+疯狂动物城	feng kuang dong wu cheng	6000
+疯狂原始人	feng kuang yuan shi ren	6000
+驯龙高手	xun long gao shou	6000
+功夫熊猫	gong fu xiong mao	6000
+玩具总动员	wan ju zong dong yuan	6000
+海底总动员	hai di zong dong yuan	6000
+超人总动员	chao ren zong dong yuan	6000
+冰雪奇缘	bing xue qi yuan	6000
+狮子王	shi zi wang	6000
+无敌破坏王	wu di po huai wang	6000
+怪兽电力公司	guai shou dian li gong si	6000
+怪兽大学	guai shou da xue	6000
+大圣归来	da sheng gui lai	6000
+哪吒之魔童降世	ne zha zhi mo tong jiang shi	6000
+哪吒之魔童闹海	ne zha zhi mo tong nao hai	6000
+白蛇缘起	bai she yuan qi	6000
+长安三万里	chang an san wan li	6000
+深海	shen hai	6000
+大鱼海棠	da yu hai tang	6000
+雄狮少年	xiong shi shao nian	6000
+流浪地球	liu lang di qiu	6000
+独行月球	du xing yue qiu	6000
+宇宙探索编辑部	yu zhou tan suo bian ji bu	6000
+我不是药神	wo bu shi yao shen	6000
+我不是潘金莲	wo bu shi pan jin lian	6000
+让子弹飞	rang zi dan fei	6000
+鬼子来了	gui zi lai le	6000
+阳光灿烂的日子	yang guang can lan de ri zi	6000
+活着	huo zhe	6000
+大红灯笼高高挂	da hong deng long gao gao gua	6000
+红高粱	hong gao liang	6000
+秋菊打官司	qiu ju da guan si	6000
+英雄	ying xiong	6000
+卧虎藏龙	wo hu cang long	6000
+十面埋伏	shi mian mai fu	6000
+无间道	wu jian dao	6000
+英雄本色	ying xiong ben se	6000
+喋血双雄	die xue shuang xiong	6000
+纵横四海	zong heng si hai	6000
+枪火	qiang huo	6000
+暗战	an zhan	6000
+暗花	an hua	6000
+神探	shen tan	6000
+盲探	mang tan	6000
+一代宗师	yi dai zong shi	6000
+花样年华	hua yang nian hua	6000
+重庆森林	chong qing sen lin	6000
+春光乍泄	chun guang zha xie	6000
+东邪西毒	dong xie xi du	6000
+阿飞正传	a fei zheng zhuan	6000
+喜剧之王	xi ju zhi wang	6000
+大话西游	da hua xi you	6000
+少林足球	shao lin zu qiu	6000
+食神	shi shen	6000
+唐伯虎点秋香	tang bo hu dian qiu xiang	6000
+国产凌凌漆	guo chan ling ling qi	6000
+九品芝麻官	jiu pin zhi ma guan	6000
+美人鱼	mei ren yu	6000
+夏洛特烦恼	xia luo te fan nao	6000
+你好李焕英	ni hao li huan ying	6000
+西虹市首富	xi hong shi shou fu	6000
+飞驰人生	fei chi ren sheng	6000
+热辣滚烫	re la gun tang	6000
+年会不能停	nian hui bu neng ting	6000
+疯狂的石头	feng kuang de shi tou	6000
+疯狂的赛车	feng kuang de sai che	6000
+心花路放	xin hua lu fang	6000
+无人区	wu ren qu	6000
+罗马假日	luo ma jia ri	6000
+闻香识女人	wen xiang shi nv ren	6000
+怦然心动	peng ran xin dong	6000
+爱在黎明破晓前	ai zai li ming po xiao qian	6000
+爱在日落黄昏时	ai zai ri luo huang hun shi	6000
+爱在午夜降临前	ai zai wu ye jiang lin qian	6000
+爱乐之城	ai yue zhi cheng	6000
+音乐之声	yin yue zhi sheng	6000
+放牛班的春天	fang niu ban de chun tian	6000
+爆裂鼓手	bao lie gu shou	6000
+绿皮书	lv pi shu	6000
+触不可及	chu bu ke ji	6000
+忠犬八公的故事	zhong quan ba gong de gu shi	6000
+当幸福来敲门	dang xing fu lai qiao men	6000
+美丽心灵	mei li xin ling	6000
+心灵捕手	xin ling bu shou	6000
+死亡诗社	si wang shi she	6000
+贫民窟的百万富翁	pin min ku de bai wan fu weng	6000
+三傻大闹宝莱坞	san sha da nao bao lai wu	6000
+摔跤吧爸爸	shuai jiao ba ba ba	6000
+神秘巨星	shen mi ju xing	6000
+寄生虫	ji sheng chong	6000
+熔炉	rong lu	6000
+素媛	su yuan	6000
+釜山行	fu shan xing	6000
+七武士	qi wu shi	6000
+罗生门	luo sheng men	6000
+入殓师	ru lian shi	6000
+小偷家族	xiao tou jia zu	6000
+海街日记	hai jie ri ji	6000
+步履不停	bu lv bu ting	6000
+情书	qing shu	6000
+菊次郎的夏天	ju ci lang de xia tian	6000
+末代皇帝	mo dai huang di	6000
+天堂电影院	tian tang dian ying yuan	6000
+海蒂和爷爷	hai di he ye ye	6000
+复仇者联盟	fu chou zhe lian meng	6000
+漫威宇宙	man wei yu zhou	6000
+漫威电影宇宙	man wei dian ying yu zhou	6000
+钢铁侠	gang tie xia	6000
+美国队长	mei guo dui zhang	6000
+绿巨人	lv ju ren	6000
+蜘蛛侠	zhi zhu xia	6000
+蚁人	yi ren	6000
+雷神	lei shen	6000
+黑寡妇	hei gua fu	6000
+鹰眼	ying yan	6000
+奇异博士	qi yi bo shi	6000
+黑豹	hei bao	6000
+银河护卫队	yin he hu wei dui	6000
+火箭浣熊	huo jian huan xiong	6000
+星爵	xing jue	6000
+格鲁特	ge lu te	6000
+卡魔拉	ka mo la	6000
+灭霸	mie ba	6000
+绯红女巫	fei hong nv wu	6000
+幻视	huan shi	6000
+洛基	luo ji	6000
+无限战争	wu xian zhan zheng	6000
+终局之战	zhong ju zhi zhan	6000
+蝙蝠侠	bian fu xia	6000
+黑暗骑士	hei an qi shi	6000
+超人	chao ren	6000
+神奇女侠	shen qi nv xia	6000
+海王	hai wang	6000
+闪电侠	shan dian xia	6000
+正义联盟	zheng yi lian meng	6000
+小丑	xiao chou	6000
+哈利波特	ha li bo te	6000
+赫敏	he min	6000
+邓布利多	deng bu li duo	6000
+斯内普	si nei pu	6000
+伏地魔	fu di mo	6000
+魔法石	mo fa shi	6000
+阿兹卡班的囚徒	a zi ka ban de qiu tu	6000
+火焰杯	huo yan bei	6000
+凤凰社	feng huang she	6000
+混血王子	hun xue wang zi	6000
+死亡圣器	si wang sheng qi	6000
+指环王	zhi huan wang	6000
+霍比特人	huo bi te ren	6000
+护戒使者	hu jie shi zhe	6000
+双塔奇兵	shuang ta qi bing	6000
+王者归来	wang zhe gui lai	6000
+加勒比海盗	jia le bi hai dao	6000
+碟中谍	die zhong die	6000
+谍影重重	die ying chong chong	6000
+速度与激情	su du yu ji qing	6000
+生化危机	sheng hua wei ji	6000
+变形金刚	bian xing jin gang	6000
+王家卫	wang jia wei	6000
+张艺谋	zhang yi mou	6000
+陈凯歌	chen kai ge	6000
+贾樟柯	jia zhang ke	6000
+冯小刚	feng xiao gang	6000
+姜文	jiang wen	6000
+徐克	xu ke	6000
+杜琪峰	du qi feng	6000
+宁浩	ning hao	6000
+文牧野	wen mu ye	6000
+郭帆	guo fan	6000
+乌尔善	wu er shan	6000
+宫崎骏	gong qi jun	6000
+黑泽明	hei ze ming	6000
+是枝裕和	shi zhi yu he	6000
+诺兰	nuo lan	6000
+卡梅隆	ka mei long	6000
+斯皮尔伯格	si pi er bo ge	6000
+斯科塞斯	si ke sai si	6000
+塔伦蒂诺	ta lun di nuo	6000
+# 主题词语所需补充单字读音
+侏	zhu	4500
+吒	zha	4500
+哪	ne	4500
+喋	die	4500
+媛	yuan	4500
+孢	bao	4500
+弹	dan	4500
+徙	xi	4500
+怦	peng	4500
+戛	ga	4500
+斛	hu	4500
+暹	xian	4500
+枸	gou	4500
+柽	cheng	4500
+栌	lu	4500
+栎	li	4500
+栾	luan	4500
+桉	an	4500
+桕	jiu	4500
+桦	hua	4500
+楠	nan	4500
+榈	lv	4500
+槟	bing	4500
+殓	lian	4500
+浣	huan	4500
+爪	zhao	4500
+牦	mao	4500
+犰	qiu	4500
+狍	pao	4500
+狒	fei	4500
+狳	yu	4500
+猁	li	4500
+猞	she	4500
+猬	wei	4500
+獾	huan	4500
+玳	dai	4500
+珙	gong	4500
+琪	qi	4500
+瑁	mao	4500
+绯	fei	4500
+艮	gen	4500
+苜	mu	4500
+菖	chang	4500
+萼	e	4500
+蓿	xu	4500
+蕙	hui	4500
+薮	sou	4500
+蚱	zha	4500
+蜍	chu	4500
+蜥	xi	4500
+蝈	guo	4500
+蝙	bian	4500
+蝠	fu	4500
+蝮	fu	4500
+蝾	rong	4500
+螈	yuan	4500
+蟒	mang	4500
+蟾	chan	4500
+酢	cu	4500
+隼	sun	4500
+馨	xin	4500
+鬣	lie	4500
+鲟	xun	4500
+鲵	ni	4500
+鲼	fen	4500
+鳍	qi	4500
+鳐	yao	4500
+鳟	zun	4500
+鸢	yuan	4500
+鸬	lu	4500
+鸮	xiao	4500
+鸸	er	4500
+鹂	li	4500
+鹈	ti	4500
+鹋	miao	4500
+鹎	bei	4500
+鹕	hu	4500
+鹚	ci	4500
+鹫	jiu	4500
+鹭	lu	4500
+鹮	huan	4500
+麋	mi	4500
+鼯	wu	4500
+鼹	yan	4500
+# END maintained theme dictionaries

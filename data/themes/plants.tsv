@@ -1,0 +1,275 @@
+# 植物主题；本项目整理，2026-10-28；无声调拼音，权重为启发式优先级。
+# 花卉与观赏植物
+月季	yue ji	6000
+蔷薇	qiang wei	6000
+玫瑰	mei gui	6000
+牡丹	mu dan	6000
+芍药	shao yao	6000
+梅花	mei hua	6000
+腊梅	la mei	6000
+樱花	ying hua	6000
+桃花	tao hua	6000
+杏花	xing hua	6000
+梨花	li hua	6000
+海棠	hai tang	6000
+山茶花	shan cha hua	6000
+杜鹃花	du juan hua	6000
+栀子花	zhi zi hua	6000
+茉莉花	mo li hua	6000
+桂花	gui hua	6000
+玉兰	yu lan	6000
+白玉兰	bai yu lan	6000
+紫玉兰	zi yu lan	6000
+木槿	mu jin	6000
+木芙蓉	mu fu rong	6000
+扶桑	fu sang	6000
+紫薇	zi wei	6000
+紫荆	zi jing	6000
+连翘	lian qiao	6000
+迎春花	ying chun hua	6000
+金银花	jin yin hua	6000
+凌霄花	ling xiao hua	6000
+三角梅	san jiao mei	6000
+绣球花	xiu qiu hua	6000
+紫藤	zi teng	6000
+铁线莲	tie xian lian	6000
+牵牛花	qian niu hua	6000
+矮牵牛	ai qian niu	6000
+长春花	chang chun hua	6000
+长寿花	chang shou hua	6000
+百日菊	bai ri ju	6000
+万寿菊	wan shou ju	6000
+金盏菊	jin zhan ju	6000
+波斯菊	bo si ju	6000
+雏菊	chu ju	6000
+非洲菊	fei zhou ju	6000
+向日葵	xiang ri kui	6000
+郁金香	yu jin xiang	6000
+风信子	feng xin zi	6000
+水仙花	shui xian hua	6000
+朱顶红	zhu ding hong	6000
+石蒜	shi suan	6000
+彼岸花	bi an hua	6000
+鸢尾	yuan wei	6000
+唐菖蒲	tang chang pu	6000
+剑兰	jian lan	6000
+铃兰	ling lan	6000
+君子兰	jun zi lan	6000
+蝴蝶兰	hu die lan	6000
+石斛兰	shi hu lan	6000
+文心兰	wen xin lan	6000
+墨兰	mo lan	6000
+蕙兰	hui lan	6000
+建兰	jian lan	6000
+春兰	chun lan	6000
+康乃馨	kang nai xin	6000
+桔梗	jie geng	6000
+洋桔梗	yang jie geng	6000
+满天星	man tian xing	6000
+勿忘我	wu wang wo	6000
+薰衣草	xun yi cao	6000
+迷迭香	mi die xiang	6000
+百里香	bai li xiang	6000
+薄荷	bo he	6000
+留兰香	liu lan xiang	6000
+罗勒	luo le	6000
+鼠尾草	shu wei cao	6000
+矢车菊	shi che ju	6000
+飞燕草	fei yan cao	6000
+金鱼草	jin yu cao	6000
+毛地黄	mao di huang	6000
+含羞草	han xiu cao	6000
+凤仙花	feng xian hua	6000
+大丽花	da li hua	6000
+美人蕉	mei ren jiao	6000
+荷花	he hua	6000
+睡莲	shui lian	6000
+王莲	wang lian	6000
+菖蒲	chang pu	6000
+香蒲	xiang pu	6000
+芦苇	lu wei	6000
+# 乔木、灌木与竹类
+银杏	yin xing	6000
+水杉	shui shan	6000
+红豆杉	hong dou shan	6000
+罗汉松	luo han song	6000
+马尾松	ma wei song	6000
+油松	you song	6000
+黑松	hei song	6000
+雪松	xue song	6000
+五针松	wu zhen song	6000
+落叶松	luo ye song	6000
+云杉	yun shan	6000
+冷杉	leng shan	6000
+香樟	xiang zhang	6000
+榕树	rong shu	6000
+橡树	xiang shu	6000
+栎树	li shu	6000
+枫树	feng shu	6000
+红枫	hong feng	6000
+白桦	bai hua	6000
+白杨	bai yang	6000
+垂柳	chui liu	6000
+榆树	yu shu	6000
+槐树	huai shu	6000
+国槐	guo huai	6000
+合欢	he huan	6000
+梧桐	wu tong	6000
+悬铃木	xuan ling mu	6000
+泡桐	pao tong	6000
+珙桐	gong tong	6000
+乌桕	wu jiu	6000
+无患子	wu huan zi	6000
+栾树	luan shu	6000
+黄栌	huang lu	6000
+女贞	nv zhen	6000
+冬青	dong qing	6000
+黄杨	huang yang	6000
+红叶石楠	hong ye shi nan	6000
+石楠	shi nan	6000
+南天竹	nan tian zhu	6000
+火棘	huo ji	6000
+枸骨	gou gu	6000
+沙棘	sha ji	6000
+胡杨	hu yang	6000
+梭梭	suo suo	6000
+柽柳	cheng liu	6000
+木麻黄	mu ma huang	6000
+桉树	an shu	6000
+棕榈	zong lv	6000
+椰子树	ye zi shu	6000
+槟榔	bing lang	6000
+毛竹	mao zhu	6000
+楠竹	nan zhu	6000
+紫竹	zi zhu	6000
+凤尾竹	feng wei zhu	6000
+佛肚竹	fo du zhu	6000
+# 室内盆栽与多肉
+绿萝	lv luo	6000
+吊兰	diao lan	6000
+文竹	wen zhu	6000
+龟背竹	gui bei zhu	6000
+春羽	chun yu	6000
+滴水观音	di shui guan yin	6000
+白掌	bai zhang	6000
+红掌	hong zhang	6000
+虎皮兰	hu pi lan	6000
+虎尾兰	hu wei lan	6000
+金钱树	jin qian shu	6000
+发财树	fa cai shu	6000
+幸福树	xing fu shu	6000
+平安树	ping an shu	6000
+橡皮树	xiang pi shu	6000
+琴叶榕	qin ye rong	6000
+散尾葵	san wei kui	6000
+袖珍椰子	xiu zhen ye zi	6000
+富贵竹	fu gui zhu	6000
+龙血树	long xue shu	6000
+巴西木	ba xi mu	6000
+空气凤梨	kong qi feng li	6000
+网纹草	wang wen cao	6000
+孔雀竹芋	kong que zhu yu	6000
+铁线蕨	tie xian jue	6000
+波士顿蕨	bo shi dun jue	6000
+鹿角蕨	lu jiao jue	6000
+鸟巢蕨	niao chao jue	6000
+肾蕨	shen jue	6000
+仙人掌	xian ren zhang	6000
+仙人球	xian ren qiu	6000
+蟹爪兰	xie zhao lan	6000
+昙花	tan hua	6000
+芦荟	lu hui	6000
+龙舌兰	long she lan	6000
+生石花	sheng shi hua	6000
+玉露	yu lu	6000
+玉树	yu shu	6000
+景天	jing tian	6000
+虹之玉	hong zhi yu	6000
+熊童子	xiong tong zi	6000
+桃美人	tao mei ren	6000
+乙女心	yi nv xin	6000
+观音莲	guan yin lian	6000
+# 作物、药用植物与园艺
+高粱	gao liang	6000
+荞麦	qiao mai	6000
+燕麦	yan mai	6000
+青稞	qing ke	6000
+黍子	shu zi	6000
+苜蓿	mu xu	6000
+油菜	you cai	6000
+油茶	you cha	6000
+油桐	you tong	6000
+蓖麻	bi ma	6000
+亚麻	ya ma	6000
+黄麻	huang ma	6000
+剑麻	jian ma	6000
+甘蔗	gan zhe	6000
+甜菜	tian cai	6000
+菊苣	ju ju	6000
+菊芋	ju yu	6000
+秋葵	qiu kui	6000
+羽衣甘蓝	yu yi gan lan	6000
+紫苏	zi su	6000
+艾草	ai cao	6000
+益母草	yi mu cao	6000
+车前草	che qian cao	6000
+蒲公英	pu gong ying	6000
+鱼腥草	yu xing cao	6000
+马齿苋	ma chi xian	6000
+决明子	jue ming zi	6000
+何首乌	he shou wu	6000
+金钱草	jin qian cao	6000
+酢浆草	cu jiang cao	6000
+三叶草	san ye cao	6000
+狗尾草	gou wei cao	6000
+狗牙根	gou ya gen	6000
+马蹄金	ma ti jin	6000
+黑麦草	hei mai cao	6000
+早熟禾	zao shu he	6000
+草本植物	cao ben zhi wu	6000
+木本植物	mu ben zhi wu	6000
+蕨类植物	jue lei zhi wu	6000
+裸子植物	luo zi zhi wu	6000
+被子植物	bei zi zhi wu	6000
+多肉植物	duo rou zhi wu	6000
+附生植物	fu sheng zhi wu	6000
+水生植物	shui sheng zhi wu	6000
+根茎	gen jing	6000
+块茎	kuai jing	6000
+鳞茎	lin jing	6000
+气生根	qi sheng gen	6000
+须根	xu gen	6000
+主根	zhu gen	6000
+叶脉	ye mai	6000
+叶柄	ye bing	6000
+花萼	hua e	6000
+花蕊	hua rui	6000
+雄蕊	xiong rui	6000
+雌蕊	ci rui	6000
+花序	hua xu	6000
+球根	qiu gen	6000
+孢子	bao zi	6000
+萌芽	meng ya	6000
+扦插	qian cha	6000
+压条	ya tiao	6000
+分株	fen zhu	6000
+嫁接	jia jie	6000
+换盆	huan pen	6000
+缓苗	huan miao	6000
+炼苗	lian miao	6000
+摘心	zhai xin	6000
+打顶	da ding	6000
+疏花	shu hua	6000
+疏果	shu guo	6000
+水培	shui pei	6000
+土培	tu pei	6000
+控水	kong shui	6000
+遮阴	zhe yin	6000
+散射光	san she guang	6000
+透气性	tou qi xing	6000
+腐叶土	fu ye tu	6000
+泥炭土	ni tan tu	6000
+珍珠岩	zhen zhu yan	6000
+蛭石	zhi shi	6000
+椰糠	ye kang	6000
+营养土	ying yang tu	6000

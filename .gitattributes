@@ -1,2 +1,3 @@
 # Keep the maintained dictionary encoding/size stable across Windows checkouts.
 data/*.tsv text eol=lf
+data/themes/*.tsv text eol=lf

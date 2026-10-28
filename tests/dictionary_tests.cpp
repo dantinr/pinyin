@@ -407,6 +407,35 @@ const Sample common_samples[] = {
     {"rqsl", "容缺受理", "rong que shou li"},
     {"xjmy", "细嚼慢咽", "xi jiao man yan"},
 };
+// Theme regressions cover rare characters, polyphonic words, long titles and
+// the same full/mixed/abbreviated queries used by ordinary IME input.
+const Sample theme_samples[] = {
+    {"qiuyu", "犰狳", "qiu yu"},
+    {"xianluomao", "暹罗猫", "xian luo mao"},
+    {"baitoubei", "白头鹎", "bai tou bei"},
+    {"ermiao", "鸸鹋", "er miao"},
+    {"fufen", "蝠鲼", "fu fen"},
+    {"hpyw", "虎皮鹦鹉", "hu pi ying wu"},
+    {"zhonghtyq", "中华田园犬", "zhong hua tian yuan quan"},
+    {"cujiangcao", "酢浆草", "cu jiang cao"},
+    {"gongtong", "珙桐", "gong tong"},
+    {"tangchangpu", "唐菖蒲", "tang chang pu"},
+    {"xiezhaolan", "蟹爪兰", "xie zhao lan"},
+    {"nvzhen", "女贞", "nv zhen"},
+    {"ssg", "散射光", "san she guang"},
+    {"jianlan", "剑兰", "jian lan"},
+    {"jianlan", "建兰", "jian lan"},
+    {"xiao shen ke de jiu shu", "肖申克的救赎", "xiao shen ke de jiu shu"},
+    {"xskdjs", "肖申克的救赎", "xiao shen ke de jiu shu"},
+    {"daomkj", "盗梦空间", "dao meng kong jian"},
+    {"nezha zhi mo tong nao hai", "哪吒之魔童闹海", "ne zha zhi mo tong nao hai"},
+    {"aganzhengzhuan", "阿甘正传", "a gan zheng zhuan"},
+    {"aiyuezhicheng", "爱乐之城", "ai yue zhi cheng"},
+    {"gana dian ying jie", "戛纳电影节", "ga na dian ying jie"},
+    {"changmiandiaodu", "场面调度", "chang mian diao du"},
+    {"dianyingpeiyue", "电影配乐", "dian ying pei yue"},
+    {"huojianhuanxiong", "火箭浣熊", "huo jian huan xiong"},
+};
 }
 
 int wmain(int argc, wchar_t* argv[]) {
@@ -519,6 +548,9 @@ int wmain(int argc, wchar_t* argv[]) {
         for (const auto& sample : common_samples)
             check(contains(lexicon, sample.query, sample.text, sample.pronunciation),
                   std::string("missing common reading: ") + sample.query + " -> " + sample.text);
+        for (const auto& sample : theme_samples)
+            check(contains(lexicon, sample.query, sample.text, sample.pronunciation),
+                  std::string("missing theme reading: ") + sample.query + " -> " + sample.text);
         for (const auto& sample : priorities) {
             const auto candidates = lexicon.lookup(sample.query);
             check(!candidates.empty() && candidates.front().text == sample.text &&

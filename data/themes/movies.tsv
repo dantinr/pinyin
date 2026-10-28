@@ -1,0 +1,404 @@
+# 电影主题；本项目整理，2026-10-28；片名与角色名仅作为输入候选。
+# 类型、观影与制作
+故事片	gu shi pian	6000
+剧情片	ju qing pian	6000
+喜剧片	xi ju pian	6000
+爱情片	ai qing pian	6000
+动作片	dong zuo pian	6000
+科幻片	ke huan pian	6000
+奇幻片	qi huan pian	6000
+悬疑片	xuan yi pian	6000
+惊悚片	jing song pian	6000
+恐怖片	kong bu pian	6000
+犯罪片	fan zui pian	6000
+战争片	zhan zheng pian	6000
+历史片	li shi pian	6000
+传记片	zhuan ji pian	6000
+武侠片	wu xia pian	6000
+西部片	xi bu pian	6000
+歌舞片	ge wu pian	6000
+公路片	gong lu pian	6000
+灾难片	zai nan pian	6000
+冒险片	mao xian pian	6000
+动画电影	dong hua dian ying	6000
+纪录电影	ji lu dian ying	6000
+默片	mo pian	6000
+短片	duan pian	6000
+长片	chang pian	6000
+艺术电影	yi shu dian ying	6000
+独立电影	du li dian ying	6000
+商业电影	shang ye dian ying	6000
+院线电影	yuan xian dian ying	6000
+网络电影	wang luo dian ying	6000
+合拍片	he pai pian	6000
+重映	chong ying	6000
+首映礼	shou ying li	6000
+点映	dian ying	6000
+路演	lu yan	6000
+排片	pai pian	6000
+排片率	pai pian lv	6000
+上座率	shang zuo lv	6000
+观影人次	guan ying ren ci	6000
+电影票房	dian ying piao fang	6000
+票房纪录	piao fang ji lu	6000
+预售票房	yu shou piao fang	6000
+豆瓣评分	dou ban ping fen	6000
+影评人	ying ping ren	6000
+影迷	ying mi	6000
+剧透	ju tou	6000
+无剧透	wu ju tou	6000
+彩蛋	cai dan	6000
+片尾彩蛋	pian wei cai dan	6000
+片头字幕	pian tou zi mu	6000
+片尾字幕	pian wei zi mu	6000
+演职员表	yan zhi yuan biao	6000
+导演剪辑版	dao yan jian ji ban	6000
+加长版	jia chang ban	6000
+修复版	xiu fu ban	6000
+公映版	gong ying ban	6000
+原声版	yuan sheng ban	6000
+配音版	pei yin ban	6000
+国语配音	guo yu pei yin	6000
+双语字幕	shuang yu zi mu	6000
+杜比全景声	du bi quan jing sheng	6000
+巨幕影厅	ju mu ying ting	6000
+激光放映	ji guang fang ying	6000
+银幕	yin mu	6000
+宽银幕	kuan yin mu	6000
+胶片电影	jiao pian dian ying	6000
+数字电影	shu zi dian ying	6000
+电影节	dian ying jie	6000
+戛纳电影节	ga na dian ying jie	6000
+柏林电影节	bo lin dian ying jie	6000
+威尼斯电影节	wei ni si dian ying jie	6000
+奥斯卡金像奖	ao si ka jin xiang jiang	6000
+金棕榈奖	jin zong lv jiang	6000
+金狮奖	jin shi jiang	6000
+金熊奖	jin xiong jiang	6000
+金鸡奖	jin ji jiang	6000
+百花奖	bai hua jiang	6000
+金像奖	jin xiang jiang	6000
+金马奖	jin ma jiang	6000
+最佳影片	zui jia ying pian	6000
+最佳导演	zui jia dao yan	6000
+最佳男主角	zui jia nan zhu jue	6000
+最佳女主角	zui jia nv zhu jue	6000
+最佳配角	zui jia pei jue	6000
+最佳编剧	zui jia bian ju	6000
+制片人	zhi pian ren	6000
+出品人	chu pin ren	6000
+执行制片	zhi xing zhi pian	6000
+副导演	fu dao yan	6000
+摄影指导	she ying zhi dao	6000
+美术指导	mei shu zhi dao	6000
+动作指导	dong zuo zhi dao	6000
+武术指导	wu shu zhi dao	6000
+视效总监	shi xiao zong jian	6000
+录音师	lu yin shi	6000
+拟音师	ni yin shi	6000
+剪辑师	jian ji shi	6000
+灯光师	deng guang shi	6000
+调色师	tiao se shi	6000
+替身演员	ti shen yan yuan	6000
+特约演员	te yue yan yuan	6000
+群众演员	qun zhong yan yuan	6000
+友情出演	you qing chu yan	6000
+特别出演	te bie chu yan	6000
+联合主演	lian he zhu yan	6000
+领衔主演	ling xian zhu yan	6000
+电影剧本	dian ying ju ben	6000
+分镜脚本	fen jing jiao ben	6000
+故事梗概	gu shi geng gai	6000
+人物小传	ren wu xiao zhuan	6000
+角色弧光	jue se hu guang	6000
+叙事结构	xu shi jie gou	6000
+非线性叙事	fei xian xing xu shi	6000
+倒叙	dao xu	6000
+插叙	cha xu	6000
+蒙太奇	meng tai qi	6000
+长镜头	chang jing tou	6000
+空镜头	kong jing tou	6000
+主观镜头	zhu guan jing tou	6000
+特写镜头	te xie jing tou	6000
+推轨镜头	tui gui jing tou	6000
+一镜到底	yi jing dao di	6000
+景深	jing shen	6000
+景别	jing bie	6000
+场面调度	chang mian diao du	6000
+轴线	zhou xian	6000
+越轴	yue zhou	6000
+正反打	zheng fan da	6000
+跳切	tiao qie	6000
+交叉剪辑	jiao cha jian ji	6000
+平行剪辑	ping xing jian ji	6000
+叠化	die hua	6000
+淡入淡出	dan ru dan chu	6000
+同期声	tong qi sheng	6000
+画外音	hua wai yin	6000
+旁白	pang bai	6000
+对白	dui bai	6000
+环境音	huan jing yin	6000
+电影配乐	dian ying pei yue	6000
+主题曲	zhu ti qu	6000
+片尾曲	pian wei qu	6000
+插曲	cha qu	6000
+绿幕	lv mu	6000
+蓝幕	lan mu	6000
+实景拍摄	shi jing pai she	6000
+棚内拍摄	peng nei pai she	6000
+动作捕捉	dong zuo bu zhuo	6000
+面部捕捉	mian bu bu zhuo	6000
+定格动画	ding ge dong hua	6000
+逐帧动画	zhu zhen dong hua	6000
+实拍特效	shi pai te xiao	6000
+视觉特效	shi jue te xiao	6000
+后期合成	hou qi he cheng	6000
+数字中间片	shu zi zhong jian pian	6000
+开机仪式	kai ji yi shi	6000
+杀青	sha qing	6000
+补拍	bu pai	6000
+选角	xuan jue	6000
+试镜	shi jing	6000
+围读	wei du	6000
+通告单	tong gao dan	6000
+场记板	chang ji ban	6000
+# 经典与常见片名
+肖申克的救赎	xiao shen ke de jiu shu	6000
+阿甘正传	a gan zheng zhuan	6000
+霸王别姬	ba wang bie ji	6000
+这个杀手不太冷	zhe ge sha shou bu tai leng	6000
+美丽人生	mei li ren sheng	6000
+辛德勒的名单	xin de le de ming dan	6000
+泰坦尼克号	tai tan ni ke hao	6000
+海上钢琴师	hai shang gang qin shi	6000
+楚门的世界	chu men de shi jie	6000
+十二怒汉	shi er nu han	6000
+教父	jiao fu	6000
+低俗小说	di su xiao shuo	6000
+搏击俱乐部	bo ji ju le bu	6000
+七宗罪	qi zong zui	6000
+沉默的羔羊	chen mo de gao yang	6000
+看不见的客人	kan bu jian de ke ren	6000
+致命魔术	zhi ming mo shu	6000
+记忆碎片	ji yi sui pian	6000
+禁闭岛	jin bi dao	6000
+盗梦空间	dao meng kong jian	6000
+星际穿越	xing ji chuan yue	6000
+信条	xin tiao	6000
+敦刻尔克	dun ke er ke	6000
+奥本海默	ao ben hai mo	6000
+黑客帝国	hei ke di guo	6000
+银翼杀手	yin yi sha shou	6000
+阿凡达	a fan da	6000
+终结者	zhong jie zhe	6000
+异形	yi xing	6000
+普罗米修斯	pu luo mi xiu si	6000
+火星救援	huo xing jiu yuan	6000
+地心引力	di xin yin li	6000
+降临	jiang lin	6000
+沙丘	sha qiu	6000
+星球大战	xing qiu da zhan	6000
+侏罗纪公园	zhu luo ji gong yuan	6000
+侏罗纪世界	zhu luo ji shi jie	6000
+回到未来	hui dao wei lai	6000
+头号玩家	tou hao wan jia	6000
+人工智能	ren gong zhi neng	6000
+机器人总动员	ji qi ren zong dong yuan	6000
+千与千寻	qian yu qian xun	6000
+天空之城	tian kong zhi cheng	6000
+哈尔的移动城堡	ha er de yi dong cheng bao	6000
+幽灵公主	you ling gong zhu	6000
+风之谷	feng zhi gu	6000
+魔女宅急便	mo nv zhai ji bian	6000
+悬崖上的金鱼姬	xuan ya shang de jin yu ji	6000
+借东西的小人阿莉埃蒂	jie dong xi de xiao ren a li ai di	6000
+你的名字	ni de ming zi	6000
+天气之子	tian qi zhi zi	6000
+铃芽之旅	ling ya zhi lv	6000
+声之形	sheng zhi xing	6000
+穿越时空的少女	chuan yue shi kong de shao nv	6000
+寻梦环游记	xun meng huan you ji	6000
+头脑特工队	tou nao te gong dui	6000
+飞屋环游记	fei wu huan you ji	6000
+疯狂动物城	feng kuang dong wu cheng	6000
+疯狂原始人	feng kuang yuan shi ren	6000
+驯龙高手	xun long gao shou	6000
+功夫熊猫	gong fu xiong mao	6000
+玩具总动员	wan ju zong dong yuan	6000
+海底总动员	hai di zong dong yuan	6000
+超人总动员	chao ren zong dong yuan	6000
+冰雪奇缘	bing xue qi yuan	6000
+狮子王	shi zi wang	6000
+无敌破坏王	wu di po huai wang	6000
+怪兽电力公司	guai shou dian li gong si	6000
+怪兽大学	guai shou da xue	6000
+大圣归来	da sheng gui lai	6000
+哪吒之魔童降世	ne zha zhi mo tong jiang shi	6000
+哪吒之魔童闹海	ne zha zhi mo tong nao hai	6000
+白蛇缘起	bai she yuan qi	6000
+长安三万里	chang an san wan li	6000
+深海	shen hai	6000
+大鱼海棠	da yu hai tang	6000
+雄狮少年	xiong shi shao nian	6000
+流浪地球	liu lang di qiu	6000
+独行月球	du xing yue qiu	6000
+宇宙探索编辑部	yu zhou tan suo bian ji bu	6000
+我不是药神	wo bu shi yao shen	6000
+我不是潘金莲	wo bu shi pan jin lian	6000
+让子弹飞	rang zi dan fei	6000
+鬼子来了	gui zi lai le	6000
+阳光灿烂的日子	yang guang can lan de ri zi	6000
+活着	huo zhe	6000
+大红灯笼高高挂	da hong deng long gao gao gua	6000
+红高粱	hong gao liang	6000
+秋菊打官司	qiu ju da guan si	6000
+英雄	ying xiong	6000
+卧虎藏龙	wo hu cang long	6000
+十面埋伏	shi mian mai fu	6000
+无间道	wu jian dao	6000
+英雄本色	ying xiong ben se	6000
+喋血双雄	die xue shuang xiong	6000
+纵横四海	zong heng si hai	6000
+枪火	qiang huo	6000
+暗战	an zhan	6000
+暗花	an hua	6000
+神探	shen tan	6000
+盲探	mang tan	6000
+一代宗师	yi dai zong shi	6000
+花样年华	hua yang nian hua	6000
+重庆森林	chong qing sen lin	6000
+春光乍泄	chun guang zha xie	6000
+东邪西毒	dong xie xi du	6000
+阿飞正传	a fei zheng zhuan	6000
+喜剧之王	xi ju zhi wang	6000
+大话西游	da hua xi you	6000
+功夫	gong fu	6000
+少林足球	shao lin zu qiu	6000
+食神	shi shen	6000
+唐伯虎点秋香	tang bo hu dian qiu xiang	6000
+国产凌凌漆	guo chan ling ling qi	6000
+九品芝麻官	jiu pin zhi ma guan	6000
+美人鱼	mei ren yu	6000
+夏洛特烦恼	xia luo te fan nao	6000
+你好李焕英	ni hao li huan ying	6000
+西虹市首富	xi hong shi shou fu	6000
+飞驰人生	fei chi ren sheng	6000
+热辣滚烫	re la gun tang	6000
+年会不能停	nian hui bu neng ting	6000
+扬名立万	yang ming li wan	6000
+疯狂的石头	feng kuang de shi tou	6000
+疯狂的赛车	feng kuang de sai che	6000
+心花路放	xin hua lu fang	6000
+无人区	wu ren qu	6000
+罗马假日	luo ma jia ri	6000
+闻香识女人	wen xiang shi nv ren	6000
+怦然心动	peng ran xin dong	6000
+爱在黎明破晓前	ai zai li ming po xiao qian	6000
+爱在日落黄昏时	ai zai ri luo huang hun shi	6000
+爱在午夜降临前	ai zai wu ye jiang lin qian	6000
+爱乐之城	ai yue zhi cheng	6000
+音乐之声	yin yue zhi sheng	6000
+放牛班的春天	fang niu ban de chun tian	6000
+爆裂鼓手	bao lie gu shou	6000
+绿皮书	lv pi shu	6000
+触不可及	chu bu ke ji	6000
+忠犬八公的故事	zhong quan ba gong de gu shi	6000
+当幸福来敲门	dang xing fu lai qiao men	6000
+美丽心灵	mei li xin ling	6000
+心灵捕手	xin ling bu shou	6000
+死亡诗社	si wang shi she	6000
+贫民窟的百万富翁	pin min ku de bai wan fu weng	6000
+三傻大闹宝莱坞	san sha da nao bao lai wu	6000
+摔跤吧爸爸	shuai jiao ba ba ba	6000
+神秘巨星	shen mi ju xing	6000
+寄生虫	ji sheng chong	6000
+熔炉	rong lu	6000
+辩护人	bian hu ren	6000
+素媛	su yuan	6000
+釜山行	fu shan xing	6000
+七武士	qi wu shi	6000
+罗生门	luo sheng men	6000
+入殓师	ru lian shi	6000
+小偷家族	xiao tou jia zu	6000
+海街日记	hai jie ri ji	6000
+步履不停	bu lv bu ting	6000
+情书	qing shu	6000
+菊次郎的夏天	ju ci lang de xia tian	6000
+末代皇帝	mo dai huang di	6000
+天堂电影院	tian tang dian ying yuan	6000
+海蒂和爷爷	hai di he ye ye	6000
+# 系列、角色与创作者
+复仇者联盟	fu chou zhe lian meng	6000
+漫威宇宙	man wei yu zhou	6000
+漫威电影宇宙	man wei dian ying yu zhou	6000
+钢铁侠	gang tie xia	6000
+美国队长	mei guo dui zhang	6000
+绿巨人	lv ju ren	6000
+蜘蛛侠	zhi zhu xia	6000
+蚁人	yi ren	6000
+雷神	lei shen	6000
+黑寡妇	hei gua fu	6000
+鹰眼	ying yan	6000
+奇异博士	qi yi bo shi	6000
+黑豹	hei bao	6000
+银河护卫队	yin he hu wei dui	6000
+火箭浣熊	huo jian huan xiong	6000
+星爵	xing jue	6000
+格鲁特	ge lu te	6000
+卡魔拉	ka mo la	6000
+灭霸	mie ba	6000
+绯红女巫	fei hong nv wu	6000
+幻视	huan shi	6000
+洛基	luo ji	6000
+无限战争	wu xian zhan zheng	6000
+终局之战	zhong ju zhi zhan	6000
+蝙蝠侠	bian fu xia	6000
+黑暗骑士	hei an qi shi	6000
+超人	chao ren	6000
+神奇女侠	shen qi nv xia	6000
+海王	hai wang	6000
+闪电侠	shan dian xia	6000
+正义联盟	zheng yi lian meng	6000
+小丑	xiao chou	6000
+哈利波特	ha li bo te	6000
+赫敏	he min	6000
+邓布利多	deng bu li duo	6000
+斯内普	si nei pu	6000
+伏地魔	fu di mo	6000
+魔法石	mo fa shi	6000
+阿兹卡班的囚徒	a zi ka ban de qiu tu	6000
+火焰杯	huo yan bei	6000
+凤凰社	feng huang she	6000
+混血王子	hun xue wang zi	6000
+死亡圣器	si wang sheng qi	6000
+指环王	zhi huan wang	6000
+霍比特人	huo bi te ren	6000
+护戒使者	hu jie shi zhe	6000
+双塔奇兵	shuang ta qi bing	6000
+王者归来	wang zhe gui lai	6000
+加勒比海盗	jia le bi hai dao	6000
+碟中谍	die zhong die	6000
+谍影重重	die ying chong chong	6000
+速度与激情	su du yu ji qing	6000
+生化危机	sheng hua wei ji	6000
+变形金刚	bian xing jin gang	6000
+王家卫	wang jia wei	6000
+张艺谋	zhang yi mou	6000
+陈凯歌	chen kai ge	6000
+贾樟柯	jia zhang ke	6000
+冯小刚	feng xiao gang	6000
+姜文	jiang wen	6000
+徐克	xu ke	6000
+杜琪峰	du qi feng	6000
+宁浩	ning hao	6000
+文牧野	wen mu ye	6000
+郭帆	guo fan	6000
+乌尔善	wu er shan	6000
+宫崎骏	gong qi jun	6000
+黑泽明	hei ze ming	6000
+是枝裕和	shi zhi yu he	6000
+诺兰	nuo lan	6000
+卡梅隆	ka mei long	6000
+斯皮尔伯格	si pi er bo ge	6000
+斯科塞斯	si ke sai si	6000
+塔伦蒂诺	ta lun di nuo	6000
