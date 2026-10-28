@@ -50,7 +50,8 @@ bool starts_english(const std::string& word, const Lexicon& lexicon, const UserD
     // entry in a small or customized dictionary.
     try { normalize_pronunciation(spelling); return false; }
     catch (const std::invalid_argument&) {}
-    const auto exact = lexicon.lookup(spelling, users, 1);
-    return exact.empty() || exact.front().abbreviations != 0;
+    // A stored Chinese word also wins when the spelling uses initials or
+    // tail completion: "went" can be wen + t for 问题, not only English went.
+    return lexicon.lookup(spelling, users, 1).empty();
 }
 }

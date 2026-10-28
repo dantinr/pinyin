@@ -61,6 +61,39 @@ int wmain(int argc, wchar_t* argv[]) {
     const auto initialized = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     try {
         check(argc == 2 && SUCCEEDED(initialized), "test setup failed");
+        {
+            TestWorkspace priority_workspace; const auto path = default_user_path();
+            for (const auto chinese_punctuation : {true, false}) {
+                set_chinese_punctuation(path, chinese_punctuation);
+                for (const auto* spelling : {"wenti", "went", "wt"}) {
+                    for (const auto ending : {VK_SPACE, VK_OEM_COMMA}) {
+                        Harness ime(argv[1]); auto bar = button(ime); auto expected = words(path);
+                        ime.type(spelling);
+                        check(ime.store->text == wide(spelling) && ime.compositions() == 1 && label(bar.Get()) == L"中",
+                            "typing a full or mixed pinyin word committed it before confirmation");
+                        check(probe_key(ime, ending) && probe_key(ime, ending) && ime.store->text == wide(spelling) &&
+                            label(bar.Get()) == L"中", "confirmation probing changed mixed-pinyin text or language mode");
+                        const auto suffix = ending == VK_SPACE ? L"" : chinese_punctuation ? L"，" : L",";
+                        ++expected[{"wen ti", "问题"}];
+                        check(ime.key(ending) && ime.store->text == std::wstring(L"问题") + suffix && ime.compositions() == 0 &&
+                            label(bar.Get()) == L"中" && words(path) == expected,
+                            "automatic English displaced or failed to learn the confirmed Chinese mixed-pinyin word");
+                        bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "mixed-pinyin priority leaked DLL references");
+                    }
+                }
+            }
+            {
+                Harness ime(argv[1]); auto bar = button(ime); const auto previous = words(path);
+                ime.type("went");
+                check(ime.key(VK_RETURN) && ime.store->text == L"went" && ime.compositions() == 0 &&
+                    label(bar.Get()) == L"中" && words(path) == previous,
+                    "raw Enter submission of mixed pinyin unexpectedly enabled English or learned text");
+                ime.store->insert_external(L" "); type_app(ime, "Went");
+                check(ime.key(VK_SPACE) && ime.store->text == L"went Went " && label(bar.Get()) == L"英" &&
+                    words(path) == previous, "explicit capitalized English was blocked by Chinese mixed-pinyin priority");
+                bar.Reset(); ime.close(); check(ime.unload_result == S_OK, "explicit English priority leaked DLL references");
+            }
+        }
         TestWorkspace workspace; const auto path = default_user_path();
         for (const auto automatic : {true, false}) {
             set_automatic_english(path, automatic);
@@ -322,7 +355,9 @@ int wmain(int argc, wchar_t* argv[]) {
             Harness ime(argv[1]); auto bar = button(ime); ime.type("hello"); ime.key(VK_SPACE);
             check(label(bar.Get()) == L"中", "restart lost the automatic English opt-out");
             ime.key(VK_ESCAPE); ime.key(VK_RETURN);
-            set_automatic_english(path, true); ime.store->insert_external(L" "); ime.type("hello"); ime.key(VK_SPACE);
+            // Earlier opt-out checks can learn a Chinese abbreviation for
+            // lowercase hello. Use explicit English to isolate settings refresh.
+            set_automatic_english(path, true); ime.store->insert_external(L" "); type_app(ime, "Hello"); ime.key(VK_SPACE);
             check(label(bar.Get()) == L"英", "active application did not refresh external English settings");
             set_chinese_punctuation(path, false); set_ime_learning(path, false);
             check(!ime.key(VK_RETURN), "English Enter was swallowed with other settings disabled");
