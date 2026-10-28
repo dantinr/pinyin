@@ -1,0 +1,16 @@
+PenBlade · 笔锋输入法
+
+本项目的代码、文档、自编词库及有权授权的自制图形采用 MIT License，
+完整许可条款见同目录 LICENSE。MIT 许可仅涵盖本项目有权授予的权利。
+
+角色主题图标
+ico/09-captain-america.ico、ico/10-hulk.ico、ico/11-spider-man.ico、
+ico/12-ant-man.ico、ico/13-rocket-raccoon.ico 及相关预览图采用
+美国队长、绿巨人、蜘蛛侠、蚁人和火箭浣熊的角色特征绘制。
+这些图案是本项目绘制的角色主题，不是角色权利人的官方素材或授权证明。
+本项目对自身创作部分的 MIT 授权不包含第三方角色、商标等权利；
+相关权利仍属于各自权利人。本项目不表示获得其赞助、认可或合作。
+
+随发布包分发的第三方组件
+vc_redist.x64.exe 是 Microsoft 的 Visual C++ 可再分发运行库安装程序，
+适用 Microsoft 自身的许可条款，不适用本项目的 MIT License。

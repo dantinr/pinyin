@@ -100,6 +100,8 @@ try {
     $null = New-Item -ItemType Directory -Path $stage -Force
     # Explicit payload: no build trees, tests, PDBs or personal dictionaries.
     $sources = [ordered]@{
+        'LICENSE' = (Join-Path $repo 'LICENSE')
+        'NOTICE' = (Join-Path $repo 'NOTICE')
         'private_pinyin_ime.dll' = (Join-Path $runtimeDir 'private_pinyin_ime.dll')
         'private_pinyin.exe' = (Join-Path $runtimeDir 'private_pinyin.exe')
         'private_pinyin_demo.exe' = (Join-Path $runtimeDir 'private_pinyin_demo.exe')

@@ -19,11 +19,18 @@ $workspace = Join-Path $tempRoot ('private-pinyin-package-tests-' + [Guid]::NewG
 try {
     . (Join-Path $PackageDir 'scripts/package-common.ps1')
     $package = Read-PinyinPackage $PackageDir
+    foreach ($notice in @('LICENSE', 'NOTICE')) {
+        Check ($package.files.path -contains $notice) "Package manifest omitted $notice."
+    }
     $null = New-Item -ItemType Directory -Path $workspace
     $installRoot = Join-Path $workspace ('install path ' + [char]0x8bcd + [char]0x5e93)
     $installed = Copy-PinyinPackage $PackageDir $installRoot
     Check ($installed -eq (Join-Path $installRoot $package.version)) 'Package was not installed in its versioned directory.'
     $null = Read-PinyinPackage $installed
+    foreach ($notice in @('LICENSE', 'NOTICE')) {
+        Check ((Get-FileHash -LiteralPath (Join-Path $installed $notice)).Hash -eq
+            (Get-FileHash -LiteralPath (Join-Path $PackageDir $notice)).Hash) "Installation did not preserve $notice."
+    }
     $dll = Join-Path $installed 'private_pinyin_ime.dll'
     $originalHash = (Get-FileHash -LiteralPath $dll).Hash
     $originalDate = (Get-Item -LiteralPath $dll).LastWriteTimeUtc

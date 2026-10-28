@@ -124,4 +124,8 @@ PowerShell 7 和 Python 3 可启用相应 CLI、安装包及 HTTP 同步集成�
 
 开发注册 / 卸载、CLI 调试、算法边界、TSF 回调和锁机制见[开发文档](docs/development.md)。欢迎通过 [Issues](https://github.com/dantinr/pinyin/issues) 提交问题，附 Windows 与应用版本、应用架构、输入法版本、拼音及复现步骤；涉及个人词库时请提供脱敏的最小样例。
 
-仓库目前尚未提供 `LICENSE` 文件，代码和词库的使用、修改及分发许可仍需维护者明确。
+## 开源许可
+
+项目代码、文档和自编词库采用 [MIT License](LICENSE)，允许使用、修改、分发和商用，包括闭源衍生版本；分发时须保留版权及许可声明。软件按原样提供，不作担保。
+
+角色主题图标涉及的第三方角色与商标权利，以及随发布包携带的 Microsoft 运行库，授权范围见 [NOTICE](NOTICE)；本项目的 MIT 许可不代替第三方授权。
