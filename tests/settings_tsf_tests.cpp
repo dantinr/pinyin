@@ -2,6 +2,7 @@
 #include "test_workspace.hpp"
 #include "language_bar.hpp"
 #include <iostream>
+#include <fstream>
 
 namespace {
 int checks = 0;
@@ -24,6 +25,40 @@ int wmain(int argc, wchar_t* argv[]) {
     const auto initialized = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     try {
         check(argc == 2 && SUCCEEDED(initialized), "test setup failed");
+        {
+            TestWorkspace icons_workspace; const auto path = default_user_path();
+            const auto cursor = path.parent_path() / L"icon-rotation.cursor";
+            const auto selected = [&] {
+                std::ifstream file(cursor, std::ios::binary);
+                return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+            };
+            set_icon_rotation(path, true);
+            {
+                Harness ime(argv[1]); auto bar = button(ime); const auto initial = selected();
+                check(!initial.empty(), "activation did not choose a bundled icon");
+                ime.type("nh"); ime.key(VK_ESCAPE); ime.key(VK_SHIFT); ime.key_up(VK_SHIFT);
+                ComPtr<ITfThreadFocusSink> focus; ime.service.As(&focus); focus->OnSetThreadFocus(); focus->OnSetThreadFocus();
+                check(selected() == initial && label(bar.Get()) == L"英", "typing, mode or focus notifications advanced icons");
+                ComPtr<ITfActiveLanguageProfileNotifySink> profile;
+                Harness::require(ime.service.As(&profile), "get profile activation sink");
+                profile->OnActivated(service_id, profile_id, FALSE);
+                profile->OnActivated(service_id, profile_id, TRUE);
+                const auto after = selected();
+                check(after != initial, "switching back did not advance the icon");
+                profile->OnActivated(service_id, profile_id, TRUE);
+                check(selected() == after, "duplicate profile activation advanced twice");
+                set_icon_rotation(path, false); focus->OnSetThreadFocus();
+                HICON icon = nullptr; check(SUCCEEDED(bar->GetIcon(&icon)) && icon, "opt-out lost the mode icon"); DestroyIcon(icon);
+                check(selected() == after && label(bar.Get()) == L"英", "opt-out advanced icons or changed input mode");
+                set_icon_rotation(path, true); focus->OnSetThreadFocus();
+                check(selected() != after, "active input method did not refresh icon opt-in");
+                profile.Reset(); focus.Reset(); bar.Reset(); ime.close();
+                check(ime.unload_result == S_OK, "icon state or profile sink leaked DLL references");
+            }
+            const auto previous = selected();
+            { Harness ime(argv[1]); check(selected() != previous, "new service did not share persisted selection");
+                ime.close(); check(ime.unload_result == S_OK, "restarted icon service leaked"); }
+        }
         TestWorkspace workspace; const auto path = default_user_path();
         {
             Harness ime(argv[1]); auto bar = button(ime);

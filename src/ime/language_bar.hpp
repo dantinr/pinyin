@@ -16,9 +16,12 @@ class LanguageBar final : public ITfLangBarItemButton, public ITfSource, private
     DWORD status_ = 0;
     std::function<BarState()> state_;
     std::function<HRESULT(BarCommand)> command_;
+    HICON rotation_icon_ = nullptr;
 public:
     LanguageBar(std::function<BarState()> state, std::function<HRESULT(BarCommand)> command)
         : state_(std::move(state)), command_(std::move(command)) {}
+    ~LanguageBar() { if (rotation_icon_) DestroyIcon(rotation_icon_); }
+    void rotate_icon(const std::filesystem::path& user_path) noexcept;
     void notify() noexcept;
     void disconnect() noexcept;
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, void**) override;

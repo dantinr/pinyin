@@ -125,6 +125,11 @@ try {
         'RELEASE_NOTES.md' = (Join-Path $repo 'packaging/RELEASE_NOTES.md')
         'vc_redist.x64.exe' = $redist.FullName
     }
+    foreach ($icon in Get-ChildItem -LiteralPath (Join-Path $repo 'ico') -File) {
+        if ($icon.Extension -ieq '.ico' -or $icon.Name -eq 'README.md') {
+            $sources['ico/' + $icon.Name] = $icon.FullName
+        }
+    }
     $files = foreach ($entry in $sources.GetEnumerator()) {
         $target = Join-Path $stage $entry.Key
         $null = New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force

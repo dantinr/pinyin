@@ -30,6 +30,8 @@ ImeSettings read_ime_settings(const std::filesystem::path& user_path) {
     if (user_path.empty()) { result.chinese_punctuation = result.automatic_english = false; return result; }
     result.chinese_punctuation = default_enabled(punctuation_flag(user_path));
     result.automatic_english = default_enabled(automatic_english_flag(user_path));
+    const auto icon_attributes = GetFileAttributesW(icon_rotation_flag(user_path).c_str());
+    result.rotate_icons = icon_attributes != INVALID_FILE_ATTRIBUTES && !(icon_attributes & FILE_ATTRIBUTE_DIRECTORY);
     return result;
 }
 void set_chinese_punctuation(const std::filesystem::path& user_path, bool enabled) {
@@ -42,5 +44,12 @@ std::filesystem::path automatic_english_flag(const std::filesystem::path& user_p
 void set_automatic_english(const std::filesystem::path& user_path, bool enabled) {
     if (user_path.empty()) throw std::runtime_error("user dictionary path is unavailable");
     set_enabled(automatic_english_flag(user_path), enabled);
+}
+std::filesystem::path icon_rotation_flag(const std::filesystem::path& user_path) {
+    auto flag = user_path; flag += L".icon-rotation.enabled"; return flag;
+}
+void set_icon_rotation(const std::filesystem::path& user_path, bool enabled) {
+    if (user_path.empty()) throw std::runtime_error("user dictionary path is unavailable");
+    set_enabled(icon_rotation_flag(user_path), !enabled);
 }
 }

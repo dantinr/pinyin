@@ -51,6 +51,36 @@ try {
         if ($main -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 50 }
     } while ($main -eq [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline)
     if ($main -eq [IntPtr]::Zero) { throw 'Settings window was not created.' }
+    # Exercise the independent personalization page without changing the real user's settings.
+    $marker = Join-Path $workspace 'profile\PrivatePinyin\words.user.tsv.icon-rotation.enabled'
+    foreach ($round in @(0, 1)) {
+        $null = [SyncWindow]::PostMessage($main, 0x111, [IntPtr]1026, [IntPtr]::Zero)
+        $deadline = [DateTime]::UtcNow.AddSeconds(10)
+        do {
+            $personal = [SyncWindow]::Find($process.Id, '个性化设置')
+            $toggle = if ($personal -ne [IntPtr]::Zero) { [SyncWindow]::GetDlgItem($personal, 1027) } else { [IntPtr]::Zero }
+            if ($toggle -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 50 }
+        } while ($toggle -eq [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline)
+        if ($toggle -eq [IntPtr]::Zero) { throw 'Personalization page did not open.' }
+        if ([SyncWindow]::SendMessage($toggle, 0xF0, [IntPtr]::Zero, [IntPtr]::Zero).ToInt32() -ne $round) {
+            throw 'Icon rotation checkbox did not load its saved setting.'
+        }
+        $null = [SyncWindow]::SendMessage($toggle, 0xF5, [IntPtr]::Zero, [IntPtr]::Zero)
+        if ((Test-Path -LiteralPath $marker) -ne ($round -eq 0)) { throw 'Icon rotation checkbox did not persist.' }
+        if ($round -eq 0) {
+            $rectangle = [SyncWindow+Rectangle]::new()
+            $null = [SyncWindow]::GetWindowRect($personal, [ref]$rectangle)
+            $bitmap = [Drawing.Bitmap]::new($rectangle.Right - $rectangle.Left, $rectangle.Bottom - $rectangle.Top)
+            $graphics = [Drawing.Graphics]::FromImage($bitmap); $context = $graphics.GetHdc()
+            try { $null = [SyncWindow]::PrintWindow($personal, $context, 2) }
+            finally { $graphics.ReleaseHdc($context); $graphics.Dispose() }
+            try { $bitmap.Save([IO.Path]::ChangeExtension([IO.Path]::GetFullPath($Screenshot), 'personalization.png'), [Drawing.Imaging.ImageFormat]::Png) }
+            finally { $bitmap.Dispose() }
+        }
+        $null = [SyncWindow]::PostMessage($personal, 0x111, [IntPtr]1, [IntPtr]::Zero)
+        do { Start-Sleep -Milliseconds 50 } while ([SyncWindow]::Find($process.Id, '个性化设置') -ne [IntPtr]::Zero -and [DateTime]::UtcNow -lt $deadline)
+    }
+    $deadline = [DateTime]::UtcNow.AddSeconds(10)
     $null = [SyncWindow]::PostMessage($main, 0x111, [IntPtr]1025, [IntPtr]::Zero)
     do {
         $dialog = [SyncWindow]::Find($process.Id, '个人词库云同步')

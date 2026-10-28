@@ -13,7 +13,7 @@ int main() {
     try {
         testing::TestWorkspace workspace; const auto path = default_user_path();
         auto state = read_ime_settings(path);
-        check(state.learning && state.chinese_punctuation && state.automatic_english && !std::filesystem::exists(path.parent_path()),
+        check(state.learning && state.chinese_punctuation && state.automatic_english && !state.rotate_icons && !std::filesystem::exists(path.parent_path()),
             "default settings changed or reading created files");
         state = read_ime_settings({}); check(!state.learning && !state.chinese_punctuation && !state.automatic_english, "missing storage enabled settings");
         set_automatic_english(path, false);
@@ -28,6 +28,13 @@ int main() {
         state = read_ime_settings(path); check(!state.learning && state.chinese_punctuation && state.automatic_english,
             "automatic English overwrote another setting");
         check(!std::filesystem::exists(path), "setting changes created a personal dictionary");
+        set_icon_rotation(path, true);
+        state = read_ime_settings(path);
+        check(state.rotate_icons && !state.learning && state.chinese_punctuation && state.automatic_english,
+            "icon opt-in was not saved independently");
+        set_icon_rotation(path, false);
+        check(!read_ime_settings(path).rotate_icons && !std::filesystem::exists(icon_rotation_flag(path)),
+            "icon opt-out left a marker or remained enabled");
         std::exception_ptr first_error, second_error, third_error;
         std::thread first([&] { try { for (int i = 0; i < 40; ++i) set_ime_learning(path, i % 2 == 0); } catch (...) { first_error = std::current_exception(); } });
         std::thread second([&] { try { for (int i = 0; i < 40; ++i) set_chinese_punctuation(path, i % 2 == 0); } catch (...) { second_error = std::current_exception(); } });

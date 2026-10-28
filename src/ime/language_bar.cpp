@@ -1,4 +1,5 @@
 #include "language_bar.hpp"
+#include "icon_rotation.hpp"
 #include <olectl.h>
 #include <array>
 
@@ -33,6 +34,17 @@ HICON mode_icon(bool chinese) {
     ICONINFO info{}; info.fIcon = TRUE; info.hbmMask = mask;
     auto icon = CreateIconIndirect(&info); DeleteObject(mask); return icon;
 }
+}
+void LanguageBar::rotate_icon(const std::filesystem::path& user_path) noexcept {
+    try {
+        if (user_path.empty() || !state_ || !state_().settings.rotate_icons) return;
+        auto icon = next_rotation_icon(module_path().parent_path() / L"ico", user_path.parent_path() / L"ico",
+            user_path.parent_path() / L"icon-rotation.cursor", GetSystemMetrics(SM_CXSMICON));
+        if (icon) {
+            if (rotation_icon_) DestroyIcon(rotation_icon_);
+            rotation_icon_ = icon; notify();
+        }
+    } catch (...) {} // Cosmetic failures must not affect typing or activation.
 }
 void LanguageBar::notify() noexcept {
     auto sink = sink_; if (sink) sink->OnUpdate(TF_LBI_BTNALL | TF_LBI_STATUS);
@@ -112,7 +124,11 @@ HRESULT LanguageBar::OnMenuSelect(UINT command) {
 }
 HRESULT LanguageBar::GetIcon(HICON* icon) {
     if (!icon) return E_POINTER; *icon = nullptr;
-    return protect([&] { *icon = mode_icon(state_ ? state_().chinese : true); return *icon ? S_OK : E_OUTOFMEMORY; });
+    return protect([&] {
+        const auto state = state_ ? state_() : BarState{};
+        *icon = state.settings.rotate_icons && rotation_icon_ ? CopyIcon(rotation_icon_) : mode_icon(state.chinese);
+        return *icon ? S_OK : E_OUTOFMEMORY;
+    });
 }
 HRESULT LanguageBar::GetText(BSTR* text) {
     if (!text) return E_POINTER; *text = nullptr;

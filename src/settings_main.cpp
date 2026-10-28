@@ -270,6 +270,33 @@ void initialize_statistics(HWND window) {
     } catch (...) {} // Reading below displays an invalid file without overwriting it.
     SetTimer(window, 1, 3000, nullptr);
 }
+INT_PTR CALLBACK personalization_dialog(HWND window, UINT message, WPARAM wparam, LPARAM) noexcept {
+    try {
+        if (message == WM_INITDIALOG) {
+            CheckDlgButton(window, IDC_ROTATE_ICONS, pinyin::read_ime_settings(pinyin::default_user_path()).rotate_icons ? BST_CHECKED : BST_UNCHECKED);
+            return TRUE;
+        }
+        if (message != WM_COMMAND) return FALSE;
+        switch (LOWORD(wparam)) {
+        case IDC_ROTATE_ICONS:
+            pinyin::set_icon_rotation(pinyin::default_user_path(), IsDlgButtonChecked(window, IDC_ROTATE_ICONS) == BST_CHECKED);
+            return TRUE;
+        case IDC_OPEN_ICONS: {
+            const auto directory = pinyin::default_user_path().parent_path() / L"ico";
+            std::filesystem::create_directories(directory);
+            if (reinterpret_cast<INT_PTR>(ShellExecuteW(window, L"open", directory.c_str(), nullptr, nullptr, SW_SHOWNORMAL)) <= 32)
+                throw std::runtime_error("cannot open icon directory");
+            return TRUE;
+        }
+        case IDOK: case IDCANCEL: EndDialog(window, 0); return TRUE;
+        }
+    } catch (...) {
+        try { CheckDlgButton(window, IDC_ROTATE_ICONS, pinyin::read_ime_settings(pinyin::default_user_path()).rotate_icons ? BST_CHECKED : BST_UNCHECKED); }
+        catch (...) {}
+        MessageBoxW(window, L"无法保存个性化设置或打开图标目录，请检查文件访问权限。", L"隐私拼音", MB_OK | MB_ICONERROR);
+    }
+    return FALSE;
+}
 INT_PTR CALLBACK dialog(HWND window, UINT message, WPARAM wparam, LPARAM lparam) noexcept {
     try {
         switch (message) {
@@ -296,6 +323,8 @@ INT_PTR CALLBACK dialog(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
             case IDC_REFRESH_STATISTICS: refresh(window); return TRUE;
             case IDC_SYNC_OPEN:
                 DialogBoxParamW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(IDD_SYNC_SETTINGS), window, sync_dialog, 0); return TRUE;
+            case IDC_PERSONALIZATION_OPEN:
+                DialogBoxParamW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(IDD_PERSONALIZATION), window, personalization_dialog, 0); return TRUE;
             case IDC_OPEN_DIRECTORY:
                 if (FAILED(pinyin::open_user_directory(window))) throw std::runtime_error("cannot open dictionary directory");
                 return TRUE;

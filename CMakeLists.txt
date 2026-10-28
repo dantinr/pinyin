@@ -55,7 +55,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   configure_file(src/ime/private_pinyin_ime.rc.in generated/private_pinyin_ime.rc @ONLY)
   add_library(private_pinyin_ime SHARED
     src/ime/module.cpp src/ime/text_service.cpp src/ime/candidate_window.cpp
-    src/ime/display_attribute.cpp src/ime/language_bar.cpp src/ime/private_pinyin_ime.def
+    src/ime/display_attribute.cpp src/ime/language_bar.cpp src/ime/icon_rotation.cpp src/ime/private_pinyin_ime.def
     "${CMAKE_CURRENT_BINARY_DIR}/generated/private_pinyin_ime.rc")
   target_include_directories(private_pinyin_ime PRIVATE src/ime)
   target_compile_definitions(private_pinyin_ime PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00 WINVER=0x0A00)
@@ -66,7 +66,9 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   add_custom_command(TARGET private_pinyin_ime POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:private_pinyin_ime>/data"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/data/base.tsv"
-      "$<TARGET_FILE_DIR:private_pinyin_ime>/data/base.tsv")
+      "$<TARGET_FILE_DIR:private_pinyin_ime>/data/base.tsv"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/ico"
+      "$<TARGET_FILE_DIR:private_pinyin_ime>/ico")
   add_executable(private_pinyin_demo WIN32 src/ime_demo.cpp)
   target_include_directories(private_pinyin_demo PRIVATE src/ime tests)
   target_compile_definitions(private_pinyin_demo PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
@@ -175,11 +177,15 @@ if(BUILD_TESTING)
     target_link_libraries(completion_tsf_tests PRIVATE pinyin_core ole32 oleaut32 uuid user32)
     add_dependencies(completion_tsf_tests private_pinyin_ime)
     add_test(NAME tsf_completion COMMAND completion_tsf_tests "$<TARGET_FILE:private_pinyin_ime>")
-    add_executable(language_bar_tests tests/language_bar_tests.cpp src/ime/language_bar.cpp)
+    add_executable(language_bar_tests tests/language_bar_tests.cpp src/ime/language_bar.cpp src/ime/icon_rotation.cpp)
     target_include_directories(language_bar_tests PRIVATE src/ime)
     target_compile_definitions(language_bar_tests PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
     target_link_libraries(language_bar_tests PRIVATE pinyin_core ole32 oleaut32 uuid user32 gdi32)
     add_test(NAME language_bar COMMAND language_bar_tests)
+    add_executable(icon_rotation_tests tests/icon_rotation_tests.cpp src/ime/icon_rotation.cpp)
+    target_include_directories(icon_rotation_tests PRIVATE src/ime tests)
+    target_link_libraries(icon_rotation_tests PRIVATE pinyin_core user32 gdi32)
+    add_test(NAME icon_rotation COMMAND icon_rotation_tests "${CMAKE_CURRENT_SOURCE_DIR}/ico")
     add_executable(settings_tsf_tests tests/settings_tsf_tests.cpp)
     target_include_directories(settings_tsf_tests PRIVATE src/ime tests)
     target_link_libraries(settings_tsf_tests PRIVATE pinyin_core ole32 oleaut32 uuid user32)

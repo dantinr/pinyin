@@ -9,6 +9,9 @@
 | `statistics.tsv` | 按日期汇总的中文输入字数、上屏次数和有效输入时间，不含原文 |
 | `vocabulary-growth.tsv` | 个人词库统计起始日期及每日新增字词数，不含词语 |
 | `words.user.tsv.*.disabled` | 本地学习、中文标点、自动英文的关闭标记 |
+| `words.user.tsv.icon-rotation.enabled` | 个性化设置中状态图标轮换的开启标记；默认无此文件 |
+| `ico\*.ico` | 用户添加的状态图标，单色轮廓显示，不参与词库同步 |
+| `icon-rotation.cursor` | 上次轮换的图标文件名，多个应用共享，不含输入内容 |
 | `dictionaries\*.tsv` | 用户或 Agent 管理的辅词库 |
 | `dictionaries\*.tsv.disabled` | 辅词库的停用标记 |
 | `backups` | 个人词库及主词库合并前的备份 |

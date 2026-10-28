@@ -141,12 +141,14 @@ public:
 
 class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink,
     public ITfThreadMgrEventSink, public ITfThreadFocusSink, public ITfCompositionSink, public ITfTextEditSink,
-    public ITfTextLayoutSink, public ITfDisplayAttributeProvider, private ModuleObject {
+    public ITfTextLayoutSink, public ITfDisplayAttributeProvider, public ITfActiveLanguageProfileNotifySink, private ModuleObject {
     std::atomic<ULONG> refs_{1};
     ComPtr<ITfThreadMgr> manager_;
     TfClientId client_ = TF_CLIENTID_NULL;
     DWORD thread_cookie_ = TF_INVALID_COOKIE;
     DWORD focus_cookie_ = TF_INVALID_COOKIE;
+    DWORD profile_cookie_ = TF_INVALID_COOKIE;
+    bool profile_active_ = false;
     DWORD text_cookie_ = TF_INVALID_COOKIE;
     DWORD layout_cookie_ = TF_INVALID_COOKIE;
     ComPtr<ITfContext> observed_;
@@ -193,16 +195,18 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         automatic_english_ = active;
         if (language_bar_) language_bar_->notify();
     }
-    void refresh_settings() {
+    void refresh_settings(bool rotate_on_enable = true) {
         const auto next = read_ime_settings(user_path_);
         const bool changed = next.learning != settings_.learning || next.chinese_punctuation != settings_.chinese_punctuation ||
-            next.automatic_english != settings_.automatic_english;
+            next.automatic_english != settings_.automatic_english || next.rotate_icons != settings_.rotate_icons;
+        const bool enable_icons = next.rotate_icons && !settings_.rotate_icons;
         if (dictionary_ && next.learning != settings_.learning) {
             dictionary_->refresh();
             input_.refresh_candidates(dictionary_->lexicon(), dictionary_->users());
         }
         if (next.chinese_punctuation != settings_.chinese_punctuation) punctuation_.reset();
         settings_ = next;
+        if (enable_icons && rotate_on_enable && language_bar_) language_bar_->rotate_icon(user_path_);
         if (!settings_.automatic_english) set_english(false);
         if (changed && language_bar_) language_bar_->notify();
     }
@@ -597,6 +601,7 @@ public:
         else if (iid == IID_ITfKeyEventSink) *result = static_cast<ITfKeyEventSink*>(this);
         else if (iid == IID_ITfThreadMgrEventSink) *result = static_cast<ITfThreadMgrEventSink*>(this);
         else if (iid == IID_ITfThreadFocusSink) *result = static_cast<ITfThreadFocusSink*>(this);
+        else if (iid == IID_ITfActiveLanguageProfileNotifySink) *result = static_cast<ITfActiveLanguageProfileNotifySink*>(this);
         else if (iid == IID_ITfCompositionSink) *result = static_cast<ITfCompositionSink*>(this);
         else if (iid == IID_ITfTextEditSink) *result = static_cast<ITfTextEditSink*>(this);
         else if (iid == IID_ITfTextLayoutSink) *result = static_cast<ITfTextLayoutSink*>(this);
@@ -627,6 +632,9 @@ public:
             if (FAILED(hr)) { Deactivate(); return hr; }
             hr = source->AdviseSink(IID_ITfThreadFocusSink, static_cast<ITfThreadFocusSink*>(this), &focus_cookie_);
             if (FAILED(hr)) { Deactivate(); return hr; }
+            // Optional in minimal TSF hosts; activation itself still selects an icon.
+            source->AdviseSink(IID_ITfActiveLanguageProfileNotifySink,
+                static_cast<ITfActiveLanguageProfileNotifySink*>(this), &profile_cookie_);
             manager_.As(&ui_manager_);
             hr = manager_.As(&bar_manager_);
             if (SUCCEEDED(hr)) {
@@ -635,6 +643,8 @@ public:
                 hr = bar_manager_->AddItem(language_bar_.Get());
             }
             if (FAILED(hr)) { Deactivate(); return hr; }
+            profile_active_ = true;
+            language_bar_->rotate_icon(user_path_);
             ComPtr<ITfCategoryMgr> categories;
             if (SUCCEEDED(CoCreateInstance(CLSID_TF_CategoryMgr, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&categories))))
                 categories->RegisterGUID(attribute_id, &attribute_atom_);
@@ -657,10 +667,12 @@ public:
                 ComPtr<ITfSource> source;
                 if (thread_cookie_ != TF_INVALID_COOKIE && SUCCEEDED(manager_.As(&source))) source->UnadviseSink(thread_cookie_);
                 if (focus_cookie_ != TF_INVALID_COOKIE && SUCCEEDED(manager_.As(&source))) source->UnadviseSink(focus_cookie_);
+                if (profile_cookie_ != TF_INVALID_COOKIE && SUCCEEDED(manager_.As(&source))) source->UnadviseSink(profile_cookie_);
                 ComPtr<ITfKeystrokeMgr> keys;
                 if (key_sink_ && SUCCEEDED(manager_.As(&keys))) keys->UnadviseKeyEventSink(client_);
             }
             thread_cookie_ = focus_cookie_ = TF_INVALID_COOKIE; key_sink_ = false; shift_alone_ = false;
+            profile_cookie_ = TF_INVALID_COOKIE; profile_active_ = false;
             manager_.Reset(); ui_manager_.Reset(); client_ = TF_CLIENTID_NULL;
             return S_OK;
         });
@@ -670,6 +682,17 @@ public:
     }
     HRESULT STDMETHODCALLTYPE OnSetThreadFocus() override {
         return protect([&] { refresh_settings(); if (language_bar_) language_bar_->notify(); return S_OK; });
+    }
+    HRESULT STDMETHODCALLTYPE OnActivated(REFCLSID clsid, REFGUID, BOOL activated) override {
+        return protect([&] {
+            if (!manager_) return S_OK;
+            if (clsid != service_id || !activated) { profile_active_ = false; return S_OK; }
+            if (!profile_active_) {
+                profile_active_ = true; refresh_settings(false);
+                if (language_bar_) language_bar_->rotate_icon(user_path_);
+            }
+            return S_OK;
+        });
     }
     HRESULT STDMETHODCALLTYPE OnKillThreadFocus() override {
         return protect([&] { shift_alone_ = false; finish_later(); return S_OK; });
