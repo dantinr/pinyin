@@ -1,5 +1,6 @@
 #pragma once
 #include "pinyin/learning_dictionary.hpp"
+#include <cstdint>
 
 namespace pinyin {
 struct ImeSettings {
@@ -17,4 +18,13 @@ std::filesystem::path automatic_english_flag(const std::filesystem::path& user_p
 void set_automatic_english(const std::filesystem::path& user_path, bool enabled);
 std::filesystem::path icon_rotation_flag(const std::filesystem::path& user_path);
 void set_icon_rotation(const std::filesystem::path& user_path, bool enabled);
+// Colors use the Windows COLORREF layout (0x00BBGGRR).
+struct CandidateColors {
+    bool custom = false;
+    std::uint32_t background = 0xffffff;
+    std::uint32_t selection = 0xd77800;
+};
+std::filesystem::path candidate_colors_path(const std::filesystem::path& user_path);
+CandidateColors read_candidate_colors(const std::filesystem::path& user_path) noexcept;
+void set_candidate_colors(const std::filesystem::path& user_path, CandidateColors colors);
 }

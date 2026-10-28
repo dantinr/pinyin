@@ -44,6 +44,26 @@ int main() {
         if (third_error) std::rethrow_exception(third_error);
         state = read_ime_settings(path); check(!state.learning && !state.chinese_punctuation && !state.automatic_english,
             "concurrent independent changes lost an opt-out");
+        check(!read_candidate_colors(path).custom && !read_candidate_colors({}).custom,
+            "missing candidate colors enabled customization");
+        set_candidate_colors(path, {true, 0x281e18, 0x42c3f5});
+        auto colors = read_candidate_colors(path);
+        check(colors.custom && colors.background == 0x281e18 && colors.selection == 0x42c3f5,
+            "candidate colors did not persist");
+        check(!read_ime_settings(path).learning && !std::filesystem::exists(path),
+            "candidate customization changed learning or created personal words");
+        bool invalid_color = false;
+        try { set_candidate_colors(path, {true, 0x1000000, 0}); } catch (...) { invalid_color = true; }
+        check(invalid_color && read_candidate_colors(path).background == colors.background,
+            "invalid candidate color overwrote saved settings");
+        for (const auto* invalid : {"v1 abcdef 000000", "v2 abcdef 000000\n", "v1 zzzzzz 000000\n", "v1 ffffff 000000\ntrailing"}) {
+            { std::ofstream damaged(candidate_colors_path(path), std::ios::binary); damaged << invalid; }
+            check(!read_candidate_colors(path).custom, "damaged candidate colors did not fall back safely");
+        }
+        set_candidate_colors(path, colors);
+        set_candidate_colors(path, {});
+        check(!read_candidate_colors(path).custom && !std::filesystem::exists(candidate_colors_path(path)) &&
+            !read_ime_settings(path).learning, "restoring system colors changed other settings");
         std::ofstream(workspace.root / L"blocked") << "sentinel";
         bool rejected = false;
         try { set_chinese_punctuation(workspace.root / L"blocked" / L"words.tsv", false); } catch (...) { rejected = true; }

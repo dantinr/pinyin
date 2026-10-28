@@ -1,4 +1,5 @@
 #include "candidate_window.hpp"
+#include "candidate_palette.hpp"
 #include <algorithm>
 
 namespace pinyin::ime {
@@ -41,8 +42,9 @@ void CandidateWindow::hide() noexcept {
     raw_.clear(); rows_.clear(); hint_.clear(); raw_scroll_ = 0;
 }
 void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND owner,
-                           std::function<void(std::size_t)> select, const std::wstring& mode) {
+                           std::function<void(std::size_t)> select, const std::wstring& mode, CandidateColors colors) {
     if (input.empty()) { hide(); return; }
+    colors_ = colors;
     DpiScope dpi_scope;
     if (!class_registered_) {
         ClassLock lock;
@@ -106,9 +108,10 @@ void CandidateWindow::show(const InputSession& input, const RECT& caret, HWND ow
 void CandidateWindow::paint(HWND window) noexcept {
     PAINTSTRUCT paint{}; HDC dc = BeginPaint(window, &paint);
     RECT area{}; GetClientRect(window, &area);
-    FillRect(dc, &area, GetSysColorBrush(COLOR_WINDOW));
+    const auto palette = candidate_palette(colors_);
+    fill_candidate_color(dc, area, palette.background);
     const auto previous_font = SelectObject(dc, font_);
-    SetBkMode(dc, TRANSPARENT); SetTextColor(dc, GetSysColor(COLOR_WINDOWTEXT));
+    SetBkMode(dc, TRANSPARENT); SetTextColor(dc, palette.text);
     RECT row{padding_, padding_, area.right - padding_, padding_ + row_height_};
     const int saved = SaveDC(dc);
     IntersectClipRect(dc, row.left, row.top, row.right, row.bottom);
@@ -118,12 +121,12 @@ void CandidateWindow::paint(HWND window) noexcept {
     for (std::size_t i = 0; i < rows_.size(); ++i) {
         OffsetRect(&row, 0, row_height_);
         const bool selected = page_start_ + i == selected_;
-        if (selected) FillRect(dc, &row, GetSysColorBrush(COLOR_HIGHLIGHT));
-        SetTextColor(dc, GetSysColor(selected ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT));
+        if (selected) fill_candidate_color(dc, row, palette.selection);
+        SetTextColor(dc, selected ? palette.selection_text : palette.text);
         DrawTextW(dc, rows_[i].data(), static_cast<int>(rows_[i].size()), &row, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
     }
     OffsetRect(&row, 0, row_height_);
-    SetTextColor(dc, GetSysColor(COLOR_GRAYTEXT));
+    SetTextColor(dc, palette.hint);
     DrawTextW(dc, hint_.data(), static_cast<int>(hint_.size()), &row, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS);
     SelectObject(dc, previous_font); EndPaint(window, &paint);
 }

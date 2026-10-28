@@ -1,4 +1,5 @@
 #include "candidate_window.hpp"
+#include "candidate_palette.hpp"
 #include <algorithm>
 #include <iostream>
 
@@ -68,6 +69,24 @@ int main() {
             HDC dc = GetDC(shown.result);
             const auto pixel = GetPixel(dc, area.right / 2, selected_y); ReleaseDC(shown.result, dc);
             check(pixel == GetSysColor(COLOR_HIGHLIGHT), "first paint did not render the selected row");
+            HIGHCONTRASTW contrast{sizeof(contrast)};
+            SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof(contrast), &contrast, 0);
+            const bool high_contrast = !!(contrast.dwFlags & HCF_HIGHCONTRASTON);
+            const CandidateColors custom{true, RGB(24, 30, 40), RGB(245, 195, 66)};
+            popup.show(input, caret, first.window, [](std::size_t) {}, L"本地学习", custom);
+            dc = GetDC(shown.result);
+            const auto background = GetPixel(dc, 1, 1);
+            const auto highlight = GetPixel(dc, area.right / 2, selected_y);
+            ReleaseDC(shown.result, dc);
+            check(background == (high_contrast ? GetSysColor(COLOR_WINDOW) : RGB(24, 30, 40)) &&
+                highlight == (high_contrast ? GetSysColor(COLOR_HIGHLIGHT) : RGB(245, 195, 66)),
+                "custom candidate colors were not painted or ignored high contrast mode");
+            check(contrasting_text(RGB(24, 30, 40)) == RGB(255, 255, 255) &&
+                contrasting_text(RGB(245, 195, 66)) == RGB(0, 0, 0), "candidate text lacks readable contrast");
+            popup.show(input, caret, first.window, [](std::size_t) {}, L"本地学习");
+            dc = GetDC(shown.result);
+            const auto restored = GetPixel(dc, area.right / 2, selected_y); ReleaseDC(shown.result, dc);
+            check(restored == GetSysColor(COLOR_HIGHLIGHT), "system candidate colors were not restored");
             popup.hide();
             check(!popup.visible() && !IsWindow(shown.result) && candidates(first.window).count == 0,
                 "ending input retained a native candidate window");

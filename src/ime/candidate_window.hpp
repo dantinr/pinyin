@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include "pinyin/input_session.hpp"
+#include "pinyin/ime_settings.hpp"
 #include <functional>
 #include <vector>
 
@@ -12,7 +13,7 @@ public:
     CandidateWindow& operator=(const CandidateWindow&) = delete;
     ~CandidateWindow();
     void show(const InputSession& input, const RECT& caret, HWND owner,
-              std::function<void(std::size_t)> select, const std::wstring& mode);
+              std::function<void(std::size_t)> select, const std::wstring& mode, CandidateColors colors = {});
     void hide() noexcept;
     bool visible() const noexcept { return window_ && IsWindowVisible(window_); }
 private:
@@ -28,6 +29,7 @@ private:
     std::wstring hint_;
     std::vector<std::wstring> rows_;
     std::function<void(std::size_t)> select_;
+    CandidateColors colors_;
     static LRESULT CALLBACK procedure(HWND, UINT, WPARAM, LPARAM) noexcept;
     void paint(HWND window) noexcept;
 };

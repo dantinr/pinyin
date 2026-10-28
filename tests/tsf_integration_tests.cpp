@@ -1,6 +1,7 @@
 #include "tsf_text_store.hpp"
 #include "test_workspace.hpp"
 #include "pinyin/learning_dictionary.hpp"
+#include "pinyin/ime_settings.hpp"
 #include <iostream>
 
 namespace {
@@ -73,6 +74,24 @@ int wmain(int argc, wchar_t* argv[]) {
         }
         { pinyin::UserStore store(user_path); store.save({}); }
         pinyin::set_ime_learning(user_path, false);
+        {
+            TestWindow owner; Harness ime(argv[1]); ime.store->window = owner.window;
+            pinyin::set_candidate_colors(user_path, {true, RGB(24, 30, 40), RGB(245, 195, 66)});
+            ime.type("n");
+            const auto popup = visible_candidates();
+            check(popup.count == 1, "color setting prevented native candidate UI");
+            HIGHCONTRASTW contrast{sizeof(contrast)};
+            SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof(contrast), &contrast, 0);
+            HDC dc = GetDC(popup.first); const auto background = GetPixel(dc, 1, 1); ReleaseDC(popup.first, dc);
+            check(background == ((contrast.dwFlags & HCF_HIGHCONTRASTON) ? GetSysColor(COLOR_WINDOW) : RGB(24, 30, 40)),
+                "active TSF service did not load candidate colors");
+            pinyin::set_candidate_colors(user_path, {});
+            ime.type("i");
+            dc = GetDC(popup.first); const auto restored = GetPixel(dc, 1, 1); ReleaseDC(popup.first, dc);
+            check(restored == GetSysColor(COLOR_WINDOW), "active TSF service did not refresh restored colors");
+            ime.key(VK_ESCAPE); ime.close();
+            check(ime.unload_result == S_OK, "custom candidate service leaked DLL references");
+        }
         {
             TestWindow owner; Harness ime(argv[1]); ime.store->window = owner.window;
             ComPtr<ITfTextLayoutSink> layout; Harness::require(ime.service.As(&layout), "get layout sink");

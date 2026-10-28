@@ -81,7 +81,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   add_dependencies(private_pinyin_settings private_pinyin_sync)
   target_compile_definitions(private_pinyin_settings PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00
     PRIVATE_PINYIN_VERSION="${PROJECT_VERSION}")
-  target_link_libraries(private_pinyin_settings PRIVATE pinyin_sync user32 gdi32 shell32 comdlg32 comctl32)
+  target_link_libraries(private_pinyin_settings PRIVATE pinyin_sync user32 gdi32 shell32 comdlg32 comctl32 uxtheme)
   if(MSVC)
     target_compile_options(private_pinyin_settings PRIVATE /W4 /permissive-)
   endif()

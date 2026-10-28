@@ -3,6 +3,9 @@
 #define NOMINMAX
 #include <windows.h>
 #include <stdexcept>
+#include <charconv>
+#include <cstdio>
+#include "sync_storage.hpp"
 
 namespace pinyin {
 namespace {
@@ -51,5 +54,38 @@ std::filesystem::path icon_rotation_flag(const std::filesystem::path& user_path)
 void set_icon_rotation(const std::filesystem::path& user_path, bool enabled) {
     if (user_path.empty()) throw std::runtime_error("user dictionary path is unavailable");
     set_enabled(icon_rotation_flag(user_path), !enabled);
+}
+std::filesystem::path candidate_colors_path(const std::filesystem::path& user_path) {
+    auto path = user_path; path += L".candidate-colors"; return path;
+}
+CandidateColors read_candidate_colors(const std::filesystem::path& user_path) noexcept {
+    try {
+        if (user_path.empty()) return {};
+        const auto path = candidate_colors_path(user_path);
+        const auto file = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+            nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (file == INVALID_HANDLE_VALUE) return {};
+        char bytes[18]{}; DWORD count = 0;
+        const bool read = !!ReadFile(file, bytes, sizeof(bytes), &count, nullptr);
+        CloseHandle(file);
+        if (!read || count != 17 || std::string(bytes, 3) != "v1 " || bytes[9] != ' ' || bytes[16] != '\n') return {};
+        CandidateColors result;
+        const auto background = std::from_chars(bytes + 3, bytes + 9, result.background, 16);
+        const auto selection = std::from_chars(bytes + 10, bytes + 16, result.selection, 16);
+        if (background.ec != std::errc{} || background.ptr != bytes + 9 ||
+            selection.ec != std::errc{} || selection.ptr != bytes + 16) return {};
+        result.custom = true; return result;
+    } catch (...) { return {}; }
+}
+void set_candidate_colors(const std::filesystem::path& user_path, CandidateColors colors) {
+    if (user_path.empty()) throw std::runtime_error("user dictionary path is unavailable");
+    const auto path = candidate_colors_path(user_path);
+    if (!colors.custom) { std::filesystem::remove(path); return; }
+    if (colors.background > 0xffffff || colors.selection > 0xffffff)
+        throw std::runtime_error("invalid candidate color");
+    char bytes[18]{};
+    std::snprintf(bytes, sizeof(bytes), "v1 %06x %06x\n",
+        static_cast<unsigned>(colors.background), static_cast<unsigned>(colors.selection));
+    sync_storage::write(path, bytes);
 }
 }

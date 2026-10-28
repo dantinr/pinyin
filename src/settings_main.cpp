@@ -8,8 +8,10 @@
 #include "settings_growth_chart.hpp"
 #include "settings_actions.hpp"
 #include "settings_resource.h"
+#include "ime/candidate_palette.hpp"
 #include <commdlg.h>
 #include <commctrl.h>
+#include <uxtheme.h>
 #include <array>
 #include <iomanip>
 #include <optional>
@@ -270,14 +272,84 @@ void initialize_statistics(HWND window) {
     } catch (...) {} // Reading below displays an invalid file without overwriting it.
     SetTimer(window, 1, 3000, nullptr);
 }
-INT_PTR CALLBACK personalization_dialog(HWND window, UINT message, WPARAM wparam, LPARAM) noexcept {
+pinyin::CandidateColors personalization_colors;
+void select_personalization_tab(HWND window) {
+    const bool candidates = TabCtrl_GetCurSel(GetDlgItem(window, IDC_PERSONALIZATION_TABS)) == 1;
+    for (const int id : {IDC_ROTATE_ICONS, IDC_ICON_ROTATION_HINT, IDC_ICON_MODE_HINT, IDC_OPEN_ICONS, IDC_ICON_FILES_HINT})
+        ShowWindow(GetDlgItem(window, id), candidates ? SW_HIDE : SW_SHOW);
+    for (const int id : {IDC_CANDIDATE_BACKGROUND, IDC_CANDIDATE_SELECTION, IDC_CANDIDATE_DEFAULTS, IDC_CANDIDATE_PREVIEW, IDC_CANDIDATE_HINT})
+        ShowWindow(GetDlgItem(window, id), candidates ? SW_SHOW : SW_HIDE);
+}
+void draw_candidate_preview(const DRAWITEMSTRUCT& item) noexcept {
+    const auto palette = pinyin::ime::candidate_palette(personalization_colors);
+    const int saved = SaveDC(item.hDC);
+    const auto font = reinterpret_cast<HFONT>(SendMessageW(GetParent(item.hwndItem), WM_GETFONT, 0, 0));
+    if (font) SelectObject(item.hDC, font);
+    SetBkMode(item.hDC, TRANSPARENT);
+    pinyin::ime::fill_candidate_color(item.hDC, item.rcItem, palette.background);
+    RECT first = item.rcItem; first.bottom = (first.top + first.bottom) / 2;
+    SetTextColor(item.hDC, palette.text);
+    DrawTextW(item.hDC, L"  nihao  ·  配色预览", -1, &first, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
+    RECT selected = item.rcItem; selected.top = first.bottom;
+    pinyin::ime::fill_candidate_color(item.hDC, selected, palette.selection);
+    SetTextColor(item.hDC, palette.selection_text);
+    DrawTextW(item.hDC, L"  1. 你好", -1, &selected, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
+    RestoreDC(item.hDC, saved);
+}
+void choose_candidate_color(HWND window, bool selection) {
+    static COLORREF custom_colors[16]{};
+    auto colors = pinyin::read_candidate_colors(pinyin::default_user_path());
+    // Start with the displayed system colors when customization is first enabled.
+    if (!colors.custom) {
+        colors.background = GetSysColor(COLOR_WINDOW);
+        colors.selection = GetSysColor(COLOR_HIGHLIGHT);
+    }
+    CHOOSECOLORW chooser{sizeof(chooser)};
+    chooser.hwndOwner = window; chooser.lpCustColors = custom_colors;
+    chooser.rgbResult = selection ? colors.selection : colors.background;
+    chooser.Flags = CC_FULLOPEN | CC_RGBINIT;
+    if (!ChooseColorW(&chooser)) {
+        if (CommDlgExtendedError()) throw std::runtime_error("cannot open color chooser");
+        return;
+    }
+    colors.custom = true;
+    if (selection) colors.selection = chooser.rgbResult;
+    else colors.background = chooser.rgbResult;
+    pinyin::set_candidate_colors(pinyin::default_user_path(), colors);
+    personalization_colors = colors;
+    InvalidateRect(GetDlgItem(window, IDC_CANDIDATE_PREVIEW), nullptr, TRUE);
+}
+INT_PTR CALLBACK personalization_dialog(HWND window, UINT message, WPARAM wparam, LPARAM lparam) noexcept {
     try {
         if (message == WM_INITDIALOG) {
+            EnableThemeDialogTexture(window, ETDT_ENABLETAB);
+            personalization_colors = pinyin::read_candidate_colors(pinyin::default_user_path());
             CheckDlgButton(window, IDC_ROTATE_ICONS, pinyin::read_ime_settings(pinyin::default_user_path()).rotate_icons ? BST_CHECKED : BST_UNCHECKED);
+            const auto tabs = GetDlgItem(window, IDC_PERSONALIZATION_TABS);
+            const wchar_t* pages[] = {L"图标", L"候选窗"};
+            for (int index = 0; index < 2; ++index) {
+                TCITEMW tab{}; tab.mask = TCIF_TEXT; tab.pszText = const_cast<wchar_t*>(pages[index]);
+                TabCtrl_InsertItem(tabs, index, &tab);
+            }
+            select_personalization_tab(window);
             return TRUE;
+        }
+        if (message == WM_NOTIFY && reinterpret_cast<NMHDR*>(lparam)->idFrom == IDC_PERSONALIZATION_TABS &&
+            reinterpret_cast<NMHDR*>(lparam)->code == TCN_SELCHANGE) {
+            select_personalization_tab(window); return TRUE;
+        }
+        if (message == WM_DRAWITEM && wparam == IDC_CANDIDATE_PREVIEW) {
+            draw_candidate_preview(*reinterpret_cast<DRAWITEMSTRUCT*>(lparam)); return TRUE;
         }
         if (message != WM_COMMAND) return FALSE;
         switch (LOWORD(wparam)) {
+        case IDC_CANDIDATE_BACKGROUND: choose_candidate_color(window, false); return TRUE;
+        case IDC_CANDIDATE_SELECTION: choose_candidate_color(window, true); return TRUE;
+        case IDC_CANDIDATE_DEFAULTS:
+            pinyin::set_candidate_colors(pinyin::default_user_path(), {});
+            personalization_colors = {};
+            InvalidateRect(GetDlgItem(window, IDC_CANDIDATE_PREVIEW), nullptr, TRUE);
+            return TRUE;
         case IDC_ROTATE_ICONS:
             pinyin::set_icon_rotation(pinyin::default_user_path(), IsDlgButtonChecked(window, IDC_ROTATE_ICONS) == BST_CHECKED);
             return TRUE;

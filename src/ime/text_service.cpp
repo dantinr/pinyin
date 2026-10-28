@@ -420,7 +420,8 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
                         return hr;
                     });
             });
-        }, !dictionary_->enabled() ? L"无痕" : dictionary_->available() ? L"本地学习" : L"学习暂不可用");
+        }, !dictionary_->enabled() ? L"无痕" : dictionary_->available() ? L"本地学习" : L"学习暂不可用",
+            read_candidate_colors(user_path_));
         if (element_) element_->set_visible(window_.visible());
         return S_OK;
     }
