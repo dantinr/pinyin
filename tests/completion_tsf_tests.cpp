@@ -39,6 +39,23 @@ int wmain(int argc, wchar_t* argv[]) {
     const auto initialized = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     try {
         check(argc == 2 && SUCCEEDED(initialized), "test setup failed");
+        {
+            TestWorkspace alias_workspace; const auto path = default_user_path();
+            for (const auto& spelling : {"lue", "lve", "hulue", "hulve"}) {
+                Harness ime(argv[1]); const std::string query(spelling);
+                const bool phrase = query.size() == 5;
+                const auto text = phrase ? L"忽略" : L"略";
+                const UserKey key{phrase ? "hu lve" : "lve", phrase ? "忽略" : "略"};
+                const auto before = words(path); const auto found = before.find(key);
+                const auto count = found == before.end() ? 0 : found->second;
+                ime.type(spelling);
+                { auto ui = candidates(ime); check(item(ui.Get(), 0) == text, "ue/ve candidate missing from real TSF UI"); }
+                check(ime.key(VK_SPACE) && ime.store->text == text && ime.compositions() == 0 &&
+                    words(path).at(key) == count + 1 && words(path).size() == before.size() + (count == 0),
+                    "ue/ve TSF confirmation lost text or duplicated a personal record");
+                ime.close(); check(ime.unload_result == S_OK, "ue/ve service leaked DLL references");
+            }
+        }
         TestWorkspace workspace; const auto path = default_user_path();
         {
             Harness ime(argv[1]); ime.type("niha");

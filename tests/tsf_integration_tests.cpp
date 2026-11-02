@@ -89,7 +89,9 @@ int wmain(int argc, wchar_t* argv[]) {
             ime.type("i");
             dc = GetDC(popup.first); const auto restored = GetPixel(dc, 1, 1); ReleaseDC(popup.first, dc);
             check(restored == GetSysColor(COLOR_WINDOW), "active TSF service did not refresh restored colors");
-            ime.key(VK_ESCAPE); ime.close();
+            ime.key(VK_ESCAPE);
+            DestroyWindow(owner.window); owner.window = nullptr; Harness::pump();
+            ime.close();
             check(ime.unload_result == S_OK, "custom candidate service leaked DLL references");
         }
         {

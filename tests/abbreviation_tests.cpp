@@ -32,6 +32,46 @@ int wmain(int argc, wchar_t* argv[]) {
     try {
         if (argc != 2) throw std::runtime_error("expected dictionary");
         Lexicon lexicon; lexicon.load(argv[1]);
+        struct UmlautExample { const char* query; const char* text; const char* reading; };
+        for (const auto& example : {UmlautExample{"lue", "略", "lve"}, {"lve", "略", "lve"},
+            {"LÜE", "略", "lve"}, {"hulue", "忽略", "hu lve"}, {"hu'lue", "忽略", "hu lve"},
+            {"hulve", "忽略", "hu lve"}, {"celue", "策略", "ce lve"}, {"nue", "虐", "nve"},
+            {"nve", "虐", "nve"}}) {
+            for (const auto& candidates : {lexicon.lookup(example.query), lexicon.decode(example.query),
+                                          lexicon.lookup_composition(example.query)}) {
+                const auto& candidate = find(candidates, example.text);
+                check(candidate.pronunciation == example.reading && candidate.abbreviations == 0 &&
+                    !candidate.completed && candidate.input_end == normalize_query(example.query).size(),
+                    "ue spelling lost canonical reading, full-spelling rank, or input offsets");
+            }
+        }
+        check(lexicon.lookup("lue").front().text == "略", "lue did not prefer 略");
+        check(lexicon.lookup("hulue").front().text == "忽略", "hulue did not prefer 忽略");
+        Lexicon boundaries;
+        boundaries.add({"略", "lve", 1}); boundaries.add({"虐", "nve", 1});
+        check(boundaries.lookup("lu'e").empty() && boundaries.lookup("nu'e").empty(),
+            "ue alias crossed an explicit syllable boundary");
+        check(find(lexicon.lookup_composition("hulue"), "忽").input_end == 2,
+            "ue remainder prevented selecting a preceding syllable");
+        UserDictionary fragment_users{{{"hu lve gui ze", "忽略规则"}, 3}};
+        check(find(Lexicon{}.lookup("hulue", fragment_users), "忽略").pronunciation == "hu lve",
+            "ue spelling did not recover a fragment of a learned phrase");
+        InputSession umlaut;
+        type(umlaut, lexicon, "hulue");
+        umlaut.select(index_of(umlaut, "忽", 2), lexicon);
+        check(umlaut.preedit() == "忽lue", "ue segment consumed the wrong input range");
+        umlaut.handle(InputKey::home, 0, lexicon);
+        check(umlaut.raw() == "hulue", "segment undo replaced typed ue with canonical ve");
+        umlaut.clear(); type(umlaut, lexicon, "hulue");
+        auto umlaut_result = umlaut.select(index_of(umlaut, "忽略", 5), lexicon);
+        check(umlaut_result.action == InputAction::commit && umlaut_result.pronunciation == "hu lve",
+            "ue confirmation saved the typed alias as a pronunciation");
+        UserDictionary umlaut_users;
+        Candidate umlaut_word; umlaut_word.text = umlaut_result.text; umlaut_word.pronunciation = umlaut_result.pronunciation;
+        learn(umlaut_users, umlaut_word);
+        learn(umlaut_users, find(lexicon.lookup("hulve"), "忽略"));
+        check(umlaut_users.size() == 1 && umlaut_users.at({"hu lve", "忽略"}) == 2,
+            "ue and ve spellings created separate personal records");
         struct Example { const char* query; const char* text; const char* reading; std::size_t abbreviations; };
         for (const auto& example : {
             Example{"nh", "你好", "ni hao", 2}, {"nhao", "你好", "ni hao", 1},

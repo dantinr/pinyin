@@ -54,6 +54,14 @@ std::uint64_t parse_weight(const std::string& value) {
     return result;
 }
 
+bool matches_full_spelling(const std::string& syllable, const std::string& query, std::size_t offset) {
+    if (query.compare(offset, syllable.size(), syllable) == 0) return true;
+    // lue/nue are input aliases for lve/nve. Keep stored readings canonical
+    // and consume the original query so editing and apostrophe offsets survive.
+    return (syllable == "lve" || syllable == "nve") && query.size() - offset >= 3 &&
+        query[offset] == syllable[0] && query[offset + 1] == 'u' && query[offset + 2] == 'e';
+}
+
 // Full spelling, first letter, and the optional zh/ch/sh initial. Dictionary
 // readings remain canonical; only the spelling consumed from the query changes.
 std::array<std::size_t, 3> spelling_lengths(const std::string& syllable,
@@ -62,7 +70,7 @@ std::array<std::size_t, 3> spelling_lengths(const std::string& syllable,
     const bool digraph = syllable.size() > 2 && syllable[1] == 'h' &&
         (syllable[0] == 'z' || syllable[0] == 'c' || syllable[0] == 's');
     return {
-        query.compare(offset, syllable.size(), syllable) == 0 ? syllable.size() : 0,
+        matches_full_spelling(syllable, query, offset) ? syllable.size() : 0,
         syllable.size() > 1 ? 1u : 0u,
         digraph && query.compare(offset, 2, syllable, 0, 2) == 0 ? 2u : 0u
     };
@@ -314,7 +322,7 @@ std::vector<Candidate> Lexicon::personal_fragments(const std::string& query, con
             std::size_t consumed = 0;
             std::string pronunciation;
             for (auto end = start; end < parts.size(); ++end) {
-                if (query.compare(consumed, parts[end].size(), parts[end]) != 0) break;
+                if (!matches_full_spelling(parts[end], query, consumed)) break;
                 consumed += parts[end].size();
                 if (!pronunciation.empty()) pronunciation += ' ';
                 pronunciation += parts[end];
