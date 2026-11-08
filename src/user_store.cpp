@@ -1,5 +1,6 @@
 #include "pinyin/user_store.hpp"
 #include "pinyin/dictionary_manager.hpp"
+#include "pinyin/main_dictionary.hpp"
 #include "pinyin/input_statistics.hpp"
 #include "pinyin/vocabulary_growth.hpp"
 
@@ -207,6 +208,13 @@ void UserStore::save(const UserDictionary& users, bool track_growth) const {
         try {
             std::set<std::string> texts;
             for (const auto& word : load()) texts.insert(word.first.second);
+            // Moving a learned word into main.tsv does not make its next use
+            // a new vocabulary addition after the personal queue is cleared.
+            const auto main = main_dictionary_path(path_);
+            if (std::filesystem::exists(main)) {
+                const auto stored = read_dictionary_file(main);
+                for (const auto& word : stored.lexicon.entries()) texts.insert(word.text);
+            }
             for (const auto& word : users)
                 if (texts.insert(word.first.second).second) ++added;
         } catch (...) {

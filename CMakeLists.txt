@@ -18,7 +18,7 @@ endif()
 
 add_executable(private_pinyin src/main.cpp src/dictionary_cli.cpp)
 target_link_libraries(private_pinyin PRIVATE pinyin_core)
-add_library(pinyin_sync src/dictionary_sync.cpp src/sync_http.cpp src/sync_settings.cpp)
+add_library(pinyin_sync src/dictionary_sync.cpp src/sync_http.cpp src/sync_settings.cpp src/local_dictionary_sync.cpp)
 target_compile_definitions(pinyin_sync PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
 target_link_libraries(pinyin_sync PUBLIC pinyin_core PRIVATE winhttp crypt32 advapi32)
 if(MSVC)
@@ -36,6 +36,9 @@ add_custom_command(TARGET private_pinyin POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_CURRENT_SOURCE_DIR}/docs/personal-dictionaries.md"
     "$<TARGET_FILE_DIR:private_pinyin>/docs/personal-dictionaries.md"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/docs/local-dictionary-sync.md"
+    "$<TARGET_FILE_DIR:private_pinyin>/docs/local-dictionary-sync.md"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_CURRENT_SOURCE_DIR}/docs/user-data.md"
     "$<TARGET_FILE_DIR:private_pinyin>/docs/user-data.md"
@@ -89,6 +92,9 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(local_dictionary_sync_tests tests/local_dictionary_sync_tests.cpp)
+  target_link_libraries(local_dictionary_sync_tests PRIVATE pinyin_sync)
+  add_test(NAME local_dictionary_sync COMMAND local_dictionary_sync_tests)
   add_executable(dictionary_sync_tests tests/dictionary_sync_tests.cpp)
   target_link_libraries(dictionary_sync_tests PRIVATE pinyin_sync)
   add_test(NAME dictionary_sync COMMAND dictionary_sync_tests)
@@ -97,6 +103,9 @@ if(BUILD_TESTING)
     target_link_libraries(sync_http_tests PRIVATE pinyin_sync)
     find_package(Python3 COMPONENTS Interpreter QUIET)
     if(Python3_Interpreter_FOUND)
+      add_test(NAME local_sync_worker COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/local_sync_worker_tests.py" "$<TARGET_FILE:private_pinyin_sync>")
+      set_tests_properties(local_sync_worker PROPERTIES TIMEOUT 60)
       add_test(NAME dictionary_sync_http COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/sync_integration_tests.py"
         "$<TARGET_FILE:sync_http_tests>" "$<TARGET_FILE:private_pinyin_sync>"

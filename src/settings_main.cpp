@@ -1,6 +1,7 @@
 #include "pinyin/ime_settings.hpp"
 #include "pinyin/dictionary_manager.hpp"
 #include "pinyin/main_dictionary.hpp"
+#include "pinyin/local_dictionary_sync.hpp"
 #include "pinyin/user_store.hpp"
 #include "pinyin/input_statistics.hpp"
 #include "pinyin/vocabulary_growth.hpp"
@@ -21,6 +22,13 @@
 namespace {
 pinyin::VocabularyGrowth chart_growth;
 bool chart_available = true;
+std::filesystem::path bundled_dictionary() {
+    std::wstring executable(32768, L'\0');
+    const auto size = GetModuleFileNameW(nullptr, executable.data(), static_cast<DWORD>(executable.size()));
+    if (!size || size >= executable.size()) throw std::runtime_error("cannot locate bundled dictionary");
+    executable.resize(size);
+    return std::filesystem::path(executable).parent_path() / L"data" / L"base.tsv";
+}
 void select_statistics_tab(HWND window) {
     const bool growth = TabCtrl_GetCurSel(GetDlgItem(window, IDC_STATISTICS_TABS)) == 1;
     ShowWindow(GetDlgItem(window, IDC_DAILY_STATISTICS), growth ? SW_HIDE : SW_SHOW);
@@ -233,19 +241,34 @@ void refresh(HWND window) {
         if (chart_available) displayed_growth = chart_growth;
         displayed_date = date;
     }
+    std::wstring total_summary = L"总词库：暂不可读，请检查词库格式或文件权限。";
+    try {
+        const auto total = pinyin::dictionary_totals(bundled_dictionary(), user);
+        total_summary = L"总词库：" + std::to_wstring(total.texts) + L" 个字词 · " +
+            std::to_wstring(total.readings) + L" 条读音（各词库合并去重）";
+    } catch (const std::exception&) {}
     try {
         const auto words = pinyin::read_user_dictionary(user);
         std::set<std::string> texts;
         std::uint64_t selections = 0;
         for (const auto& word : words) { texts.insert(word.first.second); selections += word.second; }
-        SetDlgItemTextW(window, IDC_PERSONAL_SUMMARY, (L"个人词库：" + std::to_wstring(texts.size()) + L" 个字词 · " +
-            std::to_wstring(words.size()) + L" 条读音\n词库选择次数合计：" + std::to_wstring(selections) +
-            L"（含已有及合并记录）\n" + growth_summary).c_str());
+        SetDlgItemTextW(window, IDC_PERSONAL_SUMMARY, (total_summary + L"\n个人词库：" +
+            std::to_wstring(texts.size()) + L" 个字词 · " + std::to_wstring(words.size()) +
+            L" 条读音 · 选择 " + std::to_wstring(selections) + L" 次\n" + growth_summary).c_str());
     } catch (const std::exception&) {
         SetDlgItemTextW(window, IDC_PERSONAL_SUMMARY,
-            (L"个人词库暂不可读，请检查词库格式或文件权限。\n" + growth_summary).c_str());
+            (total_summary + L"\n个人词库暂不可读，请检查词库格式或文件权限。\n" + growth_summary).c_str());
     }
     SetDlgItemTextW(window, IDC_STATISTICS_STATUS, status.c_str());
+    try {
+        const auto enabled = pinyin::local_sync_enabled(user);
+        CheckDlgButton(window, IDC_LOCAL_SYNC_ENABLED, enabled ? BST_CHECKED : BST_UNCHECKED);
+        const auto local = pinyin::read_local_sync_status(user);
+        const auto summary = !enabled ? L"本地定时同步未开启；手动合并仍保留个人词库。" :
+            local.message.empty() ? L"本地定时同步已开启，启动后约 10 分钟执行首次同步。" :
+            (local.success.empty() ? std::wstring{} : wide(local.success) + L" · ") + wide(local.message);
+        SetDlgItemTextW(window, IDC_LOCAL_SYNC_STATUS, summary.c_str());
+    } catch (...) { SetDlgItemTextW(window, IDC_LOCAL_SYNC_STATUS, L"本地同步状态暂不可读，请检查权限或文件格式。"); }
 }
 void initialize_statistics(HWND window) {
     const auto list = GetDlgItem(window, IDC_DAILY_STATISTICS);
@@ -374,6 +397,8 @@ INT_PTR CALLBACK dialog(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
         switch (message) {
         case WM_INITDIALOG:
             SetDlgItemTextW(window, IDC_VERSION, (L"版本：" + wide(PRIVATE_PINYIN_VERSION)).c_str());
+            if (pinyin::local_sync_enabled(pinyin::default_user_path()))
+                pinyin::launch_local_sync_worker(pinyin::default_user_path(), true);
             initialize_statistics(window); refresh(window); return TRUE;
         case WM_ACTIVATE: if (LOWORD(wparam) != WA_INACTIVE) refresh(window); return FALSE;
         case WM_TIMER: if (wparam == 1) refresh(window); return TRUE;
@@ -392,6 +417,16 @@ INT_PTR CALLBACK dialog(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
             return FALSE;
         case WM_COMMAND:
             switch (LOWORD(wparam)) {
+            case IDC_LOCAL_SYNC_ENABLED: {
+                if (HIWORD(wparam) != BN_CLICKED) return FALSE;
+                const auto user = pinyin::default_user_path();
+                const auto previous = pinyin::local_sync_enabled(user);
+                const bool enabled = IsDlgButtonChecked(window, IDC_LOCAL_SYNC_ENABLED) == BST_CHECKED;
+                pinyin::set_local_sync_enabled(user, enabled);
+                try { pinyin::launch_local_sync_worker(user, enabled); }
+                catch (...) { pinyin::set_local_sync_enabled(user, previous); throw; }
+                refresh(window); return TRUE;
+            }
             case IDC_REFRESH_STATISTICS: refresh(window); return TRUE;
             case IDC_SYNC_OPEN:
                 DialogBoxParamW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(IDD_SYNC_SETTINGS), window, sync_dialog, 0); return TRUE;

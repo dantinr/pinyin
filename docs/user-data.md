@@ -5,12 +5,15 @@
 | 文件或目录 | 用途 |
 | --- | --- |
 | `words.user.tsv` | 已确认的个人词语及选择次数 |
-| `main.tsv` | 在设置中确认合并的用户主词库，关闭本地学习时仍可使用 |
+| `main.tsv` | 手动或本地定时合并的用户主词库，关闭本地学习时仍可使用 |
 | `statistics.tsv` | 按日期汇总的中文输入字数、上屏次数和有效输入时间，不含原文 |
 | `vocabulary-growth.tsv` | 个人词库统计起始日期及每日新增字词数，不含词语 |
 | `words.user.tsv.*.disabled` | 本地学习、中文标点、自动英文的关闭标记 |
 | `words.user.tsv.icon-rotation.enabled` | 个性化设置中状态图标轮换的开启标记；默认无此文件 |
 | `words.user.tsv.candidate-colors` | 自定义候选窗底色和选中行背景色；恢复系统配色时删除，不参与词库同步 |
+| `words.user.tsv.local-sync.enabled` | 本地定时合并并清空个人词库的开启标记；默认无此文件，不参与云同步 |
+| `words.user.tsv.local-sync.status` | 本地同步最近尝试、最近成功时间和结果，不含输入原文 |
+| `words.user.tsv.local-sync.worker.lock`、`words.user.tsv.local-sync.running.lock` | 本地后台单实例及单次同步互斥锁，不含词条 |
 | `ico\*.ico` | 用户添加的状态图标，单色轮廓显示，不参与词库同步 |
 | `icon-rotation.cursor` | 上次轮换的图标文件名，多个应用共享，不含输入内容 |
 | `dictionaries\*.tsv` | 用户或 Agent 管理的辅词库 |

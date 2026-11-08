@@ -111,6 +111,7 @@ try {
         'data/README.md' = (Join-Path $repo 'data/README.md')
         'docs/agent-dictionaries.md' = (Join-Path $repo 'docs/agent-dictionaries.md')
         'docs/personal-dictionaries.md' = (Join-Path $repo 'docs/personal-dictionaries.md')
+        'docs/local-dictionary-sync.md' = (Join-Path $repo 'docs/local-dictionary-sync.md')
         'docs/user-data.md' = (Join-Path $repo 'docs/user-data.md')
         'docs/input-statistics.md' = (Join-Path $repo 'docs/input-statistics.md')
         'docs/settings.md' = (Join-Path $repo 'docs/settings.md')

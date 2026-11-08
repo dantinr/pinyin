@@ -100,6 +100,26 @@ int wmain(int argc, wchar_t* argv[]) {
                 "real TSF did not retain the learned short word in a new application");
             restarted.close(); check(restarted.unload_result == S_OK, "restarted phrase learning leaked DLL references");
         }
+        {
+            Harness spelling(argv[1]); spelling.type("jishu");
+            check(candidate(spelling, L"技", true), "cannot select the first character of jishu");
+            check(candidate(spelling, L"术", true) && spelling.store->text == L"技术" &&
+                spelling.compositions() == 0, "segmented jishu did not commit as one word");
+            check(read_user_dictionary(user).at({"ji shu", "技术"}) == 1,
+                "confirmed single-character segments lost the complete word reading");
+            spelling.type("jishu");
+            check(spelling.key(VK_SPACE) && spelling.store->text == L"技术技术" &&
+                read_user_dictionary(user).at({"ji shu", "技术"}) == 2,
+                "the next composition did not offer or relearn the confirmed word");
+            spelling.close(); check(spelling.unload_result == S_OK, "segmented learning leaked DLL references");
+        }
+        {
+            Harness restarted(argv[1]); restarted.type("jishu");
+            check(restarted.key(VK_SPACE) && restarted.store->text == L"技术" &&
+                read_user_dictionary(user).at({"ji shu", "技术"}) == 3,
+                "a restarted TSF service lost the confirmed word");
+            restarted.close(); check(restarted.unload_result == S_OK, "word learning restart leaked DLL references");
+        }
         CoUninitialize(); std::cout << "PASS: " << checks << " real TSF supplementary dictionary checks\n"; return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL after " << checks << " checks: " << error.what() << '\n';

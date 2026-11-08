@@ -39,6 +39,9 @@ std::size_t character_count(const std::string& text) {
 
 struct Sample { const char* query; const char* text; const char* pronunciation; };
 const Sample samples[] = {
+    {"jishu", "技术", "ji shu"},
+    {"js", "技术", "ji shu"},
+    {"jshu", "技术", "ji shu"},
     {"shishi", "试试", "shi shi"},
     {"ss", "试试", "shi shi"},
     {"shiyishi", "试一试", "shi yi shi"},
@@ -218,6 +221,7 @@ const Sample samples[] = {
     {"maikuantzh", "脉宽调制", "mai kuan tiao zhi"},
 };
 const Sample priorities[] = {
+    {"jishu", "技术", "ji shu"},
     {"shishi", "试试", "shi shi"},
     {"mingling", "命令", "ming ling"},
     {"nihao", "你好", "ni hao"},

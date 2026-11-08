@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <atomic>
 #include <fstream>
+#include <memory>
 #include <sstream>
 
 namespace pinyin {
@@ -224,7 +225,7 @@ std::filesystem::path main_dictionary_path(const std::filesystem::path& user_pat
     return user_path.empty() ? std::filesystem::path{} : user_path.parent_path() / L"main.tsv";
 }
 MainDictionaryMerge merge_user_into_main(const std::filesystem::path& base_path,
-    const std::filesystem::path& user_path) {
+    const std::filesystem::path& user_path, bool clear_after_merge) {
     if (user_path.empty()) throw std::runtime_error("user dictionary path is unavailable");
     MainDictionaryMerge result; result.path = main_dictionary_path(std::filesystem::absolute(user_path));
     ordinary_file(result.path);
@@ -234,14 +235,26 @@ MainDictionaryMerge merge_user_into_main(const std::filesystem::path& base_path,
             std::filesystem::equivalent(source, result.path, error))
             throw std::runtime_error("main dictionary must differ from its source files");
     }
+    std::unique_ptr<UserStore> personal_lock;
+    if (clear_after_merge) {
+        ordinary_file(user_path);
+        if (!std::filesystem::exists(user_path)) return result;
+        // Hold the personal writer lock through publication and clearing. New
+        // learning waits or remains pending in its application; it is not erased.
+        personal_lock = std::make_unique<UserStore>(user_path, 1000);
+    }
     const auto users = read_user_dictionary(user_path);
     result.imported = users.size();
+    if (clear_after_merge && users.empty()) return result;
     UserStore lock(result.path, 1000);
     auto combined = read_dictionary_file(base_path);
     const bool has_main = std::filesystem::exists(result.path);
+    std::set<UserKey> stored;
     if (has_main) {
         const auto current = read_dictionary_file(result.path);
-        for (const auto& word : current.lexicon.entries()) combined.lexicon.add(word);
+        for (const auto& word : current.lexicon.entries()) {
+            combined.lexicon.add(word); stored.emplace(word.pronunciation, word.text);
+        }
         for (const auto& comment : current.comments)
             if (std::find(combined.comments.begin(), combined.comments.end(), comment) == combined.comments.end())
                 combined.comments.push_back(comment);
@@ -254,7 +267,9 @@ MainDictionaryMerge merge_user_into_main(const std::filesystem::path& base_path,
         } else ++result.unchanged;
     }
     result.total = combined.lexicon.size();
-    if (!result.added) return result;
+    const bool publish = result.added || (clear_after_merge && std::any_of(users.begin(), users.end(),
+        [&](const auto& word) { return !stored.count(word.first); }));
+    if (!publish && !clear_after_merge) return result;
     const auto backups = result.path.parent_path() / L"backups";
     std::filesystem::create_directories(backups);
     SYSTEMTIME time{}; GetLocalTime(&time);
@@ -262,18 +277,51 @@ MainDictionaryMerge merge_user_into_main(const std::filesystem::path& base_path,
     swprintf_s(timestamp, L"%04u%02u%02u-%02u%02u%02u", time.wYear, time.wMonth, time.wDay,
         time.wHour, time.wMinute, time.wSecond);
     static std::atomic<unsigned long> sequence{0};
-    const auto original = has_main ? result.path : base_path;
-    for (int attempt = 0; attempt < 16; ++attempt) {
-        const auto backup = backups / (L"main." + std::wstring(timestamp) + L"." +
+    const auto backup_file = [&](const std::filesystem::path& original, const wchar_t* prefix) {
+      for (int attempt = 0; attempt < 16; ++attempt) {
+        const auto backup = backups / (std::wstring(prefix) + L"." + std::wstring(timestamp) + L"." +
             std::to_wstring(GetCurrentProcessId()) + L"." + std::to_wstring(++sequence) + L".tsv");
-        if (CopyFileW(original.c_str(), backup.c_str(), TRUE)) { result.backup = backup; break; }
+        if (CopyFileW(original.c_str(), backup.c_str(), TRUE)) return backup;
         if (GetLastError() != ERROR_FILE_EXISTS && GetLastError() != ERROR_ALREADY_EXISTS)
-            throw windows_error("cannot back up main dictionary");
+            throw windows_error("cannot back up dictionary");
+      }
+      throw std::runtime_error("cannot allocate dictionary backup");
+    };
+    if (clear_after_merge) {
+        result.personal_backup = backup_file(user_path, L"personal-before-main-sync");
+        if (read_user_dictionary(result.personal_backup) != users)
+            throw std::runtime_error("personal dictionary backup verification failed");
     }
-    if (result.backup.empty()) throw std::runtime_error("cannot allocate main dictionary backup");
-    write_atomic(result.path, serialize(combined,
-        "# private-pinyin main dictionary v1: text<TAB>pinyin<TAB>positive weight"));
+    if (publish) {
+        result.backup = backup_file(has_main ? result.path : base_path, L"main");
+        write_atomic(result.path, serialize(combined,
+            "# private-pinyin main dictionary v1: text<TAB>pinyin<TAB>positive weight"));
+    }
+    if (clear_after_merge) {
+        const auto saved = read_dictionary_file(result.path);
+        std::set<UserKey> verified;
+        for (const auto& word : saved.lexicon.entries()) verified.emplace(word.pronunciation, word.text);
+        for (const auto& word : users) if (!verified.count(word.first))
+            throw std::runtime_error("main dictionary verification failed; personal dictionary was kept");
+        personal_lock->save({}, false);
+        result.cleared = users.size();
+    }
     return result;
+}
+DictionaryTotals dictionary_totals(const std::filesystem::path& base_path,
+    const std::filesystem::path& user_path) {
+    auto combined = read_dictionary_file(base_path).lexicon;
+    const auto main = main_dictionary_path(user_path);
+    if (std::filesystem::exists(main)) {
+        const auto stored = read_dictionary_file(main);
+        for (const auto& word : stored.lexicon.entries()) combined.add(word);
+    }
+    SupplementaryDictionaries supplementary(user_path.parent_path() / L"dictionaries");
+    supplementary.refresh(); combined = supplementary.merged(combined);
+    for (const auto& word : read_user_dictionary(user_path)) combined.add({word.first.second, word.first.first, 1});
+    std::set<std::string> texts;
+    for (const auto& word : combined.entries()) texts.insert(word.text);
+    return {texts.size(), combined.size()};
 }
 bool MainDictionary::refresh() {
     if (path_.empty()) return false;
