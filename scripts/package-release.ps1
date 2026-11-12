@@ -102,6 +102,11 @@ try {
     $sources = [ordered]@{
         'LICENSE' = (Join-Path $repo 'LICENSE')
         'NOTICE' = (Join-Path $repo 'NOTICE')
+        'THIRD_PARTY_NOTICES.md' = (Join-Path $repo 'THIRD_PARTY_NOTICES.md')
+        'data/licenses/jieba-MIT.txt' = (Join-Path $repo 'data/licenses/jieba-MIT.txt')
+        'data/licenses/phrases-MIT.txt' = (Join-Path $repo 'data/licenses/phrases-MIT.txt')
+        'data/expansions/common-20261112.tsv' = (Join-Path $repo 'data/expansions/common-20261112.tsv')
+        'data/expansions/common-20261112.sources.json' = (Join-Path $repo 'data/expansions/common-20261112.sources.json')
         'private_pinyin_ime.dll' = (Join-Path $runtimeDir 'private_pinyin_ime.dll')
         'private_pinyin.exe' = (Join-Path $runtimeDir 'private_pinyin.exe')
         'private_pinyin_demo.exe' = (Join-Path $runtimeDir 'private_pinyin_demo.exe')

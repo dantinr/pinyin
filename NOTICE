@@ -3,6 +3,9 @@ PenBlade · 笔锋输入法
 本项目的代码、文档、自编词库及有权授权的自制图形采用 MIT License，
 完整许可条款见同目录 LICENSE。MIT 许可仅涵盖本项目有权授予的权利。
 
+常用词扩充使用 jieba 和 phrase-pinyin-data 的 MIT 数据，
+版权、固定来源及完整许可见 THIRD_PARTY_NOTICES.md 和 data/licenses/。
+
 角色主题图标
 ico/09-captain-america.ico、ico/10-hulk.ico、ico/11-spider-man.ico、
 ico/12-ant-man.ico、ico/13-rocket-raccoon.ico 及相关预览图采用

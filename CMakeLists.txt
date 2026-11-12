@@ -53,6 +53,18 @@ add_custom_command(TARGET private_pinyin POST_BUILD
     "${CMAKE_CURRENT_SOURCE_DIR}/tools/sync_server.py"
     "$<TARGET_FILE_DIR:private_pinyin>/tools/sync_server.py")
 
+function(copy_dictionary_notices target)
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${target}>/data/licenses"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.md"
+      "$<TARGET_FILE_DIR:${target}>/THIRD_PARTY_NOTICES.md"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/data/licenses/jieba-MIT.txt"
+      "$<TARGET_FILE_DIR:${target}>/data/licenses/jieba-MIT.txt"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/data/licenses/phrases-MIT.txt"
+      "$<TARGET_FILE_DIR:${target}>/data/licenses/phrases-MIT.txt")
+endfunction()
+copy_dictionary_notices(private_pinyin)
+
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   enable_language(RC)
   configure_file(src/ime/private_pinyin_ime.rc.in generated/private_pinyin_ime.rc @ONLY)
@@ -73,6 +85,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/ico"
       "$<TARGET_FILE_DIR:private_pinyin_ime>/ico")
   add_executable(private_pinyin_demo WIN32 src/ime_demo.cpp)
+  copy_dictionary_notices(private_pinyin_ime)
   target_include_directories(private_pinyin_demo PRIVATE src/ime tests)
   target_compile_definitions(private_pinyin_demo PRIVATE UNICODE _UNICODE _WIN32_WINNT=0x0A00)
   target_link_libraries(private_pinyin_demo PRIVATE pinyin_core ole32 oleaut32 uuid user32 gdi32)

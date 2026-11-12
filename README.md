@@ -130,4 +130,6 @@ PowerShell 7 和 Python 3 可启用相应 CLI、安装包及 HTTP 同步集成�
 
 项目代码、文档和自编词库采用 [MIT License](LICENSE)，允许使用、修改、分发和商用，包括闭源衍生版本；分发时须保留版权及许可声明。软件按原样提供，不作担保。
 
+常用词扩充使用 jieba 与 phrase-pinyin-data 的 MIT 数据，来源、筛选方式与须保留的上游许可见[第三方数据声明](THIRD_PARTY_NOTICES.md)。当前词库规模集中维护在[词库说明](data/README.md)。
+
 角色主题图标涉及的第三方角色与商标权利，以及随发布包携带的 Microsoft 运行库，授权范围见 [NOTICE](NOTICE)；本项目的 MIT 许可不代替第三方授权。

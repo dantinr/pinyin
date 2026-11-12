@@ -39,6 +39,32 @@ std::size_t character_count(const std::string& text) {
 
 struct Sample { const char* query; const char* text; const char* pronunciation; };
 const Sample samples[] = {
+    {"quanguo", "全国", "quan guo"},
+    {"huodong", "活动", "huo dong"},
+    {"ziyuan", "资源", "zi yuan"},
+    {"shiqing", "事情", "shi qing"},
+    {"yi ge", "一个", "yi ge"},
+    {"bu shi", "不是", "bu shi"},
+    {"zhezhong", "这种", "zhe zhong"},
+    {"diqu", "地区", "di qu"},
+    {"chengwei", "成为", "cheng wei"},
+    {"buneng", "不能", "bu neng"},
+    {"meili", "魅力", "mei li"},
+    {"zengzhang", "增长", "zeng zhang"},
+    {"juxing", "举行", "ju xing"},
+    {"yuhui", "迂回", "yu hui"},
+    {"baoza", "包扎", "bao za"},
+    {"lvedai", "略带", "lve dai"},
+    {"luedai", "略带", "lve dai"},
+    {"nvedai", "虐待", "nve dai"},
+    {"nuedai", "虐待", "nve dai"},
+    {"baolu", "暴露", "bao lu"},
+    {"jiliang", "脊梁", "ji liang"},
+    {"qiaoshou", "翘首", "qiao shou"},
+    {"boxue", "剥削", "bo xue"},
+    {"weiyuanhui", "委员会", "wei yuan hui"},
+    {"weiyh", "委员会", "wei yuan hui"},
+    {"wyh", "委员会", "wei yuan hui"},
     {"mei", "魅", "mei"},
     {"jishu", "技术", "ji shu"},
     {"js", "技术", "ji shu"},
@@ -460,6 +486,8 @@ int wmain(int argc, wchar_t* argv[]) {
         std::set<std::string> computing_words;
         std::set<std::string> daily_words;
         std::set<std::string> common_words, earlier_texts;
+        std::set<std::string> all_texts, frequency_words;
+        bool frequency_section = false;
         bool computing_section = false, daily_section = false;
         bool common_section = false, common_started = false;
         for (std::string line; std::getline(input, line);) {
@@ -468,6 +496,8 @@ int wmain(int argc, wchar_t* argv[]) {
             if (!line.empty() && line.back() == '\r') line.pop_back();
             if (line.empty()) continue;
             if (line.front() == '#') {
+                if (line == "# BEGIN frequency-selected common dictionary (2026-11-12)") frequency_section = true;
+                if (line == "# END frequency-selected common dictionary (2026-11-12)") frequency_section = false;
                 if (line == "# 计算机与编程词汇扩充（2026-10-13）") computing_section = true;
                 if (line == "# 计算机词汇所需补充单字读音") computing_section = false;
                 if (line == "# 日常词汇扩充（2026-10-13）") daily_section = true;
@@ -489,6 +519,11 @@ int wmain(int argc, wchar_t* argv[]) {
             if (!readings.emplace(text, pronunciation).second)
                 throw std::runtime_error("duplicate word/reading" + context);
             if (character_count(text) == 1) single_readings[text].insert(pronunciation);
+            if (frequency_section && character_count(text) > 1) {
+                if (all_texts.count(text) || !frequency_words.insert(text).second)
+                    throw std::runtime_error("frequency expansion must contain new word texts" + context);
+            }
+            all_texts.insert(text);
             if (computing_section && character_count(text) > 1) computing_words.insert(text);
             if (daily_section && character_count(text) > 1) daily_words.insert(text);
             if (!common_started) earlier_texts.insert(text);
@@ -502,6 +537,10 @@ int wmain(int argc, wchar_t* argv[]) {
         }
         check(!input.bad(), "dictionary audit could not finish reading");
         check(rows == lexicon.size(), "source rows were merged unexpectedly");
+        const auto word_texts = std::count_if(all_texts.begin(), all_texts.end(),
+            [](const auto& text) { return character_count(text) > 1; });
+        check(word_texts >= 50000, "production dictionary must contain at least 50000 distinct multi-character words");
+        check(frequency_words.size() >= 30000, "frequency expansion must contain at least 30000 new word texts");
         check(computing_words.size() >= 2000, "computing expansion must contain at least 2000 unique words");
         check(daily_words.size() >= 5000, "daily expansion must contain at least 5000 unique words");
         check(common_words.size() >= 5000, "common expansion must contain at least 5000 new unique words");

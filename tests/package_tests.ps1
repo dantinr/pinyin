@@ -19,7 +19,7 @@ $workspace = Join-Path $tempRoot ('private-pinyin-package-tests-' + [Guid]::NewG
 try {
     . (Join-Path $PackageDir 'scripts/package-common.ps1')
     $package = Read-PinyinPackage $PackageDir
-    foreach ($notice in @('LICENSE', 'NOTICE')) {
+    foreach ($notice in @('LICENSE', 'NOTICE', 'THIRD_PARTY_NOTICES.md', 'data/licenses/jieba-MIT.txt', 'data/licenses/phrases-MIT.txt')) {
         Check ($package.files.path -contains $notice) "Package manifest omitted $notice."
     }
     $null = New-Item -ItemType Directory -Path $workspace
@@ -27,7 +27,7 @@ try {
     $installed = Copy-PinyinPackage $PackageDir $installRoot
     Check ($installed -eq (Join-Path $installRoot $package.version)) 'Package was not installed in its versioned directory.'
     $null = Read-PinyinPackage $installed
-    foreach ($notice in @('LICENSE', 'NOTICE')) {
+    foreach ($notice in @('LICENSE', 'NOTICE', 'THIRD_PARTY_NOTICES.md', 'data/licenses/jieba-MIT.txt', 'data/licenses/phrases-MIT.txt')) {
         Check ((Get-FileHash -LiteralPath (Join-Path $installed $notice)).Hash -eq
             (Get-FileHash -LiteralPath (Join-Path $PackageDir $notice)).Hash) "Installation did not preserve $notice."
     }
