@@ -135,16 +135,32 @@ int wmain(int argc, wchar_t* argv[]) {
         check(input.page() == 1 && input.selected() == 9, "page down failed");
         result = input.handle(InputKey::digit, '2', pages); check(result.text == "词10", "page-relative numeric selection failed");
         type(input, pages, "nihao"); input.handle(InputKey::page_next, 0, pages); input.handle(InputKey::page_next, 0, pages);
-        check(input.page() == 2, "last partial page failed");
-        input.handle(InputKey::page_previous, 0, pages); check(input.page() == 1, "page up failed");
+        check(input.page() == 1, "paging exceeded the 15-candidate limit");
+        input.handle(InputKey::page_previous, 0, pages); check(input.page() == 0, "page up failed");
         result = input.select(9, pages); check(result.text == "词9", "mouse candidate selection failed");
         Lexicon many;
         for (int i = 0; i < 120; ++i) many.add({"词" + std::to_string(i), "ni hao", static_cast<std::uint64_t>(200 - i)});
         type(input, many, "nihao");
-        check(input.candidates().size() == 120, "composition silently truncated candidates to 90");
+        check(input.candidates().size() == 15 && input.candidates().front().text == "词0" &&
+            input.candidates().back().text == "词14", "candidate limit lost the highest ranked words");
         for (int i = 0; i < 13; ++i) input.handle(InputKey::page_next, 0, many);
-        result = input.handle(InputKey::digit, '3', many);
-        check(result.text == "词119" && input.empty(), "late-page candidate could not be selected");
+        check(input.page() == 1, "page down went beyond the final partial page");
+        for (int i = 0; i < 20; ++i) input.handle(InputKey::next, 0, many);
+        check(input.selected() == 14, "arrow navigation went beyond the final candidate");
+        check(input.select(15, many).action == InputAction::pass && !input.empty(),
+            "mouse selection accepted a hidden candidate");
+        result = input.handle(InputKey::digit, '6', many);
+        check(result.text == "词14" && input.empty(), "last candidate on the second page could not be selected");
+        UserDictionary promoted;
+        promoted[{"ni hao", "词119"}] = 100;
+        type(input, many, "nihao"); input.refresh_candidates(many, promoted);
+        check(input.candidates().size() == 15 && input.candidates().front().text == "词119",
+            "candidate refresh limited words before applying personal ranking");
+        input.handle(InputKey::page_next, 0, many);
+        result = input.handle(InputKey::digit, '7', many);
+        check(result.action == InputAction::update && input.literal() && input.raw() == "nihao7",
+            "a missing number on the final page selected a hidden candidate");
+        input.clear();
 
         Lexicon segmented;
         segmented.add({"如", "ru", 20}); segmented.add({"入", "ru", 10});

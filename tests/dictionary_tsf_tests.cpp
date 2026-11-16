@@ -100,25 +100,36 @@ int wmain(int argc, wchar_t* argv[]) {
                 "real TSF did not retain the learned short word in a new application");
             restarted.close(); check(restarted.unload_result == S_OK, "restarted phrase learning leaked DLL references");
         }
+        // A focused runtime keeps segment selection independent of top-15 ranking.
         {
-            Harness spelling(argv[1]); spelling.type("jishu");
-            check(candidate(spelling, L"技", true), "cannot select the first character of jishu");
-            check(candidate(spelling, L"术", true) && spelling.store->text == L"技术" &&
-                spelling.compositions() == 0, "segmented jishu did not commit as one word");
-            check(read_user_dictionary(user).at({"ji shu", "技术"}) == 1,
-                "confirmed single-character segments lost the complete word reading");
-            spelling.type("jishu");
-            check(spelling.key(VK_SPACE) && spelling.store->text == L"技术技术" &&
-                read_user_dictionary(user).at({"ji shu", "技术"}) == 2,
-                "the next composition did not offer or relearn the confirmed word");
-            spelling.close(); check(spelling.unload_result == S_OK, "segmented learning leaked DLL references");
-        }
-        {
-            Harness restarted(argv[1]); restarted.type("jishu");
-            check(restarted.key(VK_SPACE) && restarted.store->text == L"技术" &&
-                read_user_dictionary(user).at({"ji shu", "技术"}) == 3,
-                "a restarted TSF service lost the confirmed word");
-            restarted.close(); check(restarted.unload_result == S_OK, "word learning restart leaked DLL references");
+            TestWorkspace segment_workspace;
+            const auto user = default_user_path();
+            const auto segment_runtime = workspace.root / L"segments";
+            std::filesystem::create_directories(segment_runtime / L"data");
+            const auto segment_dll = segment_runtime / L"private_pinyin_ime.dll";
+            std::filesystem::copy_file(argv[1], segment_dll);
+            { std::ofstream file(segment_runtime / L"data" / L"base.tsv", std::ios::binary);
+              file << "技\tji\t10\n术\tshu\t10\n技术\tji shu\t20\n"; }
+            {
+                Harness spelling(segment_dll.c_str()); spelling.type("jishu");
+                check(candidate(spelling, L"技", true), "cannot select the first character of jishu");
+                check(candidate(spelling, L"术", true) && spelling.store->text == L"技术" &&
+                    spelling.compositions() == 0, "segmented jishu did not commit as one word");
+                check(read_user_dictionary(user).at({"ji shu", "技术"}) == 1,
+                    "confirmed single-character segments lost the complete word reading");
+                spelling.type("jishu");
+                check(spelling.key(VK_SPACE) && spelling.store->text == L"技术技术" &&
+                    read_user_dictionary(user).at({"ji shu", "技术"}) == 2,
+                    "the next composition did not offer or relearn the confirmed word");
+                spelling.close(); check(spelling.unload_result == S_OK, "segmented learning leaked DLL references");
+            }
+            {
+                Harness restarted(segment_dll.c_str()); restarted.type("jishu");
+                check(restarted.key(VK_SPACE) && restarted.store->text == L"技术" &&
+                    read_user_dictionary(user).at({"ji shu", "技术"}) == 3,
+                    "a restarted TSF service lost the confirmed word");
+                restarted.close(); check(restarted.unload_result == S_OK, "word learning restart leaked DLL references");
+            }
         }
         CoUninitialize(); std::cout << "PASS: " << checks << " real TSF supplementary dictionary checks\n"; return 0;
     } catch (const std::exception& error) {

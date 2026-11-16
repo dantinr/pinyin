@@ -668,14 +668,18 @@ int wmain(int argc, wchar_t* argv[]) {
             check(!contains(lexicon, sample.query, sample.text, sample.pronunciation),
                   std::string("incorrect common reading: ") + sample.text);
         pinyin::InputSession composition;
-        for (const char letter : std::string("tingzhi")) composition.handle(pinyin::InputKey::letter, letter, lexicon);
+        // Keep segment selection independent of the production top-15 ranking.
+        pinyin::Lexicon segment_lexicon;
+        for (const auto& entry : lexicon.entries())
+            if (entry.text == "停" || entry.text == "滞" || entry.text == "停滞") segment_lexicon.add(entry);
+        for (const char letter : std::string("tingzhi")) composition.handle(pinyin::InputKey::letter, letter, segment_lexicon);
         const auto stop = std::find_if(composition.candidates().begin(), composition.candidates().end(), [](const auto& word) { return word.text == "停"; });
         if (stop == composition.candidates().end()) throw std::runtime_error("missing 停 prefix for segmented regression");
-        auto result = composition.select(static_cast<std::size_t>(stop - composition.candidates().begin()), lexicon);
+        auto result = composition.select(static_cast<std::size_t>(stop - composition.candidates().begin()), segment_lexicon);
         check(result.action == pinyin::InputAction::update && composition.preedit() == "停zhi", "selecting 停 lost the remaining zhi");
         const auto stagnate = std::find_if(composition.candidates().begin(), composition.candidates().end(), [](const auto& word) { return word.text == "滞"; });
         if (stagnate == composition.candidates().end()) throw std::runtime_error("missing 滞 for independent selection");
-        result = composition.select(static_cast<std::size_t>(stagnate - composition.candidates().begin()), lexicon);
+        result = composition.select(static_cast<std::size_t>(stagnate - composition.candidates().begin()), segment_lexicon);
         check(result.action == pinyin::InputAction::commit && result.text == "停滞" && result.pronunciation == "ting zhi",
             "independent 滞 selection did not complete 停滞");
         std::cout << "PASS: audited " << rows << " rows, " << checks

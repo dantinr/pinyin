@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <fstream>
 #include <set>
 
 namespace {
@@ -57,13 +58,15 @@ int wmain(int argc, wchar_t* argv[]) {
         check(find(Lexicon{}.lookup("hulue", fragment_users), "忽略").pronunciation == "hu lve",
             "ue spelling did not recover a fragment of a learned phrase");
         InputSession umlaut;
-        type(umlaut, lexicon, "hulue");
-        umlaut.select(index_of(umlaut, "忽", 2), lexicon);
+        // Test segment editing independently of the production top-15 ranking.
+        boundaries.add({"忽", "hu", 1}); boundaries.add({"忽略", "hu lve", 10});
+        type(umlaut, boundaries, "hulue");
+        umlaut.select(index_of(umlaut, "忽", 2), boundaries);
         check(umlaut.preedit() == "忽lue", "ue segment consumed the wrong input range");
-        umlaut.handle(InputKey::home, 0, lexicon);
+        umlaut.handle(InputKey::home, 0, boundaries);
         check(umlaut.raw() == "hulue", "segment undo replaced typed ue with canonical ve");
-        umlaut.clear(); type(umlaut, lexicon, "hulue");
-        auto umlaut_result = umlaut.select(index_of(umlaut, "忽略", 5), lexicon);
+        umlaut.clear(); type(umlaut, boundaries, "hulue");
+        auto umlaut_result = umlaut.select(index_of(umlaut, "忽略", 5), boundaries);
         check(umlaut_result.action == InputAction::commit && umlaut_result.pronunciation == "hu lve",
             "ue confirmation saved the typed alias as a pronunciation");
         UserDictionary umlaut_users;
@@ -134,32 +137,44 @@ int wmain(int argc, wchar_t* argv[]) {
         }
         check(find(lexicon.lookup("chq", {}, 100), "重庆").pronunciation == "chong qing", "short query invented a polyphonic reading");
 
+        testing::TestWorkspace workspace;
+        const auto segment_path = workspace.root / L"segments.tsv";
+        Lexicon segment_lexicon;
+        {
+            std::ofstream file(segment_path, std::ios::binary);
+            for (const auto& entry : lexicon.entries()) {
+                if (entry.text != "你" && entry.text != "好" && entry.text != "你好" &&
+                    entry.text != "北京" && entry.text != "我" && entry.text != "在" && entry.text != "上班") continue;
+                segment_lexicon.add(entry);
+                file << entry.text << '\t' << entry.pronunciation << '\t' << entry.weight << '\n';
+            }
+        }
         InputSession input;
-        type(input, lexicon, "nhbj"); input.select(index_of(input, "你", 1), lexicon);
+        type(input, segment_lexicon, "nhbj"); input.select(index_of(input, "你", 1), segment_lexicon);
         check(input.preedit() == "你hbj", "initial selection consumed an unselected syllable");
-        input.select(index_of(input, "好", 1), lexicon);
+        input.select(index_of(input, "好", 1), segment_lexicon);
         check(input.preedit() == "你好bj", "second initial could not be selected independently");
-        auto result = input.select(index_of(input, "北京", 2), lexicon);
+        auto result = input.select(index_of(input, "北京", 2), segment_lexicon);
         check(result.action == InputAction::commit && result.text == "你好北京" && result.pronunciation == "ni hao bei jing" &&
             input.empty(), "short segmented phrase did not commit with canonical reading");
-        type(input, lexicon, "n'hbj"); input.select(index_of(input, "你", 2), lexicon);
+        type(input, segment_lexicon, "n'hbj"); input.select(index_of(input, "你", 2), segment_lexicon);
         check(input.preedit() == "你hbj", "initial separator consumption failed");
-        input.select(index_of(input, "好", 1), lexicon); input.handle(InputKey::home, 0, lexicon);
+        input.select(index_of(input, "好", 1), segment_lexicon); input.handle(InputKey::home, 0, segment_lexicon);
         check(input.raw() == "n'hbj" && input.confirmed_text().empty() && input.cursor() == 0,
             "Home did not restore original abbreviated spelling");
-        input.clear(); type(input, lexicon, "nh"); input.handle(InputKey::backspace, 0, lexicon);
+        input.clear(); type(input, segment_lexicon, "nh"); input.handle(InputKey::backspace, 0, segment_lexicon);
         check(input.raw() == "n" && find(input.candidates(), "你").input_end == 1, "abbreviated backspace left stale candidates");
-        input.handle(InputKey::letter, 'h', lexicon); input.handle(InputKey::home, 0, lexicon);
-        input.handle(InputKey::right, 0, lexicon); input.handle(InputKey::letter, 'i', lexicon);
+        input.handle(InputKey::letter, 'h', segment_lexicon); input.handle(InputKey::home, 0, segment_lexicon);
+        input.handle(InputKey::right, 0, segment_lexicon); input.handle(InputKey::letter, 'i', segment_lexicon);
         check(input.raw() == "nih" && input.candidates().front().text == "你好", "editing short/full mix failed");
-        result = input.handle(InputKey::enter, 0, lexicon);
+        result = input.handle(InputKey::enter, 0, segment_lexicon);
         check(result.text == "nih" && result.pronunciation.empty(), "raw abbreviation Enter became learnable");
-        type(input, lexicon, "nh"); result = input.handle(InputKey::escape, 0, lexicon);
+        type(input, segment_lexicon, "nh"); result = input.handle(InputKey::escape, 0, segment_lexicon);
         check(result.action == InputAction::cancel && result.pronunciation.empty() && input.empty(), "cancelled abbreviation became learnable");
 
-        testing::TestWorkspace workspace;
+
         const auto user_path = default_user_path();
-        LearningDictionary learning(argv[1], user_path); learning.refresh();
+        LearningDictionary learning(segment_path, user_path); learning.refresh();
         type(input, learning.lexicon(), "nhbj", learning.users());
         input.select(index_of(input, "你", 1), learning.lexicon(), learning.users());
         input.select(index_of(input, "好", 1), learning.lexicon(), learning.users());
@@ -167,7 +182,7 @@ int wmain(int argc, wchar_t* argv[]) {
         check(learning.remember(result) && learning.users().size() == 2 &&
             learning.users().at({"ni hao bei jing", "你好北京"}) == 1 && learning.users().at({"bei jing", "北京"}) == 1,
             "short phrase and selected word were not learned as full pronunciation");
-        LearningDictionary restarted(argv[1], user_path); restarted.refresh();
+        LearningDictionary restarted(segment_path, user_path); restarted.refresh();
         for (const auto& query : {"nhbj", "nihaobeijing", "nihaobj", "nhaobeijing"}) {
             const auto words = restarted.lexicon().lookup(query, restarted.users());
             check(!words.empty() && words.front().text == "你好北京" && words.front().pronunciation == "ni hao bei jing" &&
@@ -190,7 +205,7 @@ int wmain(int argc, wchar_t* argv[]) {
         result = input.select(index_of(input, "上班", 2), restarted.lexicon(), restarted.users());
         check(result.text == sentence && result.pronunciation == reading && restarted.remember(result),
             "initial sentence could not be corrected and learned");
-        LearningDictionary sentence_restart(argv[1], user_path); sentence_restart.refresh();
+        LearningDictionary sentence_restart(segment_path, user_path); sentence_restart.refresh();
         const auto short_sentence = sentence_restart.lexicon().decode("wzbjsb", sentence_restart.users());
         check(short_sentence.front().text == sentence && short_sentence.front().pronunciation == reading &&
             short_sentence.front().abbreviations == 6 && !short_sentence.front().synthesized,

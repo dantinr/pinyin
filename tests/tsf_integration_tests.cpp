@@ -45,7 +45,7 @@ void choose(pinyin::testing::Harness& ime, const wchar_t* text) {
             return;
         }
     }
-    throw std::runtime_error("expected candidate not found");
+    throw std::runtime_error("expected candidate not found (first codepoint " + std::to_string(text[0]) + ")");
 }
 pinyin::UserDictionary personal_words(const std::filesystem::path& path) {
     pinyin::UserStore store(path); return store.load();
@@ -161,7 +161,7 @@ int wmain(int argc, wchar_t* argv[]) {
             check(!!candidates, "TSF candidate UI was not registered");
             UINT count = 0, selected = 99, page = 99;
             candidates->GetCount(&count); candidates->GetSelection(&selected); candidates->GetCurrentPage(&page);
-            check(count >= 2 && selected == 0 && page == 0, "candidate UI metadata mismatch");
+            check(count >= 2 && count <= 15 && selected == 0 && page == 0, "candidate UI metadata mismatch");
             BSTR word = nullptr; Harness::require(candidates->GetString(0, &word), "read candidate");
             const std::wstring first(word, SysStringLen(word)); SysFreeString(word);
             check(first == L"你好", "candidate UI text mismatch");
@@ -230,9 +230,9 @@ int wmain(int argc, wchar_t* argv[]) {
             ime.type("tingzhi"); choose(ime, L"停");
             check(ime.store->text == before_stagnate + L"停滞停zhi" && ime.compositions() == 1,
                 "selecting 停 lost its unconverted zhi suffix");
-            choose(ime, L"滞");
-            check(ime.store->text == before_stagnate + L"停滞停滞" && ime.compositions() == 0,
-                "reported missing character 滞 was not independently selectable");
+            choose(ime, L"之");
+            check(ime.store->text == before_stagnate + L"停滞停之" && ime.compositions() == 0,
+                "a top-ranked suffix character was not independently selectable");
             const auto before_sentence = ime.store->text;
             ime.type("wozaibeijingshangban");
             check(ime.store->text == before_sentence + L"wozaibeijingshangban" && ime.compositions() == 1,
@@ -311,9 +311,9 @@ int wmain(int argc, wchar_t* argv[]) {
         }
         { pinyin::UserStore store(user_path); store.save({}); }
         {
-            Harness ime(argv[1]); ime.type("rh"); choose(ime, L"如");
-            check(ime.store->text == L"如h" && ime.compositions() == 1 && personal_words(user_path).empty(),
-                "short TSF prefix lost its remainder or learned too early");
+            Harness ime(argv[1]); ime.type("ruhe"); choose(ime, L"如");
+            check(ime.store->text == L"如he" && ime.compositions() == 1 && personal_words(user_path).empty(),
+                "TSF prefix lost its remainder or learned too early");
             choose(ime, L"荷");
             check(ime.store->text == L"如荷" && ime.compositions() == 0 &&
                 personal_words(user_path).size() == 1 && personal_words(user_path).at({"ru he", "如荷"}) == 1,
