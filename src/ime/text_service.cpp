@@ -387,14 +387,67 @@ class TextService final : public ITfTextInputProcessorEx, public ITfKeyEventSink
         if (FAILED(view_hr) || !view || FAILED(range_hr) || !range) {
             window_.hide(); if (element_) element_->set_visible(false); return S_OK;
         }
+        HWND owner = nullptr; view->GetWnd(&owner);
+        if (!current()) return S_OK;
+        if (!owner) owner = GetFocus();
+        const auto visible_owner = [&] {
+            return owner && IsWindowVisible(owner) && !IsIconic(GetAncestor(owner, GA_ROOT));
+        };
+        const auto usable = [](const RECT& rect) {
+            // A caret can be zero-width, but must have a nonempty vertical extent.
+            return rect.right >= rect.left && rect.bottom > rect.top;
+        };
         RECT caret{}; BOOL clipped = FALSE;
         // Query the composition range: zero-length caret ranges are unsupported by some editors.
         const auto hr = view->GetTextExt(cookie, range.Get(), &caret, &clipped);
         if (!current()) return S_OK;
-        if (FAILED(hr) || clipped) { window_.hide(); if (element_) element_->set_visible(false); return S_OK; }
-        HWND owner = nullptr; view->GetWnd(&owner);
-        if (!current()) return S_OK;
-        if (!owner) owner = GetFocus();
+        // Clipped means the returned rectangle covers only the visible portion,
+        // not that the entire candidate UI should disappear (e.g. slide editors).
+        bool positioned = SUCCEEDED(hr) && usable(caret);
+        if (!positioned) {
+            TF_SELECTION selection{}; ULONG fetched = 0;
+            const auto selection_hr = context->GetSelection(cookie, TF_DEFAULT_SELECTION, 1, &selection, &fetched);
+            ComPtr<ITfRange> insertion; insertion.Attach(selection.range);
+            if (!current()) return S_OK;
+            if (SUCCEEDED(selection_hr) && fetched && insertion) {
+                const auto collapse_hr = insertion->Collapse(cookie, TF_ANCHOR_END);
+                if (!current()) return S_OK;
+                if (SUCCEEDED(collapse_hr)) {
+                    const auto caret_hr = view->GetTextExt(cookie, insertion.Get(), &caret, &clipped);
+                    if (!current()) return S_OK;
+                    positioned = SUCCEEDED(caret_hr) && usable(caret);
+                }
+            }
+        }
+        if (!positioned && visible_owner()) {
+            GUITHREADINFO info{sizeof(info)};
+            if (GetGUIThreadInfo(GetCurrentThreadId(), &info) && info.hwndCaret &&
+                GetAncestor(info.hwndCaret, GA_ROOT) == GetAncestor(owner, GA_ROOT) && usable(info.rcCaret)) {
+                POINT origin{info.rcCaret.left, info.rcCaret.top}, end{info.rcCaret.right, info.rcCaret.bottom};
+                if (ClientToScreen(info.hwndCaret, &origin) && ClientToScreen(info.hwndCaret, &end)) {
+                    caret = {origin.x, origin.y, end.x, end.y}; positioned = true;
+                }
+            }
+        }
+        if (!positioned && visible_owner()) {
+            RECT viewport{};
+            const auto screen_hr = view->GetScreenExt(&viewport);
+            if (!current()) return S_OK;
+            if (FAILED(screen_hr) || !usable(viewport)) {
+                POINT origin{};
+                if (GetClientRect(owner, &viewport) && ClientToScreen(owner, &origin))
+                    OffsetRect(&viewport, origin.x, origin.y);
+                else viewport = {};
+            }
+            if (usable(viewport)) {
+                // Some hosts delay layout throughout composition. Keep selection
+                // available at the lower-left of their view until layout arrives.
+                caret = {viewport.left, viewport.bottom - 1, viewport.left, viewport.bottom}; positioned = true;
+            }
+        }
+        if (!positioned || (owner && !visible_owner())) {
+            window_.hide(); if (element_) element_->set_visible(false); return S_OK;
+        }
         window_.show(input_, caret, owner, [this](std::size_t index) {
             protect([&] {
                 if (!composing_) return S_FALSE;

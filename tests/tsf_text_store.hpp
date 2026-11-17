@@ -54,6 +54,12 @@ public:
     bool readonly = false;
     bool reject_writes = false; // A failed host edit must not advance IME/learning state.
     bool defer_locks = false;
+    HRESULT text_extent_result = S_OK;
+    HRESULT screen_extent_result = S_OK;
+    bool clipped_text = false;
+    bool empty_text_extent = false;
+    bool selection_extent_only = false;
+    std::function<void()> querying_extent;
     InputScope scope = IS_DEFAULT;
     std::function<void()> changed;
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** result) override {
@@ -194,15 +200,20 @@ public:
     HRESULT STDMETHODCALLTYPE GetACPFromPoint(TsViewCookie, const POINT*, DWORD, LONG*) override { return E_NOTIMPL; }
     HRESULT STDMETHODCALLTYPE GetTextExt(TsViewCookie, LONG start, LONG end, RECT* result, BOOL* clipped) override {
         if (!result || !clipped) return E_POINTER;
+        if (querying_extent) { auto callback = std::move(querying_extent); callback(); }
+        if (FAILED(text_extent_result)) return text_extent_result;
+        if (selection_extent_only && start != end) return TS_E_NOLAYOUT;
+        if (empty_text_extent) { *result = {}; *clipped = FALSE; return S_OK; }
         if (!valid(start, end)) return TS_E_INVALIDPOS;
         if (!window || !IsWindowVisible(window)) return TS_E_NOLAYOUT;
         RECT area{}; GetClientRect(window, &area);
         POINT origin{20, 84}; ClientToScreen(window, &origin);
         *result = {origin.x + start * 12, origin.y, origin.x + std::max(start + 1, end) * 12, origin.y + 28};
-        *clipped = FALSE; return S_OK;
+        *clipped = clipped_text; return S_OK;
     }
     HRESULT STDMETHODCALLTYPE GetScreenExt(TsViewCookie, RECT* result) override {
         if (!result) return E_POINTER; if (!window) return TS_E_NOLAYOUT;
+        if (FAILED(screen_extent_result)) return screen_extent_result;
         GetWindowRect(window, result); return S_OK;
     }
     HRESULT STDMETHODCALLTYPE GetWnd(TsViewCookie, HWND* result) override { if (!result) return E_POINTER; *result = window; return S_OK; }
