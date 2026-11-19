@@ -52,9 +52,11 @@ public:
                                  const UserDictionary& users = {},
                                  std::size_t limit = 5) const;
     // Full matches first, then convertible prefixes with a spellable remainder.
+    // Limit generated and completion suggestions separately from stored matches.
     std::vector<Candidate> lookup_composition(const std::string& input,
                                              const UserDictionary& users = {},
-                                             std::size_t limit = std::numeric_limits<std::size_t>::max()) const;
+                                             std::size_t limit = std::numeric_limits<std::size_t>::max(),
+                                             std::size_t recommendation_limit = std::numeric_limits<std::size_t>::max()) const;
     std::size_t size() const noexcept { return entries_.size(); }
     const std::vector<Entry>& entries() const noexcept { return entries_; }
 

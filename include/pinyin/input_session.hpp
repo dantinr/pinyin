@@ -17,7 +17,7 @@ struct InputResult {
 class InputSession {
 public:
     static constexpr std::size_t page_size = 9;
-    static constexpr std::size_t candidate_limit = 15;
+    static constexpr std::size_t recommendation_limit = 15;
     InputResult handle(InputKey key, char value, const Lexicon& lexicon, const UserDictionary& users = {});
     InputResult select(std::size_t index, const Lexicon& lexicon, const UserDictionary& users = {});
     // Confirm the highlighted candidate and the remaining segments before a

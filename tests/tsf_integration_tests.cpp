@@ -25,7 +25,7 @@ CandidateWindows visible_candidates() {
     EnumThreadWindows(GetCurrentThreadId(), collect_candidate, reinterpret_cast<LPARAM>(&result));
     return result;
 }
-void choose(pinyin::testing::Harness& ime, const wchar_t* text) {
+Microsoft::WRL::ComPtr<ITfCandidateListUIElement> candidate_list(pinyin::testing::Harness& ime) {
     using namespace pinyin::testing;
     ComPtr<ITfUIElementMgr> ui; Harness::require(ime.manager.As(&ui), "get UI manager");
     ComPtr<IEnumTfUIElements> enumeration; Harness::require(ui->EnumUIElements(&enumeration), "enumerate UI");
@@ -35,15 +35,22 @@ void choose(pinyin::testing::Harness& ime, const wchar_t* text) {
         GUID id{}; element->GetGUID(&id);
         if (id != candidate_id) continue;
         ComPtr<ITfCandidateListUIElement> candidates; Harness::require(element.As(&candidates), "get candidates");
-        UINT count = 0; candidates->GetCount(&count);
-        for (UINT i = 0; i < count; ++i) {
-            BSTR value = nullptr; Harness::require(candidates->GetString(i, &value), "read candidate");
-            const bool matches = std::wstring(value, SysStringLen(value)) == text; SysFreeString(value);
-            if (!matches) continue;
-            for (UINT step = 0; step < i; ++step) ime.key(VK_DOWN);
-            if (!ime.key(VK_SPACE)) throw std::runtime_error("candidate was not selected");
-            return;
-        }
+        return candidates;
+    }
+    return {};
+}
+std::wstring candidate_text(ITfCandidateListUIElement& candidates, UINT index) {
+    BSTR value = nullptr; pinyin::testing::Harness::require(candidates.GetString(index, &value), "read candidate");
+    std::wstring result(value, SysStringLen(value)); SysFreeString(value); return result;
+}
+void choose(pinyin::testing::Harness& ime, const wchar_t* text) {
+    const auto candidates = candidate_list(ime);
+    UINT count = 0; if (candidates) candidates->GetCount(&count);
+    for (UINT i = 0; i < count; ++i) {
+        if (candidate_text(*candidates.Get(), i) != text) continue;
+        for (UINT step = 0; step < i; ++step) ime.key(VK_DOWN);
+        if (!ime.key(VK_SPACE)) throw std::runtime_error("candidate was not selected");
+        return;
     }
     throw std::runtime_error("expected candidate not found (first codepoint " + std::to_string(text[0]) + ")");
 }
@@ -147,21 +154,11 @@ int wmain(int argc, wchar_t* argv[]) {
             SetKeyboardState(actual_keyboard);
             check(modifiers_restored, "synthetic keyboard input did not restore the test thread's state");
             check(ime.store->text == L"nihao" && ime.compositions() == 1, "real TSF preedit failed");
-            ComPtr<ITfCandidateListUIElement> candidates;
-            {
-                ComPtr<ITfUIElementMgr> ui; Harness::require(ime.manager.As(&ui), "get UI manager");
-                ComPtr<IEnumTfUIElements> enumeration; Harness::require(ui->EnumUIElements(&enumeration), "enumerate UI");
-                for (;;) {
-                    ComPtr<ITfUIElement> element; ULONG fetched = 0;
-                    if (enumeration->Next(1, &element, &fetched) != S_OK || !fetched) break;
-                    GUID id{}; element->GetGUID(&id);
-                    if (id == candidate_id) { element.As(&candidates); break; }
-                }
-            }
+            auto candidates = candidate_list(ime);
             check(!!candidates, "TSF candidate UI was not registered");
             UINT count = 0, selected = 99, page = 99;
             candidates->GetCount(&count); candidates->GetSelection(&selected); candidates->GetCurrentPage(&page);
-            check(count >= 2 && count <= 15 && selected == 0 && page == 0, "candidate UI metadata mismatch");
+            check(count >= 2 && selected == 0 && page == 0, "candidate UI metadata mismatch");
             BSTR word = nullptr; Harness::require(candidates->GetString(0, &word), "read candidate");
             const std::wstring first(word, SysStringLen(word)); SysFreeString(word);
             check(first == L"你好", "candidate UI text mismatch");
@@ -233,6 +230,26 @@ int wmain(int argc, wchar_t* argv[]) {
             choose(ime, L"之");
             check(ime.store->text == before_stagnate + L"停滞停之" && ime.compositions() == 0,
                 "a top-ranked suffix character was not independently selectable");
+            const auto before_stage = ime.store->text;
+            ime.type("xiayijieduan"); choose(ime, L"下");
+            check(ime.store->text == before_stage + L"下yijieduan" && ime.compositions() == 1,
+                "selecting 下 lost the remaining spelling");
+            choose(ime, L"一");
+            check(ime.store->text == before_stage + L"下一jieduan" && ime.compositions() == 1,
+                "the candidate limit prevented selecting 一 or consumed more than yi");
+            choose(ime, L"阶段");
+            check(ime.store->text == before_stage + L"下一阶段" && ime.compositions() == 0,
+                "segmented selection did not commit 下一阶段");
+            const auto before_yi = ime.store->text;
+            ime.type("yi");
+            auto yi = candidate_list(ime);
+            check(yi && yi->GetCount(&count) == S_OK && count >= 62, "normal yi candidates were truncated");
+            const auto third_page_word = candidate_text(*yi.Get(), 18);
+            check(ime.key(VK_NEXT) && ime.key(VK_NEXT) && yi->GetCurrentPage(&page) == S_OK && page == 2,
+                "yi could not reach its third candidate page");
+            check(ime.key('1') && ime.store->text == before_yi + third_page_word && ime.compositions() == 0,
+                "third-page yi candidate could not be selected by number");
+            yi.Reset();
             const auto before_sentence = ime.store->text;
             ime.type("wozaibeijingshangban");
             check(ime.store->text == before_sentence + L"wozaibeijingshangban" && ime.compositions() == 1,

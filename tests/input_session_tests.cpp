@@ -135,32 +135,52 @@ int wmain(int argc, wchar_t* argv[]) {
         check(input.page() == 1 && input.selected() == 9, "page down failed");
         result = input.handle(InputKey::digit, '2', pages); check(result.text == "词10", "page-relative numeric selection failed");
         type(input, pages, "nihao"); input.handle(InputKey::page_next, 0, pages); input.handle(InputKey::page_next, 0, pages);
-        check(input.page() == 1, "paging exceeded the 15-candidate limit");
-        input.handle(InputKey::page_previous, 0, pages); check(input.page() == 0, "page up failed");
+        check(input.page() == 2, "matching words did not reach the third page");
+        input.handle(InputKey::page_previous, 0, pages); check(input.page() == 1, "page up failed");
         result = input.select(9, pages); check(result.text == "词9", "mouse candidate selection failed");
         Lexicon many;
         for (int i = 0; i < 120; ++i) many.add({"词" + std::to_string(i), "ni hao", static_cast<std::uint64_t>(200 - i)});
         type(input, many, "nihao");
-        check(input.candidates().size() == 15 && input.candidates().front().text == "词0" &&
-            input.candidates().back().text == "词14", "candidate limit lost the highest ranked words");
+        check(input.candidates().size() == 120 && input.candidates().front().text == "词0" &&
+            input.candidates().back().text == "词119", "normal matches were truncated or reordered");
         for (int i = 0; i < 13; ++i) input.handle(InputKey::page_next, 0, many);
-        check(input.page() == 1, "page down went beyond the final partial page");
+        input.handle(InputKey::page_next, 0, many);
+        check(input.page() == 13, "page down went beyond the final partial page");
         for (int i = 0; i < 20; ++i) input.handle(InputKey::next, 0, many);
-        check(input.selected() == 14, "arrow navigation went beyond the final candidate");
-        check(input.select(15, many).action == InputAction::pass && !input.empty(),
-            "mouse selection accepted a hidden candidate");
-        result = input.handle(InputKey::digit, '6', many);
-        check(result.text == "词14" && input.empty(), "last candidate on the second page could not be selected");
+        check(input.selected() == 119, "arrow navigation went beyond the final candidate");
+        check(input.select(120, many).action == InputAction::pass && !input.empty(),
+            "mouse selection accepted a nonexistent candidate");
+        result = input.handle(InputKey::digit, '3', many);
+        check(result.text == "词119" && input.empty(), "the final normal candidate could not be selected");
         UserDictionary promoted;
         promoted[{"ni hao", "词119"}] = 100;
         type(input, many, "nihao"); input.refresh_candidates(many, promoted);
-        check(input.candidates().size() == 15 && input.candidates().front().text == "词119",
-            "candidate refresh limited words before applying personal ranking");
-        input.handle(InputKey::page_next, 0, many);
-        result = input.handle(InputKey::digit, '7', many);
-        check(result.action == InputAction::update && input.literal() && input.raw() == "nihao7",
-            "a missing number on the final page selected a hidden candidate");
+        check(input.candidates().size() == 120 && input.candidates().front().text == "词119",
+            "candidate refresh lost normal matches or personal ranking");
+        for (int i = 0; i < 13; ++i) input.handle(InputKey::page_next, 0, many);
+        result = input.handle(InputKey::digit, '4', many);
+        check(result.action == InputAction::update && input.literal() && input.raw() == "nihao4",
+            "a missing number on the final page selected a nonexistent candidate");
         input.clear();
+
+        Lexicon homophones;
+        for (int i = 0; i < 22; ++i) homophones.add({"正" + std::to_string(i), "yi", static_cast<std::uint64_t>(100 - i)});
+        for (int i = 0; i < 23; ++i) homophones.add({"补" + std::to_string(i), "yin", static_cast<std::uint64_t>(200 - i)});
+        type(input, homophones, "yi");
+        check(input.candidates().size() == 37 && index_of(input, "正21") == 21 &&
+            index_of(input, "补0") == 22 && input.candidates().back().text == "补14",
+            "completion recommendations did not have a separate 15-result budget");
+        input.handle(InputKey::letter, 'n', homophones);
+        check(!input.candidates()[index_of(input, "补22")].completed,
+            "a capped completion did not become selectable after its spelling was completed");
+        input.clear();
+
+        Lexicon alternate_readings;
+        alternate_readings.add({"同形", "ni hao", 200});
+        alternate_readings.add({"同形", "nen he a", 1});
+        const auto alternate = alternate_readings.lookup_composition("nha", {}, 15, 0);
+        check(alternate.size() == 1 && alternate.front().pronunciation == "nen he a",
+            "excluding a completion dropped the normal abbreviated match for the same word");
 
         Lexicon segmented;
         segmented.add({"如", "ru", 20}); segmented.add({"入", "ru", 10});

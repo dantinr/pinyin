@@ -9,6 +9,7 @@
 #include <set>
 #include <sstream>
 #include <stdexcept>
+#include <tuple>
 
 namespace pinyin {
 namespace {
@@ -389,13 +390,20 @@ void Lexicon::match_prefixes(std::size_t node, std::size_t offset, const std::st
 }
 
 std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
-                                                const UserDictionary& users, std::size_t limit) const {
+                                                const UserDictionary& users, std::size_t limit,
+                                                std::size_t recommendation_limit) const {
     const auto query = normalize_query(input);
+    const bool budgeted = recommendation_limit != std::numeric_limits<std::size_t>::max();
+    const auto recommended = [](const Candidate& word) { return word.synthesized || word.completed; };
+    // Retain a stored alternative until the recommendation budget is applied.
+    const auto key_for = [&](const Candidate& word) {
+        return std::make_tuple(word.text, word.input_end, budgeted && recommended(word));
+    };
     std::vector<Match> matches;
     match_prefixes(0, 0, query, matches);
     // Compute once rather than scan the remainder again for every prefix word.
     const auto suffixes = matches.empty() ? std::vector<bool>{} : spellable_suffixes(query);
-    std::map<std::pair<std::string, std::size_t>, Candidate> unique;
+    std::map<std::tuple<std::string, std::size_t, bool>, Candidate> unique;
     for (const auto& match : matches) {
         const auto end = match.end;
         if (!suffixes[end]) continue;
@@ -403,22 +411,22 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
         candidate.input_end = end;
         candidate.abbreviations = match.abbreviations;
         candidate.completed = match.completed;
-        const auto key = std::make_pair(candidate.text, end);
+        const auto key = key_for(candidate);
         const auto previous = unique.find(key);
         if (previous == unique.end() || preferred(candidate, previous->second) ||
             (!preferred(previous->second, candidate) && candidate.pronunciation < previous->second.pronunciation))
             unique[key] = std::move(candidate);
     }
     for (auto& candidate : personal_fragments(query, users)) {
-        const auto key = std::make_pair(candidate.text, candidate.input_end);
+        const auto key = key_for(candidate);
         const auto previous = unique.find(key);
         if (previous == unique.end() || preferred(candidate, previous->second)) unique[key] = std::move(candidate);
     }
-    if (limit) {
+    if (limit && recommendation_limit) {
         for (auto& candidate : decode_normalized(query, users, 5)) {
             if (!candidate.synthesized) continue; // Exact matches are already in the prefix index.
-            const auto key = std::make_pair(candidate.text, candidate.input_end);
-            if (!unique.count(key)) unique.emplace(key, std::move(candidate));
+            if (budgeted && unique.count({candidate.text, candidate.input_end, false})) continue;
+            unique.try_emplace(key_for(candidate), std::move(candidate));
         }
     }
     std::vector<Candidate> result;
@@ -429,11 +437,15 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
         if (a.synthesized != b.synthesized) return !a.synthesized;
         return preferred(a, b);
     });
-    // The same word may match both nihao and the shorter ni+h prefix. Display
-    // it once, retaining the longest consumption and then the best reading.
+    // Count only unique recommendations that actually make the list.
     std::set<std::string> displayed;
+    std::size_t recommendations = 0;
     result.erase(std::remove_if(result.begin(), result.end(), [&](const auto& candidate) {
-        return !displayed.insert(candidate.text).second;
+        const bool suggested = budgeted && recommended(candidate);
+        if (suggested && recommendations == recommendation_limit) return true;
+        if (!displayed.insert(candidate.text).second) return true;
+        if (suggested) ++recommendations;
+        return false;
     }), result.end());
     if (result.size() > limit) result.resize(limit);
     return result;

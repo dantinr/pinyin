@@ -40,7 +40,7 @@ void InputSession::refresh(const Lexicon& lexicon, const UserDictionary& users) 
     candidates_.clear(); selected_ = 0;
     if (raw_.empty()) { if (empty()) literal_ = false; return; }
     if (literal_) return;
-    try { candidates_ = lexicon.lookup_composition(raw_, users, candidate_limit); }
+    try { candidates_ = lexicon.lookup_composition(raw_, users, std::numeric_limits<std::size_t>::max(), recommendation_limit); }
     catch (const std::invalid_argument&) {} // An unfinished apostrophe is a valid editing state.
 }
 void InputSession::refresh_candidates(const Lexicon& lexicon, const UserDictionary& users) {
