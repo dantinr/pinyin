@@ -42,6 +42,8 @@ void layout(Harness& ime) {
 }
 }
 int wmain(int argc, wchar_t* argv[]) {
+    // Compare host and popup rectangles in the same physical screen coordinates.
+    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     const auto initialized = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     int checks = 0, result = 0;
     const auto check = [&](bool value, const char* message) { ++checks; if (!value) throw std::runtime_error(message); };
