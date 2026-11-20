@@ -77,7 +77,7 @@ std::array<std::size_t, 3> spelling_lengths(const std::string& syllable,
     };
 }
 
-std::vector<bool> spellable_suffixes(const std::string& query) {
+std::vector<bool> spellable_suffixes(const std::string& query, bool full_only = false) {
     std::vector<bool> reachable(query.size() + 1, false);
     reachable.back() = true;
     for (auto position = query.size(); position-- > 0;) {
@@ -87,12 +87,12 @@ std::vector<bool> spellable_suffixes(const std::string& query) {
             const auto& syllable = *it;
             const auto remaining = query.size() - position;
             // The last syllable may still be in progress, e.g. niha -> ni + ha.
-            if (remaining < syllable.size() && syllable.compare(0, remaining, query, position, remaining) == 0) {
+            if (!full_only && remaining < syllable.size() && syllable.compare(0, remaining, query, position, remaining) == 0) {
                 reachable[position] = true;
                 break;
             }
             for (const auto length : spelling_lengths(syllable, query, position)) {
-                if (!length) continue;
+                if (!length || (full_only && length != syllable.size())) continue;
                 auto next = position + length;
                 if (next < query.size() && query[next] == '\'') ++next;
                 if (reachable[next]) { reachable[position] = true; break; }
@@ -403,7 +403,10 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
     match_prefixes(0, 0, query, matches);
     // Compute once rather than scan the remainder again for every prefix word.
     const auto suffixes = matches.empty() ? std::vector<bool>{} : spellable_suffixes(query);
+    const auto exact_suffixes = matches.empty() ? std::vector<bool>{} : spellable_suffixes(query, true);
+    const bool full_spelling = !exact_suffixes.empty() && exact_suffixes.front();
     std::map<std::tuple<std::string, std::size_t, bool>, Candidate> unique;
+    bool exact_word = false;
     for (const auto& match : matches) {
         const auto end = match.end;
         if (!suffixes[end]) continue;
@@ -411,6 +414,7 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
         candidate.input_end = end;
         candidate.abbreviations = match.abbreviations;
         candidate.completed = match.completed;
+        if (end == query.size() && !match.abbreviations && !match.completed) exact_word = true;
         const auto key = key_for(candidate);
         const auto previous = unique.find(key);
         if (previous == unique.end() || preferred(candidate, previous->second) ||
@@ -422,8 +426,8 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
         const auto previous = unique.find(key);
         if (previous == unique.end() || preferred(candidate, previous->second)) unique[key] = std::move(candidate);
     }
-    if (limit && recommendation_limit) {
-        for (auto& candidate : decode_normalized(query, users, 5)) {
+    if (limit && recommendation_limit && !exact_word) {
+        for (auto& candidate : decode_normalized(query, users, 5, full_spelling)) {
             if (!candidate.synthesized) continue; // Exact matches are already in the prefix index.
             if (budgeted && unique.count({candidate.text, candidate.input_end, false})) continue;
             unique.try_emplace(key_for(candidate), std::move(candidate));
@@ -431,7 +435,15 @@ std::vector<Candidate> Lexicon::lookup_composition(const std::string& input,
     }
     std::vector<Candidate> result;
     for (auto& item : unique) result.push_back(std::move(item.second));
-    std::sort(result.begin(), result.end(), [](const Candidate& a, const Candidate& b) {
+    std::sort(result.begin(), result.end(), [&](const Candidate& a, const Candidate& b) {
+        if (full_spelling) {
+            const auto precision = [&](const Candidate& word) {
+                if (word.input_end == query.size() && !word.abbreviations) return 0;
+                if (word.input_end < query.size() && !word.abbreviations && exact_suffixes[word.input_end]) return 1;
+                return 2;
+            };
+            if (precision(a) != precision(b)) return precision(a) < precision(b);
+        }
         if (a.input_end != b.input_end) return a.input_end > b.input_end;
         if (a.abbreviations != b.abbreviations) return a.abbreviations < b.abbreviations;
         if (a.synthesized != b.synthesized) return !a.synthesized;

@@ -74,7 +74,8 @@ private:
     std::map<UserKey, std::size_t> entry_index_;
     std::map<std::string, std::set<std::string>> word_readings_;
     std::vector<Candidate> decode_normalized(const std::string& query,
-                                            const UserDictionary& users, std::size_t limit) const;
+                                            const UserDictionary& users, std::size_t limit,
+                                            bool conservative = false) const;
     void match_prefixes(std::size_t node, std::size_t offset, const std::string& query,
                         std::vector<Match>& result) const;
     std::vector<Candidate> personal_fragments(const std::string& query, const UserDictionary& users) const;

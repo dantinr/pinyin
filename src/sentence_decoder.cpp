@@ -1,11 +1,21 @@
 #include "pinyin/lexicon.hpp"
 #include <algorithm>
 #include <cmath>
+#include <string_view>
 
 namespace pinyin {
 namespace {
 constexpr std::size_t beam_width = 16;
 constexpr std::size_t edges_per_end = 16;
+constexpr double word_boundary_penalty = 2.0;
+constexpr double minimum_leading_margin = 0.15;
+
+std::string_view first_character(std::string_view text) {
+    if (text.empty()) return {};
+    std::size_t end = 1;
+    while (end < text.size() && (static_cast<unsigned char>(text[end]) & 0xc0) == 0x80) ++end;
+    return text.substr(0, end);
+}
 
 struct Path {
     std::string text, pronunciation, last_single, last_reading;
@@ -46,7 +56,8 @@ std::vector<Candidate> Lexicon::decode(const std::string& input,
     return decode_normalized(normalize_query(input), users, limit);
 }
 std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
-                                                 const UserDictionary& users, std::size_t limit) const {
+                                                 const UserDictionary& users, std::size_t limit,
+                                                 bool conservative) const {
     auto result = lookup(query, users, limit);
     for (auto& word : result) word.input_end = query.size();
     if (limit == 0 || (result.size() == limit && result.back().abbreviations == 0 && !result.back().completed)) return result;
@@ -70,7 +81,7 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
             // favors known multi-character words over arbitrary single letters
             // without rewarding extra syllables in an ambiguous segmentation.
             const auto score = count * (std::log1p(static_cast<double>(weight)) - std::log1p(12000.0)) +
-                2.0 * std::log1p(static_cast<double>(uses)) - 2.0 - (match.completed ? 0.75 : 0.0);
+                2.0 * std::log1p(static_cast<double>(uses)) - word_boundary_penalty - (match.completed ? 0.75 : 0.0);
             const bool single = count == 1 && std::count_if(word.text.begin(), word.text.end(), [](unsigned char c) {
                 return (c & 0xc0) != 0x80;
             }) == 1;
@@ -115,13 +126,29 @@ std::vector<Candidate> Lexicon::decode_normalized(const std::string& query,
         // does not retain a copy of every sentence prefix.
         paths[start].clear();
     }
-    for (auto& path : paths.back()) {
-        if (path.words < 2) continue;
+    const auto can_suggest = [&](const Path& path) {
+        return path.words >= 2 && !word_readings_.count(path.text) &&
+            std::none_of(result.begin(), result.end(), [&](const auto& word) { return word.text == path.text; });
+    };
+    auto& finished = paths.back();
+    const auto best = std::find_if(finished.begin(), finished.end(), can_suggest);
+    if (conservative && best != finished.end() && !best->abbreviations && !best->completed) {
+        // Fewer word boundaries alone cannot resolve an ambiguous first character.
+        const auto leading = first_character(best->text);
+        const bool ambiguous = std::any_of(best + 1, finished.end(), [&](const Path& alternative) {
+            if (alternative.abbreviations || alternative.completed || !can_suggest(alternative) ||
+                first_character(alternative.text) == leading) return false;
+            const auto boundary_advantage = word_boundary_penalty *
+                static_cast<double>(alternative.words > best->words ? alternative.words - best->words : 0);
+            return best->score - alternative.score - boundary_advantage < minimum_leading_margin;
+        });
+        if (ambiguous) finished.clear();
+        else finished.erase(best + 1, finished.end());
+    }
+    for (auto& path : finished) {
         // Whole-word readings stay authoritative even when there are multiple
         // possible ways to assemble the same text from shorter dictionary words.
-        const auto known = word_readings_.find(path.text);
-        if (known != word_readings_.end()) continue;
-        if (std::any_of(result.begin(), result.end(), [&](const auto& word) { return word.text == path.text; })) continue;
+        if (!can_suggest(path)) continue;
         Candidate word;
         word.text = std::move(path.text); word.pronunciation = std::move(path.pronunciation);
         word.score = path.score; word.input_end = query.size(); word.synthesized = true;

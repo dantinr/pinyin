@@ -1,4 +1,5 @@
 #include "pinyin/input_session.hpp"
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -181,6 +182,35 @@ int wmain(int argc, wchar_t* argv[]) {
         const auto alternate = alternate_readings.lookup_composition("nha", {}, 15, 0);
         check(alternate.size() == 1 && alternate.front().pronunciation == "nen he a",
             "excluding a completion dropped the normal abbreviated match for the same word");
+
+        Lexicon ambiguous_sentence;
+        ambiguous_sentence.add({"甲", "jia", 100}); ambiguous_sentence.add({"假", "jia", 100});
+        ambiguous_sentence.add({"走", "zou", 100}); ambiguous_sentence.add({"价增", "jia zeng", 10000});
+        const auto no_generated_sentence = [&] {
+            const auto& words = input.candidates();
+            return std::none_of(words.begin(), words.end(), [](const auto& word) { return word.synthesized; });
+        };
+        type(input, ambiguous_sentence, "jiazou");
+        check(no_generated_sentence(), "ambiguous whole-sentence guesses obscured the starting character");
+        const auto jia = index_of(input, "假");
+        check(jia < index_of(input, "价增") && input.candidates()[jia].input_end == 3,
+            "a longer abbreviated prefix displaced an exactly spelled prefix");
+        result = input.select(jia, ambiguous_sentence);
+        check(result.action == InputAction::update && input.raw() == "zou",
+            "selecting the exact prefix discarded the remaining spelling");
+        result = input.handle(InputKey::space, 0, ambiguous_sentence);
+        check(result.action == InputAction::commit && result.text == "假走" && result.pronunciation == "jia zou",
+            "selecting an exact prefix did not allow the rest to be committed");
+
+        ambiguous_sentence.add({"假走", "jia zou", 1});
+        type(input, ambiguous_sentence, "jiazou");
+        check(input.candidates().front().text == "假走" && no_generated_sentence(),
+            "an exact whole-word match still showed generated alternatives");
+        input.clear();
+        type(input, ambiguous_sentence, "jiaz");
+        check(input.candidates().front().text == "价增" && input.candidates().front().abbreviations == 1,
+            "prioritizing full spelling broke intentional mixed input");
+        input.clear();
 
         Lexicon segmented;
         segmented.add({"如", "ru", 20}); segmented.add({"入", "ru", 10});

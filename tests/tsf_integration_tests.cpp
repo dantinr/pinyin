@@ -240,6 +240,15 @@ int wmain(int argc, wchar_t* argv[]) {
             choose(ime, L"阶段");
             check(ime.store->text == before_stage + L"下一阶段" && ime.compositions() == 0,
                 "segmented selection did not commit 下一阶段");
+            const auto before_crowd = ime.store->text;
+            ime.type("jizaiyiqi");
+            {
+                const auto crowd = candidate_list(ime);
+                check(crowd && candidate_text(*crowd.Get(), 0) == L"挤在一起",
+                    "the exact 挤在一起 was not offered first");
+            }
+            check(ime.key(VK_SPACE) && ime.store->text == before_crowd + L"挤在一起" && ime.compositions() == 0,
+                "jizaiyiqi did not commit 挤在一起");
             const auto before_yi = ime.store->text;
             ime.type("yi");
             auto yi = candidate_list(ime);
